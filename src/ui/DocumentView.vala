@@ -2354,12 +2354,30 @@ namespace GDiagram {
         }
 
         private void setup_language() {
-            // Use the default language manager - the PlantUML language file
-            // should be installed to the system gtksourceview language-specs directory
+            // Use the default language manager
             var lang_manager = GtkSource.LanguageManager.get_default();
 
-            // Try to get the PlantUML language
-            var language = lang_manager.get_language("plantuml");
+            // Determine which language to use based on file extension or content
+            string lang_id = "plantuml";  // Default
+
+            // Check file extension first
+            if (document.file != null) {
+                string filename = document.file.get_basename().down();
+                if (filename.has_suffix(".mmd") || filename.has_suffix(".mermaid")) {
+                    lang_id = "mermaid";
+                }
+            } else {
+                // No file yet, check content
+                string content = source_buffer.text.down();
+                if (content.contains("flowchart") ||
+                    content.contains("sequencediagram") ||
+                    content.contains("statediagram-v2")) {
+                    lang_id = "mermaid";
+                }
+            }
+
+            // Apply the language
+            var language = lang_manager.get_language(lang_id);
             if (language != null) {
                 source_buffer.language = language;
             }

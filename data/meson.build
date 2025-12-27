@@ -26,8 +26,12 @@ install_data(
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps'),
 )
 
-# GtkSourceView language spec
+# GtkSourceView language specs
 install_data(
   'lang/plantuml.lang',
+  install_dir: join_paths(get_option('datadir'), 'gtksourceview-5', 'language-specs'),
+)
+install_data(
+  'lang/mermaid.lang',
   install_dir: join_paths(get_option('datadir'), 'gtksourceview-5', 'language-specs'),
 )

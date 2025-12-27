@@ -3,5 +3,6 @@
   <gresource prefix="/org/gnome/gDiagram">
     <file preprocess="xml-stripblanks">ui/main-window.ui</file>
     <file>lang/plantuml.lang</file>
+    <file>lang/mermaid.lang</file>
   </gresource>
 </gresources>
