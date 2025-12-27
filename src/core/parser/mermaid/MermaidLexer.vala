@@ -143,8 +143,16 @@ namespace GDiagram {
             if (c == '.' && peek() == '-') {
                 return scan_dotted_arrow(start_column);
             }
-            if (c == '<' && peek() == '-') {
-                return scan_left_arrow(start_column);
+            if (c == '<') {
+                // Check for inheritance arrow <|--
+                if (peek() == '|') {
+                    return scan_inheritance_arrow_left(start_column);
+                }
+                // Check for regular left arrow <--
+                if (peek() == '-') {
+                    return scan_left_arrow(start_column);
+                }
+                return new MermaidToken(MermaidTokenType.ASYMMETRIC_START, "<", line, start_column);
             }
 
             // Symbols - complex delimiters for node shapes
@@ -413,6 +421,20 @@ namespace GDiagram {
             }
 
             return new MermaidToken(MermaidTokenType.LINE_DOTTED, sb.str, line, start_column);
+        }
+
+        private MermaidToken scan_inheritance_arrow_left(int start_column) {
+            // We've seen '<', now we see '|'
+            var sb = new StringBuilder();
+            sb.append_c('<');
+            sb.append_c((char)advance()); // consume '|'
+
+            // Consume dashes
+            while (peek() == '-') {
+                sb.append_c((char)advance());
+            }
+
+            return new MermaidToken(MermaidTokenType.INHERITANCE_LEFT, sb.str, line, start_column);
         }
 
         private MermaidToken scan_left_arrow(int start_column) {

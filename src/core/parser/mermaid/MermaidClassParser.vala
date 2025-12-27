@@ -258,81 +258,45 @@ namespace GDiagram {
 
         private bool is_relationship_arrow() {
             // Check for various relationship arrows
-            // Inheritance: <|--
-            // Composition: *--
-            // Aggregation: o--
-            // Association: -->
-            // Dependency: ..>
-            // Realization: ..|>
-
-            // Look ahead for arrow patterns
-            if (check(MermaidTokenType.ARROW_SOLID) ||
-                check(MermaidTokenType.ARROW_DOTTED) ||
-                check(MermaidTokenType.ASTERISK) ||
-                check(MermaidTokenType.ASYMMETRIC_START) ||
-                check(MermaidTokenType.LINE_SOLID)) {
-                return true;
-            }
-
-            return false;
+            return check(MermaidTokenType.INHERITANCE_LEFT) ||
+                   check(MermaidTokenType.INHERITANCE_RIGHT) ||
+                   check(MermaidTokenType.COMPOSITION_LEFT) ||
+                   check(MermaidTokenType.COMPOSITION_RIGHT) ||
+                   check(MermaidTokenType.AGGREGATION_LEFT) ||
+                   check(MermaidTokenType.AGGREGATION_RIGHT) ||
+                   check(MermaidTokenType.REALIZATION_LEFT) ||
+                   check(MermaidTokenType.REALIZATION_RIGHT) ||
+                   check(MermaidTokenType.ARROW_SOLID) ||
+                   check(MermaidTokenType.ARROW_DOTTED);
         }
 
         private MermaidRelationType parse_relationship_arrow() throws GLib.Error {
-            // This is simplified - a full implementation would parse
-            // the complete arrow syntax with cardinality
-
             var token = advance();
 
-            // Map based on lexeme patterns
-            string arrow = token.lexeme;
+            // Map token types directly
+            switch (token.token_type) {
+                case MermaidTokenType.INHERITANCE_LEFT:
+                case MermaidTokenType.INHERITANCE_RIGHT:
+                    return MermaidRelationType.INHERITANCE;
 
-            if (arrow.contains("<|--") || (check(MermaidTokenType.PIPE) && peek_ahead_for("--"))) {
-                consume_until_arrow_end();
-                return MermaidRelationType.INHERITANCE;
-            }
+                case MermaidTokenType.COMPOSITION_LEFT:
+                case MermaidTokenType.COMPOSITION_RIGHT:
+                    return MermaidRelationType.COMPOSITION;
 
-            if (arrow.contains("*--") || arrow.has_prefix("*")) {
-                consume_until_arrow_end();
-                return MermaidRelationType.COMPOSITION;
-            }
+                case MermaidTokenType.AGGREGATION_LEFT:
+                case MermaidTokenType.AGGREGATION_RIGHT:
+                    return MermaidRelationType.AGGREGATION;
 
-            if (arrow.contains("o--") || arrow.has_prefix("o")) {
-                consume_until_arrow_end();
-                return MermaidRelationType.AGGREGATION;
-            }
+                case MermaidTokenType.REALIZATION_LEFT:
+                case MermaidTokenType.REALIZATION_RIGHT:
+                    return MermaidRelationType.REALIZATION;
 
-            if (arrow.contains("..|>")) {
-                return MermaidRelationType.REALIZATION;
-            }
+                case MermaidTokenType.ARROW_DOTTED:
+                    return MermaidRelationType.DEPENDENCY;
 
-            if (arrow.contains("..>") || arrow.contains("-.")) {
-                return MermaidRelationType.DEPENDENCY;
-            }
-
-            // Default to association
-            return MermaidRelationType.ASSOCIATION;
-        }
-
-        private bool peek_ahead_for(string pattern) {
-            // Simple lookahead for pattern
-            if (current + 1 < tokens.size) {
-                return tokens.get(current + 1).lexeme.contains(pattern);
-            }
-            return false;
-        }
-
-        private void consume_until_arrow_end() {
-            // Consume tokens until we get past the arrow
-            while (!check(MermaidTokenType.IDENTIFIER) && !check(MermaidTokenType.NEWLINE) && !is_at_end()) {
-                if (check(MermaidTokenType.ASYMMETRIC_START) ||
-                    check(MermaidTokenType.PIPE) ||
-                    check(MermaidTokenType.LINE_SOLID) ||
-                    check(MermaidTokenType.ASTERISK) ||
-                    check(MermaidTokenType.ARROW_SOLID)) {
-                    advance();
-                } else {
-                    break;
-                }
+                case MermaidTokenType.ARROW_SOLID:
+                default:
+                    return MermaidRelationType.ASSOCIATION;
             }
         }
 
