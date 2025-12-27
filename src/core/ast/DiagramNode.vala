@@ -1,4 +1,10 @@
 namespace GDiagram {
+    public enum DiagramFormat {
+        PLANTUML,
+        MERMAID,
+        UNKNOWN
+    }
+
     public enum DiagramType {
         SEQUENCE,
         CLASS,
@@ -11,6 +17,10 @@ namespace GDiagram {
         ER_DIAGRAM,
         MINDMAP,
         WBS,
+        // Mermaid-specific types
+        MERMAID_FLOWCHART,
+        MERMAID_SEQUENCE,
+        MERMAID_STATE,
         UNKNOWN
     }
 

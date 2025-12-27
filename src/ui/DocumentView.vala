@@ -25,6 +25,11 @@ namespace GDiagram {
         private MindMapDiagramParser mindmap_parser;
         private GraphvizRenderer renderer;
         private DiagramType current_diagram_type;
+        private DiagramFormat current_diagram_format;
+
+        // Mermaid parsers and renderers
+        private MermaidFlowchartParser mermaid_flowchart_parser;
+        private MermaidFlowchartRenderer mermaid_flowchart_renderer;
 
         // Search/Replace
         private Gtk.Revealer search_revealer;
@@ -91,6 +96,16 @@ namespace GDiagram {
             renderer = new GraphvizRenderer();
             renderer.layout_engine = app_settings.get_string("layout-engine");
             current_diagram_type = DiagramType.SEQUENCE;
+            current_diagram_format = DiagramFormat.PLANTUML;
+
+            // Initialize Mermaid parsers and renderers
+            mermaid_flowchart_parser = new MermaidFlowchartParser();
+            var mermaid_context = new Gvc.Context();
+            mermaid_flowchart_renderer = new MermaidFlowchartRenderer(
+                mermaid_context,
+                renderer.last_regions,
+                app_settings.get_string("layout-engine")
+            );
 
             // Listen for layout engine changes
             app_settings.changed["layout-engine"].connect(() => {
@@ -1133,10 +1148,18 @@ namespace GDiagram {
         private void render_preview() {
             string source = source_buffer.text;
 
-            // Preprocess to expand includes
-            string processed_source = preprocess_source(source);
+            // Detect format first (Mermaid vs PlantUML)
+            current_diagram_format = detect_diagram_format(source);
 
-            // Detect diagram type from processed source
+            if (current_diagram_format == DiagramFormat.MERMAID) {
+                // Mermaid diagrams don't need preprocessing
+                current_diagram_type = detect_mermaid_diagram_type(source);
+                render_mermaid_diagram(source);
+                return;
+            }
+
+            // PlantUML processing path
+            string processed_source = preprocess_source(source);
             current_diagram_type = detect_diagram_type(processed_source);
 
             switch (current_diagram_type) {
@@ -1320,6 +1343,117 @@ namespace GDiagram {
 
             // Default to sequence
             return DiagramType.SEQUENCE;
+        }
+
+        private DiagramFormat detect_diagram_format(string source) {
+            string lower = source.down();
+
+            // Check for Mermaid diagram type keywords
+            if (lower.contains("flowchart ") ||
+                lower.contains("sequencediagram") ||
+                lower.contains("statediagram-v2") ||
+                lower.contains("classdiagram") ||
+                lower.contains("erdiagram") ||
+                lower.contains("gantt") ||
+                lower.contains("gitgraph") ||
+                lower.contains("journey") ||
+                lower.has_prefix("flowchart") ||
+                lower.has_prefix("sequencediagram")) {
+                return DiagramFormat.MERMAID;
+            }
+
+            // Check for PlantUML markers
+            if (lower.contains("@startuml") || lower.contains("@enduml")) {
+                return DiagramFormat.PLANTUML;
+            }
+
+            // Check file extension if available
+            if (document.file != null) {
+                string filename = document.file.get_basename().down();
+                if (filename.has_suffix(".mmd") || filename.has_suffix(".mermaid")) {
+                    return DiagramFormat.MERMAID;
+                }
+                if (filename.has_suffix(".puml") || filename.has_suffix(".plantuml") || filename.has_suffix(".pu")) {
+                    return DiagramFormat.PLANTUML;
+                }
+            }
+
+            // Default to PlantUML for backward compatibility
+            return DiagramFormat.PLANTUML;
+        }
+
+        private DiagramType detect_mermaid_diagram_type(string source) {
+            string lower = source.down();
+
+            if (lower.contains("flowchart") || lower.has_prefix("flowchart")) {
+                return DiagramType.MERMAID_FLOWCHART;
+            }
+            if (lower.contains("sequencediagram") || lower.has_prefix("sequencediagram")) {
+                return DiagramType.MERMAID_SEQUENCE;
+            }
+            if (lower.contains("statediagram-v2") || lower.has_prefix("statediagram-v2")) {
+                return DiagramType.MERMAID_STATE;
+            }
+
+            return DiagramType.MERMAID_FLOWCHART;  // Default
+        }
+
+        private void render_mermaid_diagram(string source) {
+            switch (current_diagram_type) {
+                case DiagramType.MERMAID_FLOWCHART:
+                    render_mermaid_flowchart(source);
+                    break;
+                case DiagramType.MERMAID_SEQUENCE:
+                    // TODO: Implement sequence diagram renderer
+                    preview_pane.set_placeholder_text("Mermaid sequence diagrams not yet supported.\nUse flowchart for now.");
+                    break;
+                case DiagramType.MERMAID_STATE:
+                    // TODO: Implement state diagram renderer
+                    preview_pane.set_placeholder_text("Mermaid state diagrams not yet supported.\nUse flowchart for now.");
+                    break;
+                default:
+                    preview_pane.set_placeholder_text("Unknown Mermaid diagram type");
+                    break;
+            }
+        }
+
+        private void render_mermaid_flowchart(string source) {
+            var diagram = mermaid_flowchart_parser.parse(source);
+
+            if (diagram.has_errors()) {
+                apply_error_highlights(diagram.errors);
+                var sb = new StringBuilder();
+                sb.append("Parse errors:\n\n");
+                foreach (var err in diagram.errors) {
+                    sb.append(err.to_string());
+                    sb.append("\n");
+                }
+                preview_pane.set_placeholder_text(sb.str);
+                return;
+            }
+
+            clear_error_highlights();
+
+            if (diagram.nodes.size == 0) {
+                preview_pane.set_placeholder_text(
+                    "Enter Mermaid code to see preview.\n\n" +
+                    "Flowchart Example:\n" +
+                    "flowchart TD\n" +
+                    "    A[Start] --> B{Decision}\n" +
+                    "    B -->|Yes| C[Process]\n" +
+                    "    B -->|No| D[End]\n" +
+                    "    C --> D"
+                );
+                return;
+            }
+
+            // Render using Mermaid flowchart renderer
+            var surface = mermaid_flowchart_renderer.render_to_surface(diagram);
+            if (surface != null) {
+                preview_pane.set_surface(surface);
+            } else {
+                preview_pane.set_placeholder_text("Failed to render diagram");
+            }
         }
 
         private void render_sequence_diagram(string source) {
