@@ -8,17 +8,24 @@ A native GTK4/libadwaita diagram viewer and editor supporting PlantUML, Mermaid,
 
 - **Native rendering** using Graphviz (no Java required)
 - **Real-time preview** with debounced updates as you type
-- **Multiple diagram formats**: PlantUML and Mermaid (in development)
-- **Syntax highlighting** for diagram languages
-- **Multiple diagram types**:
+- **Multiple diagram formats**:
+  - **PlantUML** - Full support for all diagram types
+  - **Mermaid** - Flowchart and Sequence diagrams (✅ COMPLETE!)
+- **Syntax highlighting** for both PlantUML and Mermaid
+- **PlantUML diagram types**:
   - Sequence diagrams
   - Class diagrams
   - Activity diagrams
   - State diagrams (with stereotypes, history states)
   - Use Case diagrams (with system boundaries)
   - Component diagrams (with ports)
-  - Flowcharts (Mermaid - coming soon)
+  - Object, Deployment, ER, MindMap diagrams
+- **Mermaid diagram types**:
+  - ✅ **Flowcharts** - All node shapes, arrows, subgraphs, styling
+  - ✅ **Sequence diagrams** - Actors, messages, notes, loops, autonumbering
+  - 🔜 State diagrams (planned)
 - **Export** to SVG, PNG, and PDF
+- **Auto-format detection** - Recognizes .puml, .mmd file extensions
 - **Dark mode** support
 - **Multi-tab** editing
 
@@ -87,7 +94,9 @@ gdiagram diagram.puml
 gdiagram diagram.mmd
 ```
 
-### Example Diagram
+### Example Diagrams
+
+#### PlantUML Class Diagram
 
 ```plantuml
 @startuml
@@ -107,6 +116,30 @@ class Order {
 User "1" --> "*" Order : places
 @enduml
 ```
+
+#### Mermaid Flowchart
+
+```mermaid
+flowchart TD
+    Start[Start Process] --> Decision{Is Valid?}
+    Decision -->|Yes| Process[Process Data]
+    Decision -->|No| Error[Show Error]
+    Process --> End[End]
+    Error --> End
+```
+
+#### Mermaid Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Alice
+    participant Bob
+    Alice->>Bob: Hello Bob!
+    Bob-->>Alice: Hi Alice!
+    Note over Alice,Bob: Conversation
+```
+
+See more examples in the [`examples/`](examples/) directory.
 
 ## Building Packages
 
