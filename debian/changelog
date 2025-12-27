@@ -1,5 +1,17 @@
-gplantuml (0.1.0-1) unstable; urgency=medium
+gdiagram (0.1.0-1) unstable; urgency=medium
 
-  * Initial release.
+  * Initial release of gDiagram (formerly gPlantUML)
+  * Full PlantUML support (10+ diagram types)
+  * Complete Mermaid support (4 diagram types):
+    - Flowcharts with 11 node shapes
+    - Sequence diagrams with notes and loops
+    - State diagrams with special states
+    - Class diagrams with relationships
+  * Native Graphviz rendering (no Java or Node.js)
+  * Real-time preview with syntax highlighting
+  * Auto-format detection (.puml, .mmd)
+  * Export to SVG, PNG, PDF
+  * Multi-tab editing
+  * Dark mode support
 
- -- gPlantUML Developers <dev@example.com>  Wed, 25 Dec 2024 12:00:00 +0000
+ -- gDiagram Developers <packerlschupfer@github.com>  Fri, 27 Dec 2025 14:00:00 +0000
