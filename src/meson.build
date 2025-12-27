@@ -40,6 +40,7 @@ sources = files(
   'core/ast/DeploymentDiagram.vala',
   'core/ast/ERDiagram.vala',
   'core/ast/MindMapDiagram.vala',
+  'core/ast/MermaidDiagram.vala',
   'core/renderer/GraphvizRenderer.vala',
   'core/renderer/RenderUtils.vala',
   'core/renderer/sequence/SequenceDiagramRenderer.vala',

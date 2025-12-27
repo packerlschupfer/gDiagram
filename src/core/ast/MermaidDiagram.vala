@@ -1,0 +1,430 @@
+namespace GDiagram {
+    // Mermaid-specific diagram types
+    public enum MermaidDiagramType {
+        FLOWCHART,
+        SEQUENCE,
+        CLASS,
+        STATE,
+        ER_DIAGRAM,
+        GANTT,
+        PIE,
+        GIT_GRAPH,
+        USER_JOURNEY,
+        UNKNOWN
+    }
+
+    // ==================== FLOWCHART ====================
+
+    public enum FlowchartDirection {
+        TOP_DOWN,       // TD or TB
+        BOTTOM_UP,      // BT
+        LEFT_RIGHT,     // LR
+        RIGHT_LEFT      // RL
+    }
+
+    public enum FlowchartNodeShape {
+        RECTANGLE,      // [text]
+        ROUNDED,        // (text)
+        STADIUM,        // ([text])
+        SUBROUTINE,     // [[text]]
+        CYLINDRICAL,    // [(text)]
+        CIRCLE,         // ((text))
+        ASYMMETRIC,     // >text]
+        RHOMBUS,        // {text}
+        HEXAGON,        // {{text}}
+        PARALLELOGRAM,  // [/text/]
+        TRAPEZOID,      // [\\text/]
+        DOUBLE_CIRCLE   // (((text)))
+    }
+
+    public enum FlowchartEdgeType {
+        SOLID,          // -->
+        DOTTED,         // -.->
+        THICK,          // ==>
+        INVISIBLE       // ~~~
+    }
+
+    public enum FlowchartArrowType {
+        NORMAL,         // -->
+        OPEN,           // --o
+        CROSS,          // --x
+        CIRCLE,         // --o
+        NONE            // ---
+    }
+
+    public class FlowchartNode : Object {
+        public string id { get; set; }
+        public string text { get; set; }
+        public FlowchartNodeShape shape { get; set; }
+        public string? style_class { get; set; }
+        public string? click_action { get; set; }
+        public int source_line { get; set; }
+
+        public FlowchartNode(string id, string text, FlowchartNodeShape shape = FlowchartNodeShape.RECTANGLE, int line = 0) {
+            this.id = id;
+            this.text = text;
+            this.shape = shape;
+            this.style_class = null;
+            this.click_action = null;
+            this.source_line = line;
+        }
+
+        public string get_safe_id() {
+            // Ensure ID is valid for Graphviz
+            var sb = new StringBuilder();
+            foreach (char c in id.to_utf8()) {
+                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                    (c >= '0' && c <= '9') || c == '_') {
+                    sb.append_c(c);
+                } else {
+                    sb.append_c('_');
+                }
+            }
+            string result = sb.str;
+            if (result.length == 0 || (result[0] >= '0' && result[0] <= '9')) {
+                return "n_" + result;
+            }
+            return result;
+        }
+    }
+
+    public class FlowchartEdge : Object {
+        public FlowchartNode from { get; set; }
+        public FlowchartNode to { get; set; }
+        public string? label { get; set; }
+        public FlowchartEdgeType edge_type { get; set; }
+        public FlowchartArrowType arrow_type { get; set; }
+        public int min_length { get; set; default = 1; }  // For controlling spacing
+
+        public FlowchartEdge(FlowchartNode from, FlowchartNode to) {
+            this.from = from;
+            this.to = to;
+            this.label = null;
+            this.edge_type = FlowchartEdgeType.SOLID;
+            this.arrow_type = FlowchartArrowType.NORMAL;
+            this.min_length = 1;
+        }
+    }
+
+    public class FlowchartSubgraph : Object {
+        public string id { get; set; }
+        public string? title { get; set; }
+        public FlowchartDirection direction { get; set; default = FlowchartDirection.TOP_DOWN; }
+        public bool has_custom_direction { get; set; default = false; }
+        public Gee.ArrayList<FlowchartNode> nodes { get; private set; }
+        public Gee.ArrayList<FlowchartSubgraph> subgraphs { get; private set; }
+
+        public FlowchartSubgraph(string id) {
+            this.id = id;
+            this.title = null;
+            this.has_custom_direction = false;
+            this.nodes = new Gee.ArrayList<FlowchartNode>();
+            this.subgraphs = new Gee.ArrayList<FlowchartSubgraph>();
+        }
+    }
+
+    public class FlowchartStyle : Object {
+        public string class_name { get; set; }
+        public string? fill_color { get; set; }
+        public string? stroke_color { get; set; }
+        public string? stroke_width { get; set; }
+        public string? font_color { get; set; }
+
+        public FlowchartStyle(string class_name) {
+            this.class_name = class_name;
+            this.fill_color = null;
+            this.stroke_color = null;
+            this.stroke_width = null;
+            this.font_color = null;
+        }
+    }
+
+    public class MermaidFlowchart : Object {
+        public MermaidDiagramType diagram_type { get; private set; }
+        public FlowchartDirection direction { get; set; }
+        public Gee.ArrayList<FlowchartNode> nodes { get; private set; }
+        public Gee.ArrayList<FlowchartEdge> edges { get; private set; }
+        public Gee.ArrayList<FlowchartSubgraph> subgraphs { get; private set; }
+        public Gee.ArrayList<FlowchartStyle> styles { get; private set; }
+        public Gee.ArrayList<ParseError> errors { get; private set; }
+        public string? title { get; set; }
+
+        private Gee.HashMap<string, FlowchartNode> node_map;
+
+        public MermaidFlowchart() {
+            this.diagram_type = MermaidDiagramType.FLOWCHART;
+            this.direction = FlowchartDirection.TOP_DOWN;
+            this.nodes = new Gee.ArrayList<FlowchartNode>();
+            this.edges = new Gee.ArrayList<FlowchartEdge>();
+            this.subgraphs = new Gee.ArrayList<FlowchartSubgraph>();
+            this.styles = new Gee.ArrayList<FlowchartStyle>();
+            this.errors = new Gee.ArrayList<ParseError>();
+            this.node_map = new Gee.HashMap<string, FlowchartNode>();
+            this.title = null;
+        }
+
+        public void add_node(FlowchartNode node) {
+            if (!node_map.has_key(node.id)) {
+                nodes.add(node);
+                node_map.set(node.id, node);
+            }
+        }
+
+        public FlowchartNode? find_node(string id) {
+            return node_map.get(id);
+        }
+
+        public FlowchartNode get_or_create_node(string id, string? text = null) {
+            var existing = find_node(id);
+            if (existing != null) {
+                return existing;
+            }
+
+            var node = new FlowchartNode(id, text ?? id);
+            add_node(node);
+            return node;
+        }
+
+        public void add_edge(FlowchartEdge edge) {
+            edges.add(edge);
+        }
+
+        public bool has_errors() {
+            return errors.size > 0;
+        }
+    }
+
+    // ==================== MERMAID SEQUENCE DIAGRAM ====================
+
+    public enum MermaidArrowType {
+        SOLID_ARROW,        // ->
+        DOTTED_ARROW,       // -->
+        SOLID_LINE,         // -
+        DOTTED_LINE,        // --
+        SOLID_CROSS,        // -x
+        DOTTED_CROSS,       // --x
+        SOLID_OPEN,         // -)
+        DOTTED_OPEN         // --)
+    }
+
+    public class MermaidActor : Object {
+        public string id { get; set; }
+        public string? alias { get; set; }
+        public bool is_participant { get; set; }  // false = actor
+        public int source_line { get; set; }
+
+        public MermaidActor(string id, bool is_participant = true, int line = 0) {
+            this.id = id;
+            this.alias = null;
+            this.is_participant = is_participant;
+            this.source_line = line;
+        }
+
+        public string get_display_name() {
+            return alias ?? id;
+        }
+    }
+
+    public class MermaidMessage : Object {
+        public MermaidActor from { get; set; }
+        public MermaidActor to { get; set; }
+        public string? text { get; set; }
+        public MermaidArrowType arrow_type { get; set; }
+        public bool is_activation { get; set; }
+        public bool is_deactivation { get; set; }
+
+        public MermaidMessage(MermaidActor from, MermaidActor to) {
+            this.from = from;
+            this.to = to;
+            this.text = null;
+            this.arrow_type = MermaidArrowType.SOLID_ARROW;
+            this.is_activation = false;
+            this.is_deactivation = false;
+        }
+    }
+
+    public class MermaidNote : Object {
+        public string text { get; set; }
+        public MermaidActor? over_actor { get; set; }
+        public MermaidActor? from_actor { get; set; }
+        public MermaidActor? to_actor { get; set; }
+        public bool is_right { get; set; }  // right of / left of
+
+        public MermaidNote(string text) {
+            this.text = text;
+            this.over_actor = null;
+            this.from_actor = null;
+            this.to_actor = null;
+            this.is_right = true;
+        }
+    }
+
+    public enum MermaidLoopType {
+        LOOP,
+        ALT,
+        OPT,
+        PAR,
+        CRITICAL,
+        BREAK,
+        RECT
+    }
+
+    public class MermaidLoop : Object {
+        public MermaidLoopType loop_type { get; set; }
+        public string? condition { get; set; }
+        public Gee.ArrayList<MermaidMessage> messages { get; private set; }
+        public Gee.ArrayList<MermaidNote> notes { get; private set; }
+
+        public MermaidLoop(MermaidLoopType type) {
+            this.loop_type = type;
+            this.condition = null;
+            this.messages = new Gee.ArrayList<MermaidMessage>();
+            this.notes = new Gee.ArrayList<MermaidNote>();
+        }
+    }
+
+    public class MermaidSequenceDiagram : Object {
+        public MermaidDiagramType diagram_type { get; private set; }
+        public Gee.ArrayList<MermaidActor> actors { get; private set; }
+        public Gee.ArrayList<MermaidMessage> messages { get; private set; }
+        public Gee.ArrayList<MermaidNote> notes { get; private set; }
+        public Gee.ArrayList<MermaidLoop> loops { get; private set; }
+        public Gee.ArrayList<ParseError> errors { get; private set; }
+        public string? title { get; set; }
+        public bool autonumber { get; set; }
+
+        private Gee.HashMap<string, MermaidActor> actor_map;
+
+        public MermaidSequenceDiagram() {
+            this.diagram_type = MermaidDiagramType.SEQUENCE;
+            this.actors = new Gee.ArrayList<MermaidActor>();
+            this.messages = new Gee.ArrayList<MermaidMessage>();
+            this.notes = new Gee.ArrayList<MermaidNote>();
+            this.loops = new Gee.ArrayList<MermaidLoop>();
+            this.errors = new Gee.ArrayList<ParseError>();
+            this.actor_map = new Gee.HashMap<string, MermaidActor>();
+            this.title = null;
+            this.autonumber = false;
+        }
+
+        public void add_actor(MermaidActor actor) {
+            if (!actor_map.has_key(actor.id)) {
+                actors.add(actor);
+                actor_map.set(actor.id, actor);
+            }
+        }
+
+        public MermaidActor? find_actor(string id) {
+            return actor_map.get(id);
+        }
+
+        public MermaidActor get_or_create_actor(string id) {
+            var existing = find_actor(id);
+            if (existing != null) {
+                return existing;
+            }
+
+            var actor = new MermaidActor(id);
+            add_actor(actor);
+            return actor;
+        }
+
+        public bool has_errors() {
+            return errors.size > 0;
+        }
+    }
+
+    // ==================== MERMAID STATE DIAGRAM ====================
+
+    public enum MermaidStateType {
+        NORMAL,
+        START,          // [*]
+        END,            // [*]
+        CHOICE,         // <<choice>>
+        FORK,           // <<fork>>
+        JOIN            // <<join>>
+    }
+
+    public class MermaidState : Object {
+        public string id { get; set; }
+        public string? description { get; set; }
+        public MermaidStateType state_type { get; set; }
+        public string? note { get; set; }
+        public int source_line { get; set; }
+
+        public MermaidState(string id, MermaidStateType type = MermaidStateType.NORMAL, int line = 0) {
+            this.id = id;
+            this.description = null;
+            this.state_type = type;
+            this.note = null;
+            this.source_line = line;
+        }
+    }
+
+    public class MermaidTransition : Object {
+        public MermaidState from { get; set; }
+        public MermaidState to { get; set; }
+        public string? label { get; set; }
+
+        public MermaidTransition(MermaidState from, MermaidState to) {
+            this.from = from;
+            this.to = to;
+            this.label = null;
+        }
+    }
+
+    public class MermaidStateDiagram : Object {
+        public MermaidDiagramType diagram_type { get; private set; }
+        public Gee.ArrayList<MermaidState> states { get; private set; }
+        public Gee.ArrayList<MermaidTransition> transitions { get; private set; }
+        public Gee.ArrayList<ParseError> errors { get; private set; }
+        public string? title { get; set; }
+        public MermaidState? start_state { get; set; }
+        public MermaidState? end_state { get; set; }
+
+        private Gee.HashMap<string, MermaidState> state_map;
+
+        public MermaidStateDiagram() {
+            this.diagram_type = MermaidDiagramType.STATE;
+            this.states = new Gee.ArrayList<MermaidState>();
+            this.transitions = new Gee.ArrayList<MermaidTransition>();
+            this.errors = new Gee.ArrayList<ParseError>();
+            this.state_map = new Gee.HashMap<string, MermaidState>();
+            this.title = null;
+            this.start_state = null;
+            this.end_state = null;
+        }
+
+        public void add_state(MermaidState state) {
+            if (!state_map.has_key(state.id)) {
+                states.add(state);
+                state_map.set(state.id, state);
+
+                if (state.state_type == MermaidStateType.START) {
+                    start_state = state;
+                } else if (state.state_type == MermaidStateType.END) {
+                    end_state = state;
+                }
+            }
+        }
+
+        public MermaidState? find_state(string id) {
+            return state_map.get(id);
+        }
+
+        public MermaidState get_or_create_state(string id) {
+            var existing = find_state(id);
+            if (existing != null) {
+                return existing;
+            }
+
+            var state = new MermaidState(id);
+            add_state(state);
+            return state;
+        }
+
+        public bool has_errors() {
+            return errors.size > 0;
+        }
+    }
+}
