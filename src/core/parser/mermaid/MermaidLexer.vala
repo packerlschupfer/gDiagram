@@ -192,6 +192,13 @@ namespace GDiagram {
             if (c == '%') {
                 return new MermaidToken(MermaidTokenType.PERCENT, "%", line, start_column);
             }
+            if (c == '~') {
+                // Check if it's invisible line or just tilde
+                if (peek() == '~') {
+                    return scan_invisible_line(start_column);
+                }
+                return new MermaidToken(MermaidTokenType.TILDE, "~", line, start_column);
+            }
             if (c == '/') {
                 return new MermaidToken(MermaidTokenType.SLASH_RBRACKET, "/", line, start_column);
             }

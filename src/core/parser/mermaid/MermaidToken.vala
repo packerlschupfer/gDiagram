@@ -124,6 +124,17 @@ namespace GDiagram {
         EQUALS,                 // =
         PLUS,                   // +
         ASTERISK,               // *
+        TILDE,                  // ~
+
+        // Relationship arrows (for class diagrams)
+        INHERITANCE_LEFT,       // <|--
+        INHERITANCE_RIGHT,      // --|>
+        COMPOSITION_LEFT,       // *--
+        COMPOSITION_RIGHT,      // --*
+        AGGREGATION_LEFT,       // o--
+        AGGREGATION_RIGHT,      // --o
+        REALIZATION_LEFT,       // <|..
+        REALIZATION_RIGHT,      // ..|>
 
         // Text and literals
         IDENTIFIER,             // alphanumeric identifier
