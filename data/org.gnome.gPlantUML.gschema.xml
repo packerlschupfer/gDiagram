@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.gPlantUML" path="/org/gnome/gPlantUML/">
+    <key name="window-width" type="i">
+      <default>1200</default>
+      <summary>Window width</summary>
+    </key>
+    <key name="window-height" type="i">
+      <default>800</default>
+      <summary>Window height</summary>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized</summary>
+    </key>
+    <key name="editor-font" type="s">
+      <default>'Monospace 12'</default>
+      <summary>Editor font</summary>
+    </key>
+    <key name="show-line-numbers" type="b">
+      <default>true</default>
+      <summary>Show line numbers</summary>
+    </key>
+    <key name="highlight-current-line" type="b">
+      <default>true</default>
+      <summary>Highlight current line</summary>
+    </key>
+    <key name="render-delay" type="i">
+      <default>300</default>
+      <summary>Render delay in milliseconds</summary>
+      <description>Delay before re-rendering after typing stops</description>
+    </key>
+    <key name="layout-engine" type="s">
+      <default>'dot'</default>
+      <summary>Layout engine</summary>
+      <description>Graphviz layout engine (dot, neato, fdp, sfdp, circo, twopi)</description>
+    </key>
+    <key name="recent-files" type="as">
+      <default>[]</default>
+      <summary>Recent files</summary>
+      <description>List of recently opened file paths</description>
+    </key>
+    <key name="max-recent-files" type="i">
+      <default>10</default>
+      <summary>Maximum recent files</summary>
+      <description>Maximum number of recent files to remember</description>
+    </key>
+    <key name="split-orientation" type="s">
+      <default>'horizontal'</default>
+      <summary>Split view orientation</summary>
+      <description>Orientation of the editor/preview split (horizontal or vertical)</description>
+    </key>
+  </schema>
+</schemalist>

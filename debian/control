@@ -1,0 +1,35 @@
+Source: gplantuml
+Section: devel
+Priority: optional
+Maintainer: gPlantUML Developers <dev@example.com>
+Build-Depends: debhelper-compat (= 13),
+               meson (>= 0.60),
+               valac (>= 0.56),
+               libgtk-4-dev (>= 4.10),
+               libadwaita-1-dev (>= 1.4),
+               libgtksourceview-5-dev (>= 5.0),
+               libgee-0.8-dev,
+               libgraphviz-dev,
+               librsvg2-dev,
+               libcairo2-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/user/gplantuml
+Rules-Requires-Root: no
+
+Package: gplantuml
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         graphviz
+Description: Native PlantUML diagram viewer and editor
+ gPlantUML is a native GTK4/libadwaita application for viewing and editing
+ PlantUML diagrams. It provides real-time preview of your diagrams as you
+ type, with full syntax highlighting and error detection.
+ .
+ Features:
+  * Native rendering using Graphviz (no Java required)
+  * Real-time diagram preview
+  * Syntax highlighting for PlantUML
+  * Support for Sequence, Class, Activity, State, Use Case, Component diagrams
+  * Export to SVG, PNG, and PDF
+  * Dark mode support
