@@ -1,0 +1,61 @@
+version: 1
+script:
+  - rm -rf AppDir || true
+  - meson setup build --prefix=/usr
+  - meson compile -C build
+  - DESTDIR=$PWD/AppDir meson install -C build
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: org.gnome.gPlantUML
+    name: gPlantUML
+    icon: org.gnome.gPlantUML
+    version: 0.1.0
+    exec: usr/bin/gplantuml
+    exec_args: $@
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C'
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse'
+
+    include:
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libgtksourceview-5-0
+      - libgee-0.8-2
+      - libgraphviz-dev
+      - librsvg2-2
+      - graphviz
+      - libcairo2
+
+    exclude:
+      - humanity-icon-theme
+      - adwaita-icon-theme-full
+
+  files:
+    include:
+      - usr/share/icons/hicolor/scalable/apps/org.gnome.gPlantUML.svg
+
+  runtime:
+    env:
+      APPDIR_LIBRARY_PATH: $APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/usr/lib
+
+  test:
+    fedora-30:
+      image: appimagecrafters/tests-env:fedora-30
+      command: ./AppRun --help
+    debian-stable:
+      image: appimagecrafters/tests-env:debian-stable
+      command: ./AppRun --help
+    ubuntu-xenial:
+      image: appimagecrafters/tests-env:ubuntu-xenial
+      command: ./AppRun --help
+
+AppImage:
+  arch: x86_64
+  update-information: gh-releases-zsync|user|gplantuml|latest|gPlantUML-*x86_64.AppImage.zsync

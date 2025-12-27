@@ -1,0 +1,44 @@
+flowchart TD
+    Start[Start Process]
+    Input{Validate Input?}
+    Process[Process Data]
+    Transform((Transform))
+    Validate{Valid?}
+    Save[(Save to DB)]
+    Success([Success!])
+    Error[Error Handler]
+    Retry{Retry?}
+    End[End]
+
+    Start --> Input
+    Input -->|Valid| Process
+    Input -->|Invalid| Error
+
+    Process --> Transform
+    Transform --> Validate
+
+    Validate -->|Pass| Save
+    Validate -->|Fail| Error
+
+    Save --> Success
+    Success --> End
+
+    Error --> Retry
+    Retry -->|Yes| Input
+    Retry -->|No| End
+
+    %% Define reusable style classes
+    classDef successStyle fill:#90EE90,stroke:#228B22,stroke-width:2
+    classDef errorStyle fill:#FFB6C1,stroke:#DC143C,stroke-width:2
+    classDef processStyle fill:#87CEEB,stroke:#4682B4,stroke-width:1
+    classDef decisionStyle fill:#FFD700,stroke:#DAA520,stroke-width:2
+
+    %% Apply styles to nodes
+    class Start,Process,Transform processStyle
+    class Success successStyle
+    class Error errorStyle
+    class Input,Validate,Retry decisionStyle
+
+    %% Individual node styling
+    style Save fill:#DDA0DD,stroke:#9370DB,stroke-width:2
+    style End fill:#D3D3D3,stroke:#808080,stroke-width:1

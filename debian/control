@@ -1,0 +1,43 @@
+Source: gdiagram
+Section: devel
+Priority: optional
+Maintainer: gDiagram Developers <packerlschupfer@github.com>
+Build-Depends: debhelper-compat (= 13),
+               meson (>= 0.60),
+               valac (>= 0.56),
+               libgtk-4-dev (>= 4.10),
+               libadwaita-1-dev (>= 1.4),
+               libgtksourceview-5-dev (>= 5.0),
+               libgee-0.8-dev,
+               libgraphviz-dev,
+               librsvg2-dev,
+               libcairo2-dev,
+               libsoup-3.0-dev,
+               libjson-glib-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/packerlschupfer/gDiagram
+Rules-Requires-Root: no
+
+Package: gdiagram
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         graphviz
+Description: Native multi-format diagram viewer supporting PlantUML and Mermaid
+ gDiagram is a native GTK4/libadwaita application for viewing and editing
+ diagrams in multiple formats including PlantUML and Mermaid. It provides
+ real-time preview as you type, with full syntax highlighting and error detection.
+ .
+ Supported Formats:
+  * PlantUML - 10+ diagram types (Sequence, Class, Activity, State, etc.)
+  * Mermaid - 4 diagram types (Flowchart, Sequence, State, Class)
+ .
+ Features:
+  * Native rendering using Graphviz (no Java or Node.js required)
+  * Real-time diagram preview with debounced updates
+  * Syntax highlighting for both PlantUML and Mermaid
+  * Auto-format detection (.puml, .mmd file extensions)
+  * Export to SVG, PNG, and PDF
+  * Multi-tab editing
+  * Dark mode support
+  * Click-to-source navigation

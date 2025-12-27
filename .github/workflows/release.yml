@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          debhelper \
+          devscripts \
+          meson \
+          ninja-build \
+          valac \
+          libgtk-4-dev \
+          libadwaita-1-dev \
+          libgtksourceview-5-dev \
+          libgee-0.8-dev \
+          libgraphviz-dev \
+          librsvg2-dev \
+          libcairo2-dev \
+          gettext
+
+    - name: Build Debian package
+      run: |
+        dpkg-buildpackage -us -uc -b
+
+    - name: Upload deb artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: debian-package
+        path: ../gplantuml_*.deb
+
+  build-appimage:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          meson \
+          ninja-build \
+          valac \
+          libgtk-4-dev \
+          libadwaita-1-dev \
+          libgtksourceview-5-dev \
+          libgee-0.8-dev \
+          libgraphviz-dev \
+          librsvg2-dev \
+          libcairo2-dev \
+          gettext \
+          fuse \
+          libfuse2
+
+    - name: Install appimage-builder
+      run: |
+        wget -O appimage-builder https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+        chmod +x appimage-builder
+        sudo mv appimage-builder /usr/local/bin/
+
+    - name: Build AppImage
+      run: |
+        cd appimage
+        appimage-builder --recipe AppImageBuilder.yml --skip-test
+
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: appimage
+        path: appimage/gPlantUML-*.AppImage
+
+  build-flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: gplantuml.flatpak
+        manifest-path: org.gnome.gPlantUML.json
+        cache-key: flatpak-builder-${{ github.sha }}
+
+  release:
+    needs: [build-deb, build-appimage, build-flatpak]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Display structure of downloaded files
+      run: ls -la */
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          debian-package/*.deb
+          appimage/*.AppImage
+          flatpak/*.flatpak
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

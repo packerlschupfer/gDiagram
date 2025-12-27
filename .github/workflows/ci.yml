@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          meson \
+          ninja-build \
+          valac \
+          libgtk-4-dev \
+          libadwaita-1-dev \
+          libgtksourceview-5-dev \
+          libgee-0.8-dev \
+          libgraphviz-dev \
+          librsvg2-dev \
+          libcairo2-dev \
+          gettext \
+          appstream
+
+    - name: Configure
+      run: meson setup build --prefix=/usr
+
+    - name: Build
+      run: meson compile -C build
+
+    - name: Validate desktop file
+      run: desktop-file-validate build/data/org.gnome.gPlantUML.desktop
+
+    - name: Validate metainfo
+      run: appstreamcli validate --no-net data/org.gnome.gPlantUML.metainfo.xml || true
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: gplantuml-build
+        path: build/src/gplantuml

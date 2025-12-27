@@ -1,0 +1,50 @@
+# Build directories
+build/
+builddir/
+obj-x86_64-linux-gnu/
+
+# Debian packaging artifacts
+debian/.debhelper/
+debian/gplantuml/
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/debhelper-build-stamp
+
+# Meson build artifacts
+*.stamp
+
+# C generated files from Vala
+*.c
+*.h
+
+# Object files
+*.o
+*.a
+
+# Compiled binaries
+src/gplantuml
+
+# Generated configuration
+config.vala
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Package files
+*.deb
+*.buildinfo
+*.changes
+
+# AppImage build
+appimage/*.AppImage
+
+# Temporary files
+*.log
+.DS_Store
+debian/gdiagram/
+debian/.debhelper/

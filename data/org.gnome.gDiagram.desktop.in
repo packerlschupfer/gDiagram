@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=gDiagram
+Comment=Create diagrams with PlantUML, Mermaid, and more
+Exec=gdiagram %F
+Icon=org.gnome.gDiagram
+Terminal=false
+Type=Application
+Categories=Development;Graphics;
+Keywords=UML;diagram;PlantUML;Mermaid;sequence;class;flowchart;
+MimeType=text/x-plantuml;text/x-mermaid;
+StartupNotify=true
