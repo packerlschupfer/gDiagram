@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class AIService : Object {
         private Soup.Session session;
         private string? api_key;

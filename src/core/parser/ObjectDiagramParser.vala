@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class ObjectDiagramParser : Object {
         private Gee.ArrayList<Token> tokens;
         private int current;

@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Parser for action nodes in activity diagrams.
      * Handles colored actions, SDL shapes, stereotypes, and text formatting.

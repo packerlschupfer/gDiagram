@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class Application : Adw.Application {
         private bool debug_mode = false;
 

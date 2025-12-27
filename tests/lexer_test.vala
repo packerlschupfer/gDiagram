@@ -1,4 +1,4 @@
-namespace GPlantUML.Tests {
+namespace GDiagram.Tests {
     public class LexerTests {
         public static void test_basic_tokens() {
             var lexer = new Lexer("@startuml\n@enduml");

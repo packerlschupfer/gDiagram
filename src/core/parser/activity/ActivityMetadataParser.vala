@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Parser for metadata elements in activity diagrams.
      * Handles title, header, footer, caption, legend, notes, and skinparam directives.

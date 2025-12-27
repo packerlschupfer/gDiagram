@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Parser for structural elements in activity diagrams.
      * Handles swimlanes, partitions, and groups.

@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public delegate void DebounceCallback();
 
     public class Debouncer : Object {

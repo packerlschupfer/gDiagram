@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     // Element region for click-to-source navigation
     public class ElementRegion : Object {
         public string name { get; set; }

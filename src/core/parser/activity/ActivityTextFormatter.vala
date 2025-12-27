@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Pure static utility class for text formatting and spacing logic.
      * Handles Creole markup, UTF-8 characters, and spacing rules.

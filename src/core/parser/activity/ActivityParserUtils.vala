@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Utility methods for parsing activity diagrams.
      * Provides helper functions for token consumption and validation.

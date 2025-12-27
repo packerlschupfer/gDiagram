@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     // Represents a clickable region in the rendered diagram
     public class DiagramRegion : Object {
         public string element_name { get; set; }

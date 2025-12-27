@@ -1,4 +1,4 @@
-namespace GPlantUML.Tests {
+namespace GDiagram.Tests {
     public class DocumentTests {
         public static void test_new_document() {
             var doc = new Document();

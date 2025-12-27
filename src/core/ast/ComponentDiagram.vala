@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public enum ComponentType {
         COMPONENT,    // [Name] or component keyword
         INTERFACE,    // () Name or interface keyword

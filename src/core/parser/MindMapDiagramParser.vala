@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class MindMapDiagramParser : Object {
         private Gee.ArrayList<Token> tokens;
         private int current;

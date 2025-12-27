@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Orchestrator for parsing activity diagrams.
      * Delegates specialized parsing to dedicated parser classes.

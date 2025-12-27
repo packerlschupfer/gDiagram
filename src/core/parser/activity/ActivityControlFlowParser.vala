@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Parser for control flow structures in activity diagrams.
      * Handles if/elseif/else, while, repeat, switch, fork, and split constructs.

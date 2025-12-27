@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public enum StateType {
         INITIAL,      // [*] as source
         FINAL,        // [*] as target

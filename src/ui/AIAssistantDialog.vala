@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class AIAssistantDialog : Adw.Dialog {
         private Gtk.TextView description_view;
         private Gtk.DropDown type_dropdown;

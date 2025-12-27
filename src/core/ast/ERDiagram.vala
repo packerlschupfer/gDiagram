@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public enum ERCardinality {
         ONE_TO_ONE,        // ||--||
         ONE_TO_MANY,       // ||--o{

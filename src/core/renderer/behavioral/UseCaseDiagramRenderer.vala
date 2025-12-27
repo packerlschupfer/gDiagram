@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class UseCaseDiagramRenderer : Object {
         private unowned Gvc.Context context;
         private Gee.ArrayList<ElementRegion> last_regions;

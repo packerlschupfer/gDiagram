@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class MindMapDiagramRenderer : Object {
         private unowned Gvc.Context context;
         private Gee.ArrayList<ElementRegion> last_regions;

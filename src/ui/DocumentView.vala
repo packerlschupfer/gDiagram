@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     // NOTE: This file generates some expected C-level warnings:
     // - "cast between incompatible function types" warnings are from Vala's signal
     //   handler code generation when using lambda functions. This is standard Vala

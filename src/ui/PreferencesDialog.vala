@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class PreferencesDialog : Adw.PreferencesDialog {
         private GLib.Settings settings;
 

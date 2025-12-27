@@ -1,5 +1,5 @@
-namespace GPlantUML {
-    [GtkTemplate(ui = "/org/gnome/gPlantUML/ui/main-window.ui")]
+namespace GDiagram {
+    [GtkTemplate(ui = "/org/gnome/gDiagram/ui/main-window.ui")]
     public class MainWindow : Adw.ApplicationWindow {
         [GtkChild]
         private unowned Adw.TabView tab_view;

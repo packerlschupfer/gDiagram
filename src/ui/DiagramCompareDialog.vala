@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class DiagramCompareDialog : Adw.Dialog {
         private GtkSource.View left_view;
         private GtkSource.Buffer left_buffer;

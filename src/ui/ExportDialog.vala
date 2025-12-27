@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class ExportDialog : Adw.Dialog {
         private Gtk.DropDown format_dropdown;
         private Gtk.SpinButton scale_spin;

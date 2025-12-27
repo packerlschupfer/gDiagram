@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class Lexer : Object {
         private string source;
         private int current;       // Byte position in source

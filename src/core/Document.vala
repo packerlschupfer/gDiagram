@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public class Document : Object {
         public string title { get; set; default = "Untitled"; }
         public string content { get; set; default = ""; }

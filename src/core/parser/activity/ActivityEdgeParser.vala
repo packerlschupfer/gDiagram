@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Parser for arrow/edge styling and labels in activity diagrams.
      * Handles styled arrows, edge colors, directions, and labels.

@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     // Facade pattern: GraphvizRenderer delegates to specialized diagram renderers
     public class GraphvizRenderer : Object {
         private Gvc.Context context;

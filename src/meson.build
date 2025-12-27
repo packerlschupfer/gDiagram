@@ -59,13 +59,13 @@ sources = files(
 sources += config_file
 
 resources = gnome.compile_resources(
-  'gplantuml-resources',
-  join_paths(meson.project_source_root(), 'data', 'org.gnome.gPlantUML.gresource.xml'),
+  'gdiagram-resources',
+  join_paths(meson.project_source_root(), 'data', 'org.gnome.gDiagram.gresource.xml'),
   source_dir: join_paths(meson.project_source_root(), 'data'),
-  c_name: 'gplantuml',
+  c_name: 'gdiagram',
 )
 
-executable('gplantuml',
+executable('gdiagram',
   sources,
   resources,
   dependencies: [

@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     public enum MindMapNodeStyle {
         DEFAULT,      // plain text
         BOX,          // [text]

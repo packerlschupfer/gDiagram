@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.gPlantUML" path="/org/gnome/gPlantUML/">
+  <schema id="org.gnome.gDiagram" path="/org/gnome/gDiagram/">
     <key name="window-width" type="i">
       <default>1200</default>
       <summary>Window width</summary>

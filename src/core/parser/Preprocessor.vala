@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * Preprocessor handles PlantUML preprocessing directives before lexing.
      *

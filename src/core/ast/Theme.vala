@@ -1,4 +1,4 @@
-namespace GPlantUML {
+namespace GDiagram {
     /**
      * SkinParams stores PlantUML skinparam configuration for theming.
      *

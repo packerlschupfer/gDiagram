@@ -1,4 +1,4 @@
-namespace GPlantUML.Tests {
+namespace GDiagram.Tests {
     public class ParserTests {
         public static void test_basic_sequence_diagram() {
             string source = """

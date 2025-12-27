@@ -1,14 +1,15 @@
-# gPlantUML
+# gDiagram
 
-A native GTK4/libadwaita PlantUML diagram viewer and editor for Linux.
+A native GTK4/libadwaita diagram viewer and editor supporting PlantUML, Mermaid, and more.
 
-![gPlantUML Screenshot](screenshots/class-diagram.png)
+![gDiagram Screenshot](screenshots/class-diagram.png)
 
 ## Features
 
 - **Native rendering** using Graphviz (no Java required)
 - **Real-time preview** with debounced updates as you type
-- **Syntax highlighting** for PlantUML
+- **Multiple diagram formats**: PlantUML and Mermaid (in development)
+- **Syntax highlighting** for diagram languages
 - **Multiple diagram types**:
   - Sequence diagrams
   - Class diagrams
@@ -16,6 +17,7 @@ A native GTK4/libadwaita PlantUML diagram viewer and editor for Linux.
   - State diagrams (with stereotypes, history states)
   - Use Case diagrams (with system boundaries)
   - Component diagrams (with ports)
+  - Flowcharts (Mermaid - coming soon)
 - **Export** to SVG, PNG, and PDF
 - **Dark mode** support
 - **Multi-tab** editing
@@ -24,11 +26,11 @@ A native GTK4/libadwaita PlantUML diagram viewer and editor for Linux.
 
 ### From Package (Recommended)
 
-Download the latest release from the [Releases](https://github.com/packerlschupfer/gPlantUML/releases) page:
+Download the latest release from the [Releases](https://github.com/packerlschupfer/gDiagram/releases) page:
 
-- **Debian/Ubuntu**: Download `.deb` file and install with `sudo dpkg -i gplantuml_*.deb`
+- **Debian/Ubuntu**: Download `.deb` file and install with `sudo dpkg -i gdiagram_*.deb`
 - **AppImage**: Download, make executable (`chmod +x`), and run
-- **Flatpak**: `flatpak install gplantuml.flatpak`
+- **Flatpak**: `flatpak install gdiagram.flatpak`
 
 ### Building from Source
 
@@ -69,17 +71,20 @@ sudo meson install -C build
 #### Run without installing
 
 ```bash
-./build/src/gplantuml
+./build/src/gdiagram
 ```
 
 ## Usage
 
 ```bash
 # Open empty editor
-gplantuml
+gdiagram
 
-# Open a file
-gplantuml diagram.puml
+# Open a PlantUML file
+gdiagram diagram.puml
+
+# Open a Mermaid file (coming soon)
+gdiagram diagram.mmd
 ```
 
 ### Example Diagram
@@ -112,7 +117,7 @@ dpkg-buildpackage -us -uc -b
 
 ### Flatpak
 ```bash
-flatpak-builder --user --install build-flatpak org.gnome.gPlantUML.json
+flatpak-builder --user --install build-flatpak org.gnome.gDiagram.json
 ```
 
 ### AppImage

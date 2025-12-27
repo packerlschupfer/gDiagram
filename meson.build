@@ -1,4 +1,4 @@
-project('gplantuml', ['c', 'vala'],
+project('gdiagram', ['c', 'vala'],
   version: '0.1.0',
   meson_version: '>= 0.60.0',
   default_options: [
@@ -7,7 +7,7 @@ project('gplantuml', ['c', 'vala'],
   ]
 )
 
-app_id = 'org.gnome.gPlantUML'
+app_id = 'org.gnome.gDiagram'
 
 i18n = import('i18n')
 gnome = import('gnome')
@@ -26,7 +26,7 @@ json_dep = dependency('json-glib-1.0')
 # Configuration
 conf = configuration_data()
 conf.set_quoted('APP_ID', app_id)
-conf.set_quoted('APP_NAME', 'gPlantUML')
+conf.set_quoted('APP_NAME', 'gDiagram')
 conf.set_quoted('VERSION', meson.project_version())
 conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
 conf.set_quoted('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
