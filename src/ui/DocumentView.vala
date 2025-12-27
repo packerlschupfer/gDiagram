@@ -34,6 +34,8 @@ namespace GDiagram {
         private MermaidSequenceRenderer mermaid_sequence_renderer;
         private MermaidStateParser mermaid_state_parser;
         private MermaidStateRenderer mermaid_state_renderer;
+        private MermaidClassParser mermaid_class_parser;
+        private MermaidClassRenderer mermaid_class_renderer;
 
         // Search/Replace
         private Gtk.Revealer search_revealer;
@@ -106,6 +108,7 @@ namespace GDiagram {
             mermaid_flowchart_parser = new MermaidFlowchartParser();
             mermaid_sequence_parser = new MermaidSequenceParser();
             mermaid_state_parser = new MermaidStateParser();
+            mermaid_class_parser = new MermaidClassParser();
             var mermaid_context = new Gvc.Context();
             mermaid_flowchart_renderer = new MermaidFlowchartRenderer(
                 mermaid_context,
@@ -118,6 +121,11 @@ namespace GDiagram {
                 app_settings.get_string("layout-engine")
             );
             mermaid_state_renderer = new MermaidStateRenderer(
+                mermaid_context,
+                renderer.last_regions,
+                app_settings.get_string("layout-engine")
+            );
+            mermaid_class_renderer = new MermaidClassRenderer(
                 mermaid_context,
                 renderer.last_regions,
                 app_settings.get_string("layout-engine")
@@ -1410,6 +1418,9 @@ namespace GDiagram {
             if (lower.contains("statediagram-v2") || lower.has_prefix("statediagram-v2")) {
                 return DiagramType.MERMAID_STATE;
             }
+            if (lower.contains("classdiagram") || lower.has_prefix("classdiagram")) {
+                return DiagramType.MERMAID_CLASS;
+            }
 
             return DiagramType.MERMAID_FLOWCHART;  // Default
         }
@@ -1424,6 +1435,9 @@ namespace GDiagram {
                     break;
                 case DiagramType.MERMAID_STATE:
                     render_mermaid_state(source);
+                    break;
+                case DiagramType.MERMAID_CLASS:
+                    render_mermaid_class(source);
                     break;
                 default:
                     preview_pane.set_placeholder_text("Unknown Mermaid diagram type");
@@ -1540,6 +1554,48 @@ namespace GDiagram {
 
             // Render using Mermaid state renderer
             var surface = mermaid_state_renderer.render_to_surface(diagram);
+            if (surface != null) {
+                preview_pane.set_surface(surface);
+            } else {
+                preview_pane.set_placeholder_text("Failed to render diagram");
+            }
+        }
+
+        private void render_mermaid_class(string source) {
+            var diagram = mermaid_class_parser.parse(source);
+
+            if (diagram.has_errors()) {
+                apply_error_highlights(diagram.errors);
+                var sb = new StringBuilder();
+                sb.append("Parse errors:\n\n");
+                foreach (var err in diagram.errors) {
+                    sb.append(err.to_string());
+                    sb.append("\n");
+                }
+                preview_pane.set_placeholder_text(sb.str);
+                return;
+            }
+
+            clear_error_highlights();
+
+            if (diagram.classes.size == 0) {
+                preview_pane.set_placeholder_text(
+                    "Enter Mermaid class diagram code to see preview.\n\n" +
+                    "Example:\n" +
+                    "classDiagram\n" +
+                    "    class Animal {\n" +
+                    "        +string name\n" +
+                    "        +makeSound()\n" +
+                    "    }\n" +
+                    "    class Dog {\n" +
+                    "        +bark()\n" +
+                    "    }"
+                );
+                return;
+            }
+
+            // Render using Mermaid class renderer
+            var surface = mermaid_class_renderer.render_to_surface(diagram);
             if (surface != null) {
                 preview_pane.set_surface(surface);
             } else {

@@ -21,6 +21,7 @@ namespace GDiagram {
         MERMAID_FLOWCHART,
         MERMAID_SEQUENCE,
         MERMAID_STATE,
+        MERMAID_CLASS,
         UNKNOWN
     }
 

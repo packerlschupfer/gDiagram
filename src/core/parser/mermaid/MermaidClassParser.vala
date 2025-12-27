@@ -136,17 +136,6 @@ namespace GDiagram {
             if (check(MermaidTokenType.PLUS)) {
                 advance();
                 visibility = MermaidVisibility.PUBLIC;
-            } else if (check(MermaidTokenType.MINUS)) {
-                // Need to disambiguate from arrows
-                int saved = current;
-                advance();
-                if (check(MermaidTokenType.IDENTIFIER)) {
-                    visibility = MermaidVisibility.PRIVATE;
-                } else {
-                    // Backtrack - it's probably an arrow
-                    current = saved;
-                    return;
-                }
             } else if (check(MermaidTokenType.HASH)) {
                 advance();
                 visibility = MermaidVisibility.PROTECTED;
@@ -279,14 +268,10 @@ namespace GDiagram {
             // Look ahead for arrow patterns
             if (check(MermaidTokenType.ARROW_SOLID) ||
                 check(MermaidTokenType.ARROW_DOTTED) ||
-                check(MermaidTokenType.AGGREGATION) ||
-                check(MermaidTokenType.COMPOSITION)) {
+                check(MermaidTokenType.ASTERISK) ||
+                check(MermaidTokenType.ASYMMETRIC_START) ||
+                check(MermaidTokenType.LINE_SOLID)) {
                 return true;
-            }
-
-            // Check for special patterns like <|--
-            if (check(MermaidTokenType.ASYMMETRIC_START)) {
-                return true; // Could be part of <|--
             }
 
             return false;
@@ -306,12 +291,12 @@ namespace GDiagram {
                 return MermaidRelationType.INHERITANCE;
             }
 
-            if (arrow.contains("*--") || arrow.starts_with("*")) {
+            if (arrow.contains("*--") || arrow.has_prefix("*")) {
                 consume_until_arrow_end();
                 return MermaidRelationType.COMPOSITION;
             }
 
-            if (arrow.contains("o--") || arrow.starts_with("o")) {
+            if (arrow.contains("o--") || arrow.has_prefix("o")) {
                 consume_until_arrow_end();
                 return MermaidRelationType.AGGREGATION;
             }
