@@ -13,6 +13,8 @@ sources = files(
   'core/parser/Lexer.vala',
   'core/parser/Parser.vala',
   'core/parser/Preprocessor.vala',
+  'core/parser/mermaid/MermaidToken.vala',
+  'core/parser/mermaid/MermaidLexer.vala',
   'core/parser/ClassDiagramParser.vala',
   'core/parser/ActivityDiagramParser.vala',
   'core/parser/activity/ActivityTextFormatter.vala',
