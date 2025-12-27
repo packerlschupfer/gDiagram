@@ -555,7 +555,11 @@ namespace GDiagram {
 
                 // Check what follows the dash
                 if (peek().isalnum() || peek() == '_') {
-                    // It's part of the identifier, continue
+                    // It's part of the identifier, continue reading
+                    while (peek().isalnum() || peek() == '_') {
+                        sb.append_unichar(advance());
+                    }
+                    // Check for more dashes
                     continue;
                 } else {
                     // It's not part of the identifier (probably an arrow), backtrack

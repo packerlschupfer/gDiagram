@@ -23,7 +23,7 @@ A native GTK4/libadwaita diagram viewer and editor supporting PlantUML, Mermaid,
 - **Mermaid diagram types**:
   - ✅ **Flowcharts** - All node shapes, arrows, subgraphs, styling
   - ✅ **Sequence diagrams** - Actors, messages, notes, loops, autonumbering
-  - 🔜 State diagrams (planned)
+  - ✅ **State diagrams** - States, transitions, start/end markers, nested states
 - **Export** to SVG, PNG, and PDF
 - **Auto-format detection** - Recognizes .puml, .mmd file extensions
 - **Dark mode** support
@@ -137,6 +137,18 @@ sequenceDiagram
     Alice->>Bob: Hello Bob!
     Bob-->>Alice: Hi Alice!
     Note over Alice,Bob: Conversation
+```
+
+#### Mermaid State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: Start
+    Processing --> Success: Complete
+    Processing --> Error: Failed
+    Success --> [*]
+    Error --> Idle: Retry
 ```
 
 See more examples in the [`examples/`](examples/) directory.
