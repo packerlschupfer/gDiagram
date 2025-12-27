@@ -30,6 +30,8 @@ namespace GDiagram {
         // Mermaid parsers and renderers
         private MermaidFlowchartParser mermaid_flowchart_parser;
         private MermaidFlowchartRenderer mermaid_flowchart_renderer;
+        private MermaidSequenceParser mermaid_sequence_parser;
+        private MermaidSequenceRenderer mermaid_sequence_renderer;
 
         // Search/Replace
         private Gtk.Revealer search_revealer;
@@ -100,8 +102,14 @@ namespace GDiagram {
 
             // Initialize Mermaid parsers and renderers
             mermaid_flowchart_parser = new MermaidFlowchartParser();
+            mermaid_sequence_parser = new MermaidSequenceParser();
             var mermaid_context = new Gvc.Context();
             mermaid_flowchart_renderer = new MermaidFlowchartRenderer(
+                mermaid_context,
+                renderer.last_regions,
+                app_settings.get_string("layout-engine")
+            );
+            mermaid_sequence_renderer = new MermaidSequenceRenderer(
                 mermaid_context,
                 renderer.last_regions,
                 app_settings.get_string("layout-engine")
@@ -1404,12 +1412,11 @@ namespace GDiagram {
                     render_mermaid_flowchart(source);
                     break;
                 case DiagramType.MERMAID_SEQUENCE:
-                    // TODO: Implement sequence diagram renderer
-                    preview_pane.set_placeholder_text("Mermaid sequence diagrams not yet supported.\nUse flowchart for now.");
+                    render_mermaid_sequence(source);
                     break;
                 case DiagramType.MERMAID_STATE:
                     // TODO: Implement state diagram renderer
-                    preview_pane.set_placeholder_text("Mermaid state diagrams not yet supported.\nUse flowchart for now.");
+                    preview_pane.set_placeholder_text("Mermaid state diagrams not yet supported.\nUse flowchart or sequence for now.");
                     break;
                 default:
                     preview_pane.set_placeholder_text("Unknown Mermaid diagram type");
@@ -1449,6 +1456,45 @@ namespace GDiagram {
 
             // Render using Mermaid flowchart renderer
             var surface = mermaid_flowchart_renderer.render_to_surface(diagram);
+            if (surface != null) {
+                preview_pane.set_surface(surface);
+            } else {
+                preview_pane.set_placeholder_text("Failed to render diagram");
+            }
+        }
+
+        private void render_mermaid_sequence(string source) {
+            var diagram = mermaid_sequence_parser.parse(source);
+
+            if (diagram.has_errors()) {
+                apply_error_highlights(diagram.errors);
+                var sb = new StringBuilder();
+                sb.append("Parse errors:\n\n");
+                foreach (var err in diagram.errors) {
+                    sb.append(err.to_string());
+                    sb.append("\n");
+                }
+                preview_pane.set_placeholder_text(sb.str);
+                return;
+            }
+
+            clear_error_highlights();
+
+            if (diagram.actors.size == 0 && diagram.messages.size == 0) {
+                preview_pane.set_placeholder_text(
+                    "Enter Mermaid sequence diagram code to see preview.\n\n" +
+                    "Example:\n" +
+                    "sequenceDiagram\n" +
+                    "    participant Alice\n" +
+                    "    participant Bob\n" +
+                    "    Alice->>Bob: Hello Bob!\n" +
+                    "    Bob-->>Alice: Hi Alice!"
+                );
+                return;
+            }
+
+            // Render using Mermaid sequence renderer
+            var surface = mermaid_sequence_renderer.render_to_surface(diagram);
             if (surface != null) {
                 preview_pane.set_surface(surface);
             } else {
