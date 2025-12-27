@@ -199,6 +199,97 @@ sequenceDiagram
     Note over User,Frontend: Authentication complete
 ```
 
+## State Diagram Examples
+
+### Basic State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing
+    Processing --> Complete
+    Complete --> [*]
+```
+
+### State Machine with Labels
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: Start
+    Processing --> Success: Complete
+    Processing --> Error: Failed
+    Success --> [*]
+    Error --> Idle: Retry
+    Error --> [*]: Abort
+```
+
+### State Machine with Descriptions
+
+```mermaid
+stateDiagram-v2
+    state Idle {
+        [*] --> Waiting
+        Waiting --> Ready
+        Ready --> [*]
+    }
+
+    state "Processing Data" as Processing
+    state "Validation Complete" as Success
+
+    [*] --> Idle
+    Idle --> Processing: Start
+    Processing --> Success: Valid
+    Processing --> Error: Invalid
+    Success --> [*]
+    Error --> Idle: Retry
+```
+
+### Complex Workflow State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> CheckingInput: User input
+    CheckingInput --> ValidInput: Valid
+    CheckingInput --> InvalidInput: Invalid
+
+    InvalidInput --> Idle: Show error
+
+    ValidInput --> Processing: Continue
+    Processing --> Validating: Data ready
+
+    Validating --> Success: Validation passed
+    Validating --> ProcessingError: Validation failed
+
+    Success --> Saving: Persist data
+    Saving --> Complete: Saved
+
+    Complete --> [*]
+
+    ProcessingError --> Idle: Reset
+    ProcessingError --> [*]: Abort
+```
+
+### State Machine with Choice and Fork
+
+```mermaid
+stateDiagram-v2
+    [*] --> CheckType
+
+    state CheckType <<choice>>
+    CheckType --> TypeA: is type A
+    CheckType --> TypeB: is type B
+    CheckType --> TypeC: is type C
+
+    TypeA --> Processing
+    TypeB --> Processing
+    TypeC --> Processing
+
+    Processing --> [*]
+```
+
 ## Supported Mermaid Features
 
 ### Flowchart
@@ -223,6 +314,20 @@ sequenceDiagram
 - Autonumbering
 - Activation/deactivation
 - Control structures: loop, alt, opt, par, critical, break, rect
+- Title
+
+### State Diagram
+
+✅ **Supported:**
+- State declarations: `state StateName`
+- State descriptions: `state "Display Name" as StateName`
+- Transitions: `State1 --> State2`
+- Transition labels: `State1 --> State2: Event`
+- Start state: `[*]`
+- End state: `[*]`
+- State types: normal, choice `<<choice>>`, fork `<<fork>>`, join `<<join>>`
+- Nested/composite states
+- State notes
 - Title
 
 ## File Format Support
