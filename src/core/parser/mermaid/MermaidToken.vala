@@ -117,6 +117,13 @@ namespace GDiagram {
         AMPERSAND,              // &
         HASH,                   // #
         PERCENT,                // %
+        QUESTION,               // ?
+        EXCLAMATION,            // !
+        AT,                     // @
+        DOLLAR,                 // $
+        EQUALS,                 // =
+        PLUS,                   // +
+        ASTERISK,               // *
 
         // Text and literals
         IDENTIFIER,             // alphanumeric identifier

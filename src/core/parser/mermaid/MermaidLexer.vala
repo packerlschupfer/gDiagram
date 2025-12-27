@@ -6,7 +6,7 @@ namespace GDiagram {
         private int line;
         private int column;
 
-        private static HashTable<string, MermaidTokenType>? keywords = null;
+        private static HashTable<string, MermaidTokenType?>? keywords = null;
 
         public MermaidLexer(string source) {
             this.source = source;
@@ -125,10 +125,17 @@ namespace GDiagram {
 
             // Arrows and lines - Complex matching for Mermaid
             if (c == '-') {
+                // Check if it's a dotted arrow starting with -.
+                if (peek() == '.') {
+                    return scan_dotted_arrow_from_dash(start_column);
+                }
                 return scan_arrow_or_line(start_column);
             }
-            if (c == '=' && peek() == '=') {
-                return scan_thick_arrow(start_column);
+            if (c == '=') {
+                if (peek() == '=') {
+                    return scan_thick_arrow(start_column);
+                }
+                return new MermaidToken(MermaidTokenType.EQUALS, "=", line, start_column);
             }
             if (c == '~' && peek() == '~') {
                 return scan_invisible_line(start_column);
@@ -190,6 +197,24 @@ namespace GDiagram {
             }
             if (c == '\\') {
                 return new MermaidToken(MermaidTokenType.BACKSLASH_RBRACKET, "\\", line, start_column);
+            }
+            if (c == '?') {
+                return new MermaidToken(MermaidTokenType.QUESTION, "?", line, start_column);
+            }
+            if (c == '!') {
+                return new MermaidToken(MermaidTokenType.EXCLAMATION, "!", line, start_column);
+            }
+            if (c == '@') {
+                return new MermaidToken(MermaidTokenType.AT, "@", line, start_column);
+            }
+            if (c == '$') {
+                return new MermaidToken(MermaidTokenType.DOLLAR, "$", line, start_column);
+            }
+            if (c == '+') {
+                return new MermaidToken(MermaidTokenType.PLUS, "+", line, start_column);
+            }
+            if (c == '*') {
+                return new MermaidToken(MermaidTokenType.ASTERISK, "*", line, start_column);
             }
 
             // Numbers
@@ -330,6 +355,33 @@ namespace GDiagram {
             return new MermaidToken(MermaidTokenType.ARROW_INVISIBLE, sb.str, line, start_column);
         }
 
+        private MermaidToken scan_dotted_arrow_from_dash(int start_column) {
+            // We've already consumed '-', now we see '.'
+            var sb = new StringBuilder();
+            sb.append_c('-');
+
+            // Pattern: -.-> or -.-
+            while (peek() == '-' || peek() == '.') {
+                sb.append_c((char)advance());
+            }
+
+            // Check for arrow endings
+            if (peek() == '>') {
+                sb.append_c((char)advance());
+                return new MermaidToken(MermaidTokenType.ARROW_DOTTED, sb.str, line, start_column);
+            }
+            if (peek() == 'o') {
+                sb.append_c((char)advance());
+                return new MermaidToken(MermaidTokenType.ARROW_OPEN_DOTTED, sb.str, line, start_column);
+            }
+            if (peek() == 'x') {
+                sb.append_c((char)advance());
+                return new MermaidToken(MermaidTokenType.ARROW_CROSS_DOTTED, sb.str, line, start_column);
+            }
+
+            return new MermaidToken(MermaidTokenType.LINE_DOTTED, sb.str, line, start_column);
+        }
+
         private MermaidToken scan_dotted_arrow(int start_column) {
             var sb = new StringBuilder();
             sb.append_c('.');
@@ -443,6 +495,11 @@ namespace GDiagram {
             if (peek() == ']') {
                 advance();
                 return new MermaidToken(MermaidTokenType.DOUBLE_RBRACKET, "]]", line, start_column);
+            }
+            // Check for ])
+            if (peek() == ')') {
+                advance();
+                return new MermaidToken(MermaidTokenType.RPAREN_RBRACKET, "])", line, start_column);
             }
 
             return new MermaidToken(MermaidTokenType.RBRACKET, "]", line, start_column);

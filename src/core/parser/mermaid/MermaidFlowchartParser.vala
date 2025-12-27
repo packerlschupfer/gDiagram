@@ -338,18 +338,47 @@ namespace GDiagram {
 
         private string parse_node_text_until(MermaidTokenType end_type) {
             var sb = new StringBuilder();
+            MermaidTokenType? last_type = null;
 
             while (!check(end_type) && !is_at_end() && !check(MermaidTokenType.NEWLINE)) {
                 var token = advance();
-                if (sb.len > 0 && token.token_type != MermaidTokenType.PIPE) {
+
+                // Skip pipes
+                if (token.token_type == MermaidTokenType.PIPE) {
+                    continue;
+                }
+
+                // Add space before this token if needed
+                if (sb.len > 0 && needs_space_before(token.token_type, last_type)) {
                     sb.append(" ");
                 }
-                if (token.token_type != MermaidTokenType.PIPE) {
-                    sb.append(token.lexeme);
-                }
+
+                sb.append(token.lexeme);
+                last_type = token.token_type;
             }
 
             return sb.str.strip();
+        }
+
+        private bool needs_space_before(MermaidTokenType current, MermaidTokenType? previous) {
+            // Don't add space before punctuation
+            if (current == MermaidTokenType.QUESTION ||
+                current == MermaidTokenType.EXCLAMATION ||
+                current == MermaidTokenType.COMMA ||
+                current == MermaidTokenType.COLON ||
+                current == MermaidTokenType.SEMICOLON ||
+                current == MermaidTokenType.PERCENT) {
+                return false;
+            }
+
+            // Don't add space after opening brackets/parens
+            if (previous == MermaidTokenType.LPAREN ||
+                previous == MermaidTokenType.LBRACKET ||
+                previous == MermaidTokenType.LBRACE) {
+                return false;
+            }
+
+            return true;
         }
 
         private void parse_edges_from_node(FlowchartNode from_node) throws GLib.Error {
