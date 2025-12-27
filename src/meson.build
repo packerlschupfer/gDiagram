@@ -15,6 +15,7 @@ sources = files(
   'core/parser/Preprocessor.vala',
   'core/parser/mermaid/MermaidToken.vala',
   'core/parser/mermaid/MermaidLexer.vala',
+  'core/parser/mermaid/MermaidFlowchartParser.vala',
   'core/parser/ClassDiagramParser.vala',
   'core/parser/ActivityDiagramParser.vala',
   'core/parser/activity/ActivityTextFormatter.vala',
