@@ -1,0 +1,296 @@
+@startuml
+title gDiagram — Class Hierarchy
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam padding 3
+
+skinparam class {
+    BackgroundColor<<parser>> #FFF3E0
+    BorderColor<<parser>> #E65100
+    BackgroundColor<<ast>> #E8F5E9
+    BorderColor<<ast>> #2E7D32
+    BackgroundColor<<renderer>> #F3E5F5
+    BorderColor<<renderer>> #6A1B9A
+    BackgroundColor<<ui>> #E3F2FD
+    BorderColor<<ui>> #1565C0
+    BackgroundColor<<base>> #ECEFF1
+    BorderColor<<base>> #37474F
+    BackgroundColor<<util>> #FFF9C4
+    BorderColor<<util>> #F9A825
+}
+
+' ===== Parser Classes =====
+package "Parser Layer" {
+    class Lexer <<parser>> {
+        -source: string
+        -keywords: HashTable<string, TokenType>
+        +scan_all(): ArrayList<Token>
+        +scan_token(): Token
+    }
+
+    class TokenStream <<parser>> {
+        -tokens: ArrayList<Token>
+        +current: int
+        +peek(): Token
+        +advance(): Token
+        +check(type): bool
+        +match(types...): bool
+        +is_at_end(): bool
+        +synchronize()
+    }
+
+    class Preprocessor <<parser>> {
+        +preprocess(source): string
+    }
+
+    class MermaidLexer <<parser>> {
+        -source: string
+        +scan_all(): ArrayList<MermaidToken>
+    }
+
+    abstract class "<<PlantUML Parser>>\n(pattern, not base class)" as PumlParser <<parser>> {
+        #tokens: ArrayList<Token>
+        #current: int
+        +parse(): Diagram
+    }
+
+    class "PlantUML Parsers (18)" as PumlParsers <<parser>> {
+        Sequence, Class,
+        Activity (+7 sub-parsers),
+        UseCase, State, Component,
+        Object, Deployment, ER,
+        MindMap, Gantt, Json, Yaml,
+        Chronology, Timing, Nwdiag,
+        Archimate
+    }
+
+    abstract class "<<Mermaid Parser>>\n(pattern, not base class)" as MermaidParser <<parser>> {
+        #source: string
+        +parse(): MermaidDiagram
+    }
+
+    class "Mermaid Parsers (24)" as MermaidParsers <<parser>> {
+        Flowchart, Sequence, State, Class,
+        ER, Gantt, Pie, UserJourney,
+        GitGraph, Mindmap, Timeline,
+        Quadrant, XYChart, Kanban, Sankey,
+        Requirement, Block, Packet, C4,
+        Architecture, ZenUML, Radar, Treemap
+    }
+}
+
+' ===== AST Classes =====
+package "AST Layer" {
+    class DiagramNode <<base>> {
+        DiagramType enum (42 values)
+        --
+        Shared base types:
+    }
+
+    class Participant <<ast>> {
+        +name: string
+        +alias: string?
+        +display_label: string
+        +participant_type: ParticipantType
+        +color: string?
+        +source_line: int
+    }
+
+    class Message <<ast>> {
+        +from: Participant
+        +to: Participant
+        +label: string
+        +style: ArrowStyle
+        +direction: ArrowDirection
+    }
+
+    class Note <<ast>> {
+        +text: string
+        +position: NotePosition
+        +participant: Participant?
+    }
+
+    class ParseError <<ast>> {
+        +message: string
+        +line: int
+        +column: int
+    }
+
+    class SkinParams <<ast>> {
+        +global_params: HashTable
+        +element_params: HashTable
+        +set_global(prop, val)
+        +get_global(prop): string?
+        +merge(other)
+    }
+
+    class "PlantUML AST Types (16 files)" as PumlASTs <<ast>> {
+        SequenceDiagram, ClassDiagram,
+        ActivityDiagram, StateDiagram,
+        UseCaseDiagram, ComponentDiagram,
+        ObjectDiagram, DeploymentDiagram,
+        ERDiagram, MindMapDiagram,
+        GanttDiagram, JsonDiagram,
+        YamlDiagram, ChronologyDiagram,
+        TimingDiagram, NwdiagDiagram,
+        ArchimateDiagram
+    }
+
+    class "MermaidDiagram.vala\n(24 AST types in one file)" as MermaidASTs <<ast>> {
+        MermaidFlowchart, MermaidSequence,
+        MermaidState, MermaidClass,
+        MermaidER, MermaidGantt,
+        MermaidPie, MermaidUserJourney,
+        MermaidGitGraph, MermaidMindmap,
+        MermaidTimeline, MermaidQuadrant,
+        MermaidXYChart, MermaidKanban,
+        MermaidSankey, MermaidRequirement,
+        MermaidBlock, MermaidPacket,
+        MermaidC4, MermaidArchitecture,
+        MermaidZenUML, MermaidRadar,
+        MermaidTreemap
+    }
+}
+
+' ===== Renderer Classes =====
+package "Renderer Layer" {
+    class GraphvizRenderer <<renderer>> {
+        -context: Gvc.Context
+        +last_regions: ArrayList<ElementRegion>
+        +layout_engine: string
+        --
+        Facade: delegates to 18
+        specialized PlantUML renderers
+    }
+
+    class RenderUtils <<renderer>> {
+        {static} +escape_id(s): string
+        {static} +escape_label(s): string
+        {static} +escape_record_label(s): string
+        {static} +parse_svg_regions(svg): ArrayList
+        {static} +normalize_color(color): string?
+    }
+
+    class ElementRegion <<renderer>> {
+        +name: string
+        +source_line: int
+        +x, y, width, height: double
+    }
+
+    class GraphvizCompat <<renderer>> {
+        {static} +render_data(ctx, graph,\n  engine, format): uint8[]?
+        --
+        C wrapper bridging size_t
+        vs unsigned int ABI mismatch
+    }
+
+    abstract class "<<PlantUML Renderer>>\n(pattern, not base class)" as PumlRenderer <<renderer>> {
+        #context: Gvc.Context
+        +generate_dot(diagram): string
+        +render_to_svg(diagram): uint8[]?
+        +render_to_surface(diagram): Surface?
+        +export_to_png/svg/pdf()
+    }
+
+    class "PlantUML Renderers (18)" as PumlRenderers <<renderer>> {
+        sequence/ Sequence
+        structural/ Class, Component, Object
+        behavioral/ Activity, State, UseCase
+        specialized/ Deployment, ER, MindMap,
+        Gantt, Json, Yaml, Chronology,
+        Timing, Nwdiag, Archimate
+    }
+
+    class "Mermaid Renderers (24)" as MermaidRenderers <<renderer>> {
+        Flowchart, Sequence, State, Class,
+        ER, Gantt, Pie, UserJourney,
+        GitGraph, Mindmap, Timeline,
+        Quadrant, XYChart, Kanban, Sankey,
+        Requirement, Block, Packet, C4,
+        Architecture, ZenUML, Radar, Treemap
+    }
+}
+
+' ===== Utility Classes =====
+package "Utilities" {
+    class ThemeManager <<util>> {
+        +presets: 7 themes
+        +apply_palette(diagram)
+        +get_color(role): string
+    }
+
+    class TypeDetector <<util>> {
+        +detect_format(source): DiagramFormat
+        +detect_type(source): DiagramType
+    }
+
+    class DiagramStats <<util>> {
+        +collect(diagram): Stats
+    }
+
+    class "Analysis Tools" as AnalysisTools <<util>> {
+        DiagramLinter
+        DiagramValidator
+        ComplexityAnalyzer
+        DiagramOptimizer
+    }
+
+    class "Authoring Tools" as AuthoringTools <<util>> {
+        DiagramBeautifier
+        DiagramComparison
+        DiagramTemplates
+        FormatConverter
+        ExportPresets
+    }
+
+    class PerformanceMonitor <<util>> {
+        +start_timer()
+        +stop_timer(): double
+    }
+}
+
+' ===== Relationships =====
+
+' Parser infrastructure
+Lexer --> TokenStream : creates
+Lexer ..> PumlParser : tokens feed into
+Preprocessor --> Lexer : expanded source
+
+' Parser pattern relationships
+PumlParser <|.. PumlParsers
+MermaidParser <|.. MermaidParsers
+
+' AST base type composition
+DiagramNode --> Participant
+DiagramNode --> Message
+DiagramNode --> Note
+DiagramNode --> ParseError
+
+' Parser -> AST production
+PumlParsers ..> PumlASTs : produces
+MermaidParsers ..> MermaidASTs : produces
+
+' Renderer facade
+GraphvizRenderer o-- PumlRenderers
+
+' Renderer pattern
+PumlRenderer <|.. PumlRenderers
+
+' Renderer utilities
+PumlRenderer --> RenderUtils : uses
+MermaidRenderers --> RenderUtils : uses
+PumlRenderers --> GraphvizCompat : renders via
+MermaidRenderers --> GraphvizCompat : renders via
+GraphvizRenderer --> ElementRegion : produces
+
+legend right
+    |= Color |= Layer |
+    | <#FFF3E0> | Parser |
+    | <#E8F5E9> | AST |
+    | <#F3E5F5> | Renderer |
+    | <#FFF9C4> | Utilities |
+    | <#ECEFF1> | Shared base |
+endlegend
+
+@enduml

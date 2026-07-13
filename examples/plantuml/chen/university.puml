@@ -1,0 +1,17 @@
+@startchen
+entity Student {
+  *student_id
+  name
+  email
+}
+entity Course {
+  *course_id
+  title
+  credits
+}
+relationship Enrolls {
+  grade
+}
+Student -[N]- Enrolls
+Enrolls -[M]- Course
+@endchen

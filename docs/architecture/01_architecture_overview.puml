@@ -1,0 +1,212 @@
+@startuml
+title gDiagram — Architecture Overview
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam padding 4
+skinparam nodesep 60
+skinparam ranksep 40
+
+skinparam component {
+    BackgroundColor<<ui>> #E3F2FD
+    BorderColor<<ui>> #1565C0
+    BackgroundColor<<engine>> #FFEBEE
+    BorderColor<<engine>> #B71C1C
+    BackgroundColor<<parser>> #FFF3E0
+    BorderColor<<parser>> #E65100
+    BackgroundColor<<ast>> #E8F5E9
+    BorderColor<<ast>> #2E7D32
+    BackgroundColor<<renderer>> #F3E5F5
+    BorderColor<<renderer>> #6A1B9A
+    BackgroundColor<<external>> #ECEFF1
+    BorderColor<<external>> #37474F
+    BackgroundColor<<util>> #FFF9C4
+    BorderColor<<util>> #F9A825
+    BackgroundColor<<service>> #FCE4EC
+    BorderColor<<service>> #C62828
+}
+
+package "UI Layer" as ui_layer {
+    [Application\n(GUI startup +\nheadless CLI export)] <<ui>> as app
+    [MainWindow\n(Tabs, actions,\ngit integration)] <<ui>> as mw
+    [TemplateGallery\n(Built-in templates,\npicker dialog)] <<ui>> as tgal
+    [RecentFilesManager\n(Persistence + menu)] <<ui>> as recent
+    [DocumentView\n(Editor + generic\nrender path + stats bar)] <<ui>> as dv
+    [OutlineController\n(Outline population\nfrom engine AST)] <<ui>> as oc
+    [GitGutterController\n(Blame gutter, diff marks,\ngit-dirty check)] <<ui>> as ggc
+    [PreviewPane\n(Rendering viewport,\nclick-to-source)] <<ui>> as pp
+    [ExportDialog\n(PNG/SVG/PDF)] <<ui>> as ed
+    [PreferencesDialog] <<ui>> as pd
+
+    package "Dialogs & Views" as dialogs {
+        [DiagramCompareDialog\n(Side-by-side diff)] <<ui>> as dcd
+        [GitHistoryDialog\n(Commit history,\nrestore, meld)] <<ui>> as ghd
+        [GitRepoView\n(Live git graph tab)] <<ui>> as grv
+        [AIAssistantDialog] <<ui>> as aid
+    }
+}
+
+package "LSP Server (gdiagram-lsp)" as lsp_layer {
+    [LspServer\n(JSON-RPC over stdio)] <<ui>> as lsp
+    [LspDocumentState\n(Per-document parse state,\ndiagnostics)] <<ui>> as lspdoc
+}
+
+[DiagramEngine\n(THE core entry point:\ndetection · preprocessing ·\nparse() · render() · generate_dot() ·\nexport — owns ALL parser &\nrenderer instances)] <<engine>> as engine
+
+package "Utilities & Services" as util_layer {
+    package "Core Utilities" as core_utils {
+        [Document\n(File I/O & monitoring)] <<util>> as doc
+        [Debouncer] <<util>> as debouncer
+        [TypeDetector\n(Format + type detection)] <<util>> as typedet
+        [PerformanceMonitor] <<util>> as perf
+        [FormatConverter] <<util>> as fmtconv
+        [ExportPresets] <<util>> as exppreset
+    }
+
+    package "Analysis & Quality" as analysis {
+        [DiagramStats] <<util>> as stats
+        [DiagramLinter] <<util>> as linter
+        [DiagramValidator] <<util>> as validator
+        [ComplexityAnalyzer] <<util>> as complexity
+        [DiagramOptimizer] <<util>> as optimizer
+    }
+
+    package "Authoring Tools" as authoring {
+        [ThemeManager\n(7 presets, palette system)] <<util>> as theme_mgr
+        [DiagramTemplates\n(Template data)] <<util>> as templates
+        [DiagramBeautifier\n(Per-type formatters)] <<util>> as beautifier
+        [DiagramComparison\n(Semantic diff)] <<util>> as comparison
+    }
+
+    package "Git & Services" as git_services {
+        [GitRepoGraph\n(Branch/commit data)] <<util>> as gitgraph
+        [AIService\n(Claude API, key in\nGNOME Keyring)] <<service>> as aiservice
+    }
+}
+
+package "Parser Layer" as parser_layer {
+    package "PlantUML (26 types)" as puml_parsers {
+        [Preprocessor] <<parser>> as preproc
+        [Lexer / TokenStream] <<parser>> as lexer
+        [Sequence · Class · Activity (+7 sub)\nUseCase · State · Component · Object\nDeployment · ER · MindMap · Gantt\nJson · Yaml · Chronology · Timing\nNwdiag · Archimate · Salt · Chen\nEbnf · Regex · Dot · Tree · Board\nAncestry(GEDCOM) · Ditaa] <<parser>> as puml_all
+    }
+
+    package "Mermaid (24 types)" as mermaid_parsers {
+        [MermaidLexer] <<parser>> as mlexer
+        [Flowchart · Sequence · State · Class\nER · Gantt · Pie · UserJourney\nGitGraph · Mindmap · Timeline\nQuadrant · XYChart · Kanban · Sankey\nRequirement · Block · Packet · C4\nArchitecture · ZenUML · Radar · Treemap] <<parser>> as mermaid_all
+    }
+}
+
+package "AST Layer" as ast_layer {
+    [DiagramNode\n(Base types: Participant,\nMessage, Note, ParseError,\nDiagramType enum)] <<ast>> as base_ast
+    [PlantUML ASTs\n(one file per type)] <<ast>> as puml_ast
+    [Mermaid ASTs\n(ast/mermaid/, one file per type —\nMermaidDiagram.vala holds the\nshared enum only)] <<ast>> as mermaid_ast
+    [Theme / SkinParams] <<ast>> as theme
+}
+
+package "Renderer Layer" as renderer_layer {
+    [GraphvizRenderer\n(Facade)] <<renderer>> as gvr
+    [RenderUtils\n(Escaping, ElementRegion,\nSVG region parsing)] <<renderer>> as rutil
+    [GraphvizCompat\n(ABI wrapper for\npatched libgvc)] <<renderer>> as gvcompat
+
+    package "PlantUML Renderers (26)" as puml_renderers {
+        [sequence/ · structural/\nbehavioral/ · specialized/] <<renderer>> as puml_rend
+    }
+
+    package "Mermaid Renderers (24)" as mermaid_renderers {
+        [mermaid/*] <<renderer>> as m_rend
+    }
+}
+
+package "External" as externals {
+    [Graphviz\n(libgvc + patched\n/usr/local/bin/dot)] <<external>> as graphviz
+    [Cairo] <<external>> as cairo
+    [GTK4 / libadwaita] <<external>> as gtk
+    [GtkSourceView] <<external>> as gsv
+    [librsvg] <<external>> as rsvg
+    [libsoup + json-glib] <<external>> as soup
+    [libsecret\n(GNOME Keyring)] <<external>> as secret
+}
+
+' UI internal relationships
+app --> mw : creates (GUI)
+app --> engine : CLI --export
+mw --> dv : creates per tab
+mw --> tgal : opens (Ctrl+T)
+mw --> recent : recent-files menu
+dv --> pp : embeds
+dv --> oc : delegates outline
+dv --> ggc : delegates git gutter
+dv --> ed : opens
+dv --> debouncer : uses
+dv --> doc : reads/writes
+mw --> ghd : opens
+mw --> grv : opens as tab
+dv --> dcd : opens
+aid --> aiservice : queries
+
+' Everything renders through the engine
+dv --> engine : render() / export
+lsp --> engine : owns shared instance
+lspdoc --> engine : parse() per didChange
+engine --> typedet : detects format
+engine --> preproc : preprocesses PlantUML
+engine --> puml_all : parses
+engine --> mermaid_parsers : parses
+engine --> gvr : renders PlantUML
+engine --> mermaid_renderers : renders Mermaid
+
+' UI to utilities
+dv --> stats : collects stats
+dv --> linter : lint checks
+dv --> validator : validates
+dv --> complexity : analyzes
+dv --> optimizer : suggestions
+dv --> beautifier : reformats
+dv --> theme_mgr : applies themes
+dv --> perf : measures render time
+grv --> gitgraph : loads graph data
+
+' Parser internal flow
+preproc --> lexer : expanded source
+lexer --> puml_all
+mlexer --> mermaid_all
+
+' Parser to AST
+puml_parsers ..> puml_ast : produces
+puml_parsers ..> base_ast : produces
+mermaid_parsers ..> mermaid_ast : produces
+
+' Renderer internals
+gvr --> puml_rend : delegates
+puml_renderers --> rutil : uses
+mermaid_renderers --> rutil : uses
+puml_renderers --> gvcompat : renders via
+mermaid_renderers --> gvcompat : renders via
+
+' Renderer to External
+gvcompat --> graphviz : calls libgvc
+puml_renderers --> cairo : render surface
+mermaid_renderers --> cairo : render surface
+pp --> rsvg : SVG rendering
+aiservice --> soup : HTTP requests
+aiservice --> secret : API key storage
+
+' External dependencies
+mw --> gtk : extends
+dv --> gsv : source editing
+ggc --> gsv : gutter renderer
+pp --> cairo : drawing
+
+legend right
+    |= Color |= Layer |
+    | <#E3F2FD> | UI / LSP Layer |
+    | <#FFEBEE> | DiagramEngine (core entry point) |
+    | <#FFF3E0> | Parser Layer |
+    | <#E8F5E9> | AST Layer |
+    | <#F3E5F5> | Renderer Layer |
+    | <#ECEFF1> | External Dependencies |
+    | <#FFF9C4> | Utilities |
+    | <#FCE4EC> | Services |
+endlegend
+
+@enduml

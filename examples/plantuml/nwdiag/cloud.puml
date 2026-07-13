@@ -1,0 +1,25 @@
+@startnwdiag
+nwdiag {
+  network public {
+    address = "203.0.113.x/24"
+    loadbalancer [address = "203.0.113.1", shape = "server"]
+  }
+
+  network app_tier {
+    address = "10.1.0.x/24"
+    loadbalancer [address = "10.1.0.1"]
+    app01 [address = "10.1.0.10"]
+    app02 [address = "10.1.0.11"]
+    app03 [address = "10.1.0.12"]
+  }
+
+  network data_tier {
+    address = "10.2.0.x/24"
+    app01 [address = "10.2.0.10"]
+    app02 [address = "10.2.0.11"]
+    db_primary [address = "10.2.0.100", shape = "database"]
+    db_replica [address = "10.2.0.101", shape = "database"]
+    cache [address = "10.2.0.200", shape = "cloud"]
+  }
+}
+@endnwdiag

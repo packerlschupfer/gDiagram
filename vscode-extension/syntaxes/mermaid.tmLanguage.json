@@ -1,0 +1,273 @@
+{
+  "scopeName": "source.mermaid",
+  "name": "Mermaid",
+  "fileTypes": ["mmd", "mermaid"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#diagram-type" },
+    { "include": "#directives" },
+    { "include": "#keywords" },
+    { "include": "#arrows" },
+    { "include": "#node-shapes" },
+    { "include": "#class-definitions" },
+    { "include": "#labels" },
+    { "include": "#numbers" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.percentage.mermaid",
+          "match": "%%.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.mermaid",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mermaid",
+              "match": "\\\\[\"\\\\]"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.mermaid",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mermaid",
+              "match": "\\\\['\\\\ ]"
+            }
+          ]
+        }
+      ]
+    },
+    "diagram-type": {
+      "patterns": [
+        {
+          "name": "keyword.control.diagram.mermaid",
+          "match": "^\\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|stateDiagram-v2|erDiagram|gantt|pie|journey|gitGraph|mindmap|timeline|quadrantChart|xychart-beta|kanban|sankey-beta|requirementDiagram|block-beta|packet-beta|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|architecture-beta|zenuml|radar-beta|treemap-beta)\\b"
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "meta.directive.mermaid",
+          "begin": "%%\\{",
+          "end": "\\}%%",
+          "beginCaptures": { "0": { "name": "punctuation.definition.directive.begin.mermaid" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.directive.end.mermaid" } },
+          "patterns": [
+            {
+              "name": "keyword.other.directive.mermaid",
+              "match": "\\b(init|theme|config)\\b"
+            },
+            { "include": "#strings" }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.flowchart.mermaid",
+          "match": "\\b(subgraph|end|direction|TB|TD|BT|RL|LR)\\b"
+        },
+        {
+          "name": "keyword.control.sequence.mermaid",
+          "match": "\\b(participant|actor|activate|deactivate|Note|note|over|left of|right of|loop|alt|else|opt|par|and|critical|break|rect|end|autonumber|autoactivate)\\b"
+        },
+        {
+          "name": "keyword.control.class.mermaid",
+          "match": "\\b(class|namespace)\\b"
+        },
+        {
+          "name": "keyword.control.state.mermaid",
+          "match": "\\b(state|\\[\\*\\])\\b"
+        },
+        {
+          "name": "keyword.control.er.mermaid",
+          "match": "\\b(PK|FK|UK)\\b"
+        },
+        {
+          "name": "keyword.control.gantt.mermaid",
+          "match": "\\b(title|dateFormat|axisFormat|excludes|includes|todayMarker|section|done|active|crit|after|milestone)\\b"
+        },
+        {
+          "name": "keyword.control.pie.mermaid",
+          "match": "\\b(title|showData)\\b"
+        },
+        {
+          "name": "keyword.control.journey.mermaid",
+          "match": "\\b(title|section)\\b"
+        },
+        {
+          "name": "keyword.control.gitgraph.mermaid",
+          "match": "\\b(commit|branch|checkout|merge|cherry-pick|tag|id|msg|type)\\b"
+        },
+        {
+          "name": "keyword.control.mindmap.mermaid",
+          "match": "\\b(root)\\b"
+        },
+        {
+          "name": "keyword.control.timeline.mermaid",
+          "match": "\\b(title|section)\\b"
+        },
+        {
+          "name": "keyword.control.quadrant.mermaid",
+          "match": "\\b(x-axis|y-axis|quadrant-[1-4])\\b"
+        },
+        {
+          "name": "keyword.control.xychart.mermaid",
+          "match": "\\b(x-axis|y-axis|line|bar)\\b"
+        },
+        {
+          "name": "keyword.control.requirement.mermaid",
+          "match": "\\b(requirement|functionalRequirement|performanceRequirement|interfaceRequirement|physicalRequirement|designConstraint|element|type|docRef|risk|verifymethod|id|text|satisfies|traces|contains|derives|refines|copies|verifies)\\b"
+        },
+        {
+          "name": "keyword.control.c4.mermaid",
+          "match": "\\b(Person|Person_Ext|System|System_Ext|System_Db|System_Queue|Container|Container_Db|Container_Queue|Container_Ext|Component|Component_Db|Component_Ext|Boundary|Enterprise_Boundary|System_Boundary|Container_Boundary|Deployment_Node|Node|Rel|Rel_Back|Rel_Neighbor|Rel_D|Rel_U|Rel_L|Rel_R|BiRel|UpdateElementStyle|UpdateRelStyle|UpdateLayoutConfig)\\b"
+        },
+        {
+          "name": "keyword.control.block.mermaid",
+          "match": "\\b(columns|block|space)\\b"
+        },
+        {
+          "name": "keyword.control.architecture.mermaid",
+          "match": "\\b(group|service|junction|edge)\\b"
+        },
+        {
+          "name": "keyword.control.zenuml.mermaid",
+          "match": "\\b(title|return|if|else|while|try|catch|finally|par|opt|new)\\b"
+        },
+        {
+          "name": "keyword.control.radar.mermaid",
+          "match": "\\b(axis|curve|max)\\b"
+        },
+        {
+          "name": "keyword.other.mermaid",
+          "match": "\\b(click|callback|href|classDef|style|linkStyle|class|accTitle|accDescr)\\b"
+        },
+        {
+          "name": "constant.language.mermaid",
+          "match": "\\b(low|medium|high|analysis|inspection|test|demonstration)\\b"
+        }
+      ]
+    },
+    "arrows": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arrow.mermaid",
+          "match": "(-?->|--?>|==>|==?>|-\\.-?>|<-->|<--?>|<==?>|x--x|o--o)"
+        },
+        {
+          "name": "keyword.operator.arrow.sequence.mermaid",
+          "match": "(->>|-->>|-)\\)|--\\)|<<->>)"
+        },
+        {
+          "name": "keyword.operator.arrow.line.mermaid",
+          "match": "(---|--|-\\.-|===|~~~)"
+        },
+        {
+          "name": "keyword.operator.er.mermaid",
+          "match": "(\\|\\||\\}o|o\\{|\\}\\||\\|\\{|o\\||\\|o|\\|\\||\\{\\||\\|\\})"
+        },
+        {
+          "name": "keyword.operator.class.relation.mermaid",
+          "match": "(<\\|--|--\\|>|<\\|\\.\\.|\\.\\.\\|>|\\*--|--\\*|o--|--o|<--|-->|<\\.\\.|\\.\\.\\.>)"
+        }
+      ]
+    },
+    "node-shapes": {
+      "patterns": [
+        {
+          "name": "meta.node.bracket.mermaid",
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [{ "include": "#strings" }]
+        },
+        {
+          "name": "meta.node.paren.mermaid",
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [{ "include": "#strings" }]
+        },
+        {
+          "name": "meta.node.brace.mermaid",
+          "begin": "\\{",
+          "end": "\\}",
+          "patterns": [
+            { "include": "#strings" },
+            { "include": "#keywords" },
+            { "include": "#arrows" },
+            { "include": "#numbers" }
+          ]
+        }
+      ]
+    },
+    "class-definitions": {
+      "patterns": [
+        {
+          "name": "meta.classdef.mermaid",
+          "match": "\\b(classDef)\\s+(\\w+)\\s+(.+)$",
+          "captures": {
+            "1": { "name": "keyword.other.classdef.mermaid" },
+            "2": { "name": "entity.name.type.class.mermaid" },
+            "3": { "name": "string.unquoted.style.mermaid" }
+          }
+        },
+        {
+          "name": "meta.class-assign.mermaid",
+          "match": "\\b(class)\\s+(\\w+)\\s+(\\w+)$",
+          "captures": {
+            "1": { "name": "keyword.other.class.mermaid" },
+            "2": { "name": "variable.other.node.mermaid" },
+            "3": { "name": "entity.name.type.class.mermaid" }
+          }
+        },
+        {
+          "name": "entity.name.type.style-class.mermaid",
+          "match": ":::\\s*\\w+"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "name": "string.unquoted.label.mermaid",
+          "match": "\\|[^|]+\\|"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.mermaid",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.annotation.mermaid",
+          "match": "<<[^>]+>>"
+        },
+        {
+          "name": "keyword.operator.colon.mermaid",
+          "match": ":"
+        }
+      ]
+    }
+  }
+}

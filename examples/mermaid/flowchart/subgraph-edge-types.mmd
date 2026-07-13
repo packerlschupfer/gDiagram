@@ -1,0 +1,15 @@
+flowchart LR
+    subgraph Input
+        direction TB
+        A([User Request]) --> B[/Manual Entry/]
+    end
+    subgraph Core
+        direction LR
+        C{Validate} -- Success --> D[Processing]
+        C -- Fail --> E[[Error Handler]]
+    end
+    Input --> Core
+    D ==> F[(Database)]
+    E -.-> G(Notification)
+    classDef trigger fill:#fed7aa,stroke:#c2410c,color:#374151
+    class A trigger

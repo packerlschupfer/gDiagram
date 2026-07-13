@@ -1,0 +1,19 @@
+sequenceDiagram
+    autonumber
+    actor LongName as "User with a Ridiculously Long Name"
+    participant Frontend
+    box "Backend Architecture" #e0e0ff
+        participant Auth_Service
+        participant State_Manager
+        participant DB_Handler
+    end
+
+    LongName->>+Frontend: Login Attempt
+    Frontend->>+Auth_Service: Validate Credentials
+    par Cache Replication
+        State_Manager->>+DB_Handler: Persist Session
+        DB_Handler-->>-State_Manager: Committed
+    and Persistent Backup
+        State_Manager->>State_Manager: Local copy
+    end
+    LongName-->>Frontend: End Interaction

@@ -1,0 +1,22 @@
+@startgantt
+title Software Release 2.0
+
+-- Planning Phase --
+[Kickoff Meeting] requires 1 days
+[Requirements Gathering] requires 5 days
+[Requirements Gathering] starts at [Kickoff Meeting]'s end
+
+-- Development Phase --
+[Backend API] requires 10 days
+[Backend API] starts at [Requirements Gathering]'s end
+[Frontend UI] requires 8 days
+[Frontend UI] starts at [Requirements Gathering]'s end
+[Integration] requires 3 days
+[Integration] starts at [Backend API]'s end
+
+-- Release Phase --
+[UAT Testing] requires 4 days
+[UAT Testing] starts at [Integration]'s end
+[UAT Testing] is colored in Gold/DarkGoldenRod
+[Go Live] happens at [UAT Testing]'s end
+@endgantt

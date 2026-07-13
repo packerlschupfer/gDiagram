@@ -1,0 +1,14 @@
+@startboard
++ Backlog
+++ Design login page
+++ Set up CI/CD
+++ Write API docs
++ In Progress
+++ Implement auth
+++ Database schema
++ Review
+++ Code review PR #42
++ Done
+++ Project setup
+++ Deploy staging
+@endboard

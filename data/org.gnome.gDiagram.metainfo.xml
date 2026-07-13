@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.gnome.gDiagram</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>gDiagram</name>
+  <summary>Native diagram viewer supporting PlantUML, Mermaid, and more</summary>
+
+  <description>
+    <p>
+      gDiagram is a native GTK4/libadwaita application for viewing and editing
+      diagrams in multiple formats including PlantUML and Mermaid. It provides
+      real-time preview of your diagrams as you type, with full syntax highlighting
+      and error detection.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Native rendering using Graphviz (no Java required)</li>
+      <li>Real-time diagram preview with debounced updates</li>
+      <li>Support for PlantUML and Mermaid syntax</li>
+      <li>Support for multiple diagram types: Sequence, Class, Activity, State, Use Case, Component, Flowcharts</li>
+      <li>Export to SVG, PNG, and PDF</li>
+      <li>Dark mode support</li>
+      <li>Multi-tab editing</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">org.gnome.gDiagram.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Editing a class diagram</caption>
+      <image>https://raw.githubusercontent.com/user/gplantuml/main/screenshots/class-diagram.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>State diagram with live preview</caption>
+      <image>https://raw.githubusercontent.com/user/gplantuml/main/screenshots/state-diagram.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/packerlschupfer/gDiagram</url>
+  <url type="bugtracker">https://github.com/packerlschupfer/gDiagram/issues</url>
+  <url type="vcs-browser">https://github.com/packerlschupfer/gDiagram</url>
+
+  <developer id="org.gnome">
+    <name>gDiagram Developers</name>
+  </developer>
+
+  <provides>
+    <binary>gdiagram</binary>
+  </provides>
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#62a0ea</color>
+    <color type="primary" scheme_preference="dark">#1c71d8</color>
+  </branding>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="0.1.0" date="2024-12-25">
+      <description>
+        <p>Initial release with core functionality:</p>
+        <ul>
+          <li>Sequence diagram support</li>
+          <li>Class diagram support</li>
+          <li>Activity diagram support</li>
+          <li>State diagram support with stereotypes and history states</li>
+          <li>Use Case diagram support with system boundaries</li>
+          <li>Component diagram support with ports</li>
+          <li>Export to SVG, PNG, PDF</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+
+  <keywords>
+    <keyword>UML</keyword>
+    <keyword>PlantUML</keyword>
+    <keyword>Mermaid</keyword>
+    <keyword>diagram</keyword>
+    <keyword>sequence</keyword>
+    <keyword>class</keyword>
+    <keyword>flowchart</keyword>
+    <keyword>state machine</keyword>
+  </keywords>
+
+  <categories>
+    <category>Development</category>
+    <category>Graphics</category>
+  </categories>
+</component>

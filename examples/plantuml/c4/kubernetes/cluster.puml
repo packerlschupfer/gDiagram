@@ -1,0 +1,45 @@
+@startuml
+' Drilled from context.puml — Kubernetes Cluster architecture.
+'
+' Shows the control plane components, worker node components, and the
+' five concept areas you can drill into. Double-click any component or
+' concept rectangle to descend further.
+
+title Kubernetes Cluster — Architecture & Concepts
+
+rectangle "Cluster Admin"  <<person>> as admin
+rectangle "kubectl / API clients" <<external_system>> as kubectl
+
+rectangle "Control Plane" <<container_boundary>> as cp {
+    rectangle "kube-apiserver\nREST + auth + admission"    <<container>> as apiserver
+    database  "etcd\nKey-value store"                       <<container>> as etcd
+    rectangle "kube-scheduler\nPlaces Pods on nodes"        <<container>> as scheduler
+    rectangle "kube-controller-manager\nReconciliation loops" <<container>> as ctrl
+    rectangle "cloud-controller-manager\nCloud provider hooks" <<container>> as ccm
+}
+
+rectangle "Worker Node" <<container_boundary>> as node {
+    rectangle "kubelet\nManages Pods on node"   <<container>> as kubelet
+    rectangle "kube-proxy\nService routing rules" <<container>> as kproxy
+    rectangle "Container Runtime\ncontainerd / CRI-O" <<container>> as cri
+    rectangle "CNI Plugin\nCilium / Calico / Flannel" <<container>> as cni
+}
+
+rectangle "Resource Concepts" <<boundary>> as concepts {
+    rectangle "Workloads\nPod, Deployment, etc." <<component>> as workloads
+    rectangle "Networking\nService, Ingress, DNS" <<component>> as networking
+    rectangle "Storage\nPV, PVC, CSI" <<component>> as storage
+    rectangle "Security\nRBAC, SA, Secrets" <<component>> as security
+}
+
+admin   --> kubectl   : "uses"
+kubectl --> apiserver : "HTTPS:6443"
+apiserver --> etcd    : "Watch + write"
+scheduler --> apiserver : "Watch unbound Pods"
+ctrl      --> apiserver : "Watch & reconcile"
+kubelet   --> apiserver : "Heartbeat + status"
+kubelet   --> cri       : "CRI"
+cri       --> cni       : "Setup pod netns"
+kproxy    --> apiserver : "Watch Services"
+
+@enduml

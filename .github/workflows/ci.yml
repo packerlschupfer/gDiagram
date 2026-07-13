@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          meson \
+          ninja-build \
+          valac \
+          libgtk-4-dev \
+          libadwaita-1-dev \
+          libgtksourceview-5-dev \
+          libgee-0.8-dev \
+          librsvg2-dev \
+          libcairo2-dev \
+          libsoup-3.0-dev \
+          libjson-glib-dev \
+          libsecret-1-dev \
+          desktop-file-utils \
+          gettext \
+          appstream \
+          libpango1.0-dev \
+          libgd-dev \
+          libexpat1-dev \
+          libltdl-dev \
+          bison \
+          flex
+
+    - name: Cache patched Graphviz
+      id: cache-graphviz
+      uses: actions/cache@v4
+      with:
+        path: /opt/graphviz-patched
+        key: graphviz-14.1.3-${{ runner.os }}
+
+    # Our HTML <TD> text-centering fix merged upstream (2cddb8456) and first
+    # shipped in graphviz 14.1.3 — build from the upstream release tag; the
+    # old packerlschupfer/graphviz fork branch no longer exists.
+    - name: Build and install Graphviz 14.1.3
+      if: steps.cache-graphviz.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 https://gitlab.com/graphviz/graphviz.git \
+          --branch 14.1.3 /tmp/graphviz
+        cmake -B /tmp/graphviz/build -S /tmp/graphviz \
+          -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
+        make -C /tmp/graphviz/build -j$(nproc)
+        sudo make -C /tmp/graphviz/build install
+
+    - name: Configure Graphviz environment
+      run: |
+        echo "PKG_CONFIG_PATH=/opt/graphviz-patched/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/opt/graphviz-patched/lib:${LD_LIBRARY_PATH:-}" >> $GITHUB_ENV
+        echo "/opt/graphviz-patched/bin" >> $GITHUB_PATH
+
+    - name: Configure
+      run: meson setup build --prefix=/usr
+
+    - name: Build
+      run: meson compile -C build
+
+    - name: Test
+      run: meson test -C build --print-errorlogs
+
+    - name: Validate desktop file
+      run: desktop-file-validate build/data/org.gnome.gDiagram.desktop
+
+    - name: Validate metainfo
+      run: appstreamcli validate --no-net data/org.gnome.gDiagram.metainfo.xml || true
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: gdiagram-build
+        path: build/src/gdiagram

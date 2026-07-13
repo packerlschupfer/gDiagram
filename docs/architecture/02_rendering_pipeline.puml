@@ -1,0 +1,169 @@
+@startuml
+title gDiagram — Rendering Pipeline
+
+start
+
+:User edits source text
+in DocumentView;
+
+:Debouncer delays render
+(prevents excessive updates);
+
+:render_preview() calls
+DiagramEngine.render()
+(the engine owns all parsers
+and renderers — the LSP server
+and CLI export use it too);
+
+:TypeDetector detects
+diagram format + type;
+
+if (File extension or content?) then (PlantUML\n.puml / @startuml)
+    :DiagramFormat = PLANTUML;
+    :Preprocessor expands
+    includes and macros;
+    :Lexer tokenizes
+    source into Tokens;
+    :TokenStream wraps
+    token list;
+
+    :TypeDetector.detect_diagram_type()
+    based on keywords;
+
+    switch (DiagramType?)
+    case (SEQUENCE)
+        :SequenceDiagramParser
+        -> SequenceDiagram AST;
+    case (CLASS)
+        :ClassDiagramParser
+        -> ClassDiagram AST;
+    case (ACTIVITY)
+        :ActivityDiagramParser
+        (7 sub-parsers)
+        -> ActivityDiagram AST;
+    case (STATE / USECASE /\nCOMPONENT)
+        :Behavioral parser
+        -> typed AST;
+    case (OBJECT / DEPLOYMENT /\nER / MINDMAP)
+        :Structural/Specialized parser
+        -> typed AST;
+    case (GANTT / JSON / YAML /\nCHRONOLOGY / TIMING /\nNWDIAG / ARCHIMATE)
+        :Specialized parser
+        -> typed AST;
+    endswitch
+
+    :ThemeManager applies palette
+    (7 presets: Default, Monokai,
+    Solarized, Nord, etc.);
+
+    :GraphvizRenderer facade
+    delegates to typed renderer;
+
+else (Mermaid\n.mmd / flowchart/sequenceDiagram...)
+    :DiagramFormat = MERMAID;
+    :MermaidLexer tokenizes
+    source into MermaidTokens;
+
+    switch (Mermaid type?)
+    case (flowchart / sequence /\nstate / class)
+        :Core Mermaid parser
+        -> typed AST;
+    case (ER / gantt / pie /\nuserJourney / gitGraph)
+        :Extended Mermaid parser
+        -> typed AST;
+    case (mindmap / timeline /\nquadrant / xyChart /\nkanban / sankey)
+        :Visualization parser
+        -> typed AST;
+    case (requirement / block /\npacket / C4 / architecture /\nzenUML / radar / treemap)
+        :Specialized Mermaid parser
+        -> typed AST;
+    endswitch
+
+    :ThemeManager applies palette;
+
+    :Mermaid renderer
+    (per-type, 24 renderers);
+
+endif
+
+:generate_dot()
+produces Graphviz DOT string;
+
+:GraphvizCompat.render_data()
+bridges ABI mismatch
+(size_t vs unsigned int);
+
+note right
+    All renderers use GraphvizCompat
+    wrapper (C bridge) to avoid stack
+    corruption from patched libgvc ABI.
+    Activity diagrams additionally call
+    patched /usr/local/bin/dot directly
+    for correct text centering.
+end note
+
+:Graphviz processes DOT
+via patched libgvc (/usr/local);
+
+:PerformanceMonitor records
+render time (shown in stats bar);
+
+fork
+    :render_to_surface()
+    -> Cairo.ImageSurface;
+
+    :RenderUtils.parse_svg_regions()
+    extracts ElementRegion list
+    (name, source_line, x, y, w, h);
+
+    :DocumentView receives RenderResult
+    (status, surface, AST, errors)
+    and updates PreviewPane +
+    outline via OutlineController;
+
+    :DiagramStats collects metrics
+    (nodes, edges, complexity);
+
+    :DiagramLinter / DiagramValidator
+    check for issues (shown in
+    outline stats bar buttons);
+
+    :User views rendered diagram;
+
+    if (User clicks element?) then (yes)
+        :PreviewPane.on_click()
+        performs hit test on
+        ElementRegion list;
+        :element_clicked signal
+        (element_name, source_line);
+        :DocumentView scrolls
+        source editor to line;
+    else (no)
+    endif
+
+fork again
+    if (User requests export?) then (yes)
+        :ExportDialog shown
+        (with ExportPresets);
+        :User selects format + scale;
+
+        switch (Export format?)
+        case (PNG)
+            :export_to_png()
+            Cairo surface -> PNG file;
+        case (SVG)
+            :export_to_svg()
+            Graphviz DOT -> SVG file;
+        case (PDF)
+            :export_to_pdf()
+            Cairo surface -> PDF file;
+        endswitch
+
+        :File saved to disk;
+    else (no)
+    endif
+end fork
+
+stop
+
+@enduml

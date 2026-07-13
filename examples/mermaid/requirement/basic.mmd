@@ -1,0 +1,31 @@
+requirementDiagram
+
+    requirement sys_req {
+        id: 1
+        text: The system shall provide secure authentication.
+        risk: high
+        verifymethod: test
+    }
+
+    functionalRequirement login_req {
+        id: 1.1
+        text: Users shall be able to log in with credentials.
+        risk: medium
+        verifymethod: inspection
+    }
+
+    performanceRequirement perf_req {
+        id: 1.2
+        text: Login shall complete within 2 seconds.
+        risk: low
+        verifymethod: demonstration
+    }
+
+    element auth_module {
+        type: software component
+        docref: SDD/auth_module
+    }
+
+    auth_module - satisfies -> login_req
+    auth_module - traces -> sys_req
+    login_req - derives -> perf_req

@@ -1,0 +1,501 @@
+{
+  "Sequence Diagram": {
+    "prefix": "puml-sequence",
+    "description": "PlantUML sequence diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Sequence Diagram}",
+      "",
+      "participant \"${2:Client}\" as client",
+      "participant \"${3:Server}\" as server",
+      "",
+      "client -> server : ${4:Request}",
+      "activate server",
+      "server --> client : ${5:Response}",
+      "deactivate server",
+      "",
+      "@enduml"
+    ]
+  },
+  "Class Diagram": {
+    "prefix": "puml-class",
+    "description": "PlantUML class diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Class Diagram}",
+      "",
+      "class ${2:MyClass} {",
+      "  + ${3:name} : String",
+      "  + ${4:method}() : void",
+      "}",
+      "",
+      "class ${5:OtherClass} {",
+      "  + ${6:field} : int",
+      "}",
+      "",
+      "${2} --> ${5}",
+      "",
+      "@enduml"
+    ]
+  },
+  "Activity Diagram": {
+    "prefix": "puml-activity",
+    "description": "PlantUML activity diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Activity Diagram}",
+      "",
+      "start",
+      "",
+      ":${2:First Action};",
+      "",
+      "if (${3:Condition}?) then (yes)",
+      "  :${4:Action A};",
+      "else (no)",
+      "  :${5:Action B};",
+      "endif",
+      "",
+      ":${6:Final Action};",
+      "",
+      "stop",
+      "",
+      "@enduml"
+    ]
+  },
+  "State Diagram": {
+    "prefix": "puml-state",
+    "description": "PlantUML state diagram",
+    "body": [
+      "@startuml",
+      "title ${1:State Diagram}",
+      "",
+      "[*] --> ${2:Idle}",
+      "",
+      "${2} --> ${3:Processing} : ${4:start}",
+      "${3} --> ${5:Done} : ${6:complete}",
+      "${5} --> [*]",
+      "",
+      "@enduml"
+    ]
+  },
+  "Use Case Diagram": {
+    "prefix": "puml-usecase",
+    "description": "PlantUML use case diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Use Case Diagram}",
+      "",
+      "left to right direction",
+      "",
+      "actor ${2:User}",
+      "",
+      "rectangle \"${3:System}\" {",
+      "  usecase \"${4:Use Case 1}\" as UC1",
+      "  usecase \"${5:Use Case 2}\" as UC2",
+      "}",
+      "",
+      "${2} --> UC1",
+      "${2} --> UC2",
+      "",
+      "@enduml"
+    ]
+  },
+  "Component Diagram": {
+    "prefix": "puml-component",
+    "description": "PlantUML component diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Component Diagram}",
+      "",
+      "package \"${2:Frontend}\" {",
+      "  [${3:Web App}]",
+      "}",
+      "",
+      "package \"${4:Backend}\" {",
+      "  [${5:API}]",
+      "  [${6:Service}]",
+      "}",
+      "",
+      "database \"${7:Database}\" {",
+      "  [${8:PostgreSQL}]",
+      "}",
+      "",
+      "${3} --> ${5}",
+      "${5} --> ${6}",
+      "${6} --> ${8}",
+      "",
+      "@enduml"
+    ]
+  },
+  "Object Diagram": {
+    "prefix": "puml-object",
+    "description": "PlantUML object diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Object Diagram}",
+      "",
+      "object \"${2:obj1} : ${3:Class}\" as o1 {",
+      "  ${4:field} = \"${5:value}\"",
+      "}",
+      "",
+      "object \"${6:obj2} : ${7:Class}\" as o2 {",
+      "  ${8:field} = \"${9:value}\"",
+      "}",
+      "",
+      "o1 --> o2",
+      "",
+      "@enduml"
+    ]
+  },
+  "Deployment Diagram": {
+    "prefix": "puml-deployment",
+    "description": "PlantUML deployment diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Deployment Diagram}",
+      "",
+      "node \"${2:Server}\" {",
+      "  [${3:Application}]",
+      "}",
+      "",
+      "node \"${4:Database Server}\" {",
+      "  database \"${5:DB}\"",
+      "}",
+      "",
+      "${3} --> ${5}",
+      "",
+      "@enduml"
+    ]
+  },
+  "ER Diagram": {
+    "prefix": "puml-er",
+    "description": "PlantUML entity-relationship diagram",
+    "body": [
+      "@startuml",
+      "title ${1:ER Diagram}",
+      "",
+      "entity \"${2:Entity1}\" {",
+      "  * ${3:id} : int <<PK>>",
+      "  --",
+      "  * ${4:name} : varchar",
+      "}",
+      "",
+      "entity \"${5:Entity2}\" {",
+      "  * ${6:id} : int <<PK>>",
+      "  --",
+      "  * ${7:entity1_id} : int <<FK>>",
+      "}",
+      "",
+      "${2} ||--o{ ${5}",
+      "",
+      "@enduml"
+    ]
+  },
+  "Mind Map": {
+    "prefix": "puml-mindmap",
+    "description": "PlantUML mind map",
+    "body": [
+      "@startmindmap",
+      "title ${1:Mind Map}",
+      "",
+      "* ${2:Central Topic}",
+      "** ${3:Branch 1}",
+      "*** ${4:Sub-topic}",
+      "** ${5:Branch 2}",
+      "*** ${6:Sub-topic}",
+      "** ${7:Branch 3}",
+      "",
+      "@endmindmap"
+    ]
+  },
+  "WBS Diagram": {
+    "prefix": "puml-wbs",
+    "description": "PlantUML work breakdown structure",
+    "body": [
+      "@startwbs",
+      "title ${1:Work Breakdown Structure}",
+      "",
+      "* ${2:Project}",
+      "** ${3:Phase 1}",
+      "*** ${4:Task 1.1}",
+      "*** ${5:Task 1.2}",
+      "** ${6:Phase 2}",
+      "*** ${7:Task 2.1}",
+      "*** ${8:Task 2.2}",
+      "",
+      "@endwbs"
+    ]
+  },
+  "Gantt Chart": {
+    "prefix": "puml-gantt",
+    "description": "PlantUML Gantt chart",
+    "body": [
+      "@startgantt",
+      "title ${1:Project Timeline}",
+      "",
+      "Project starts ${2:2024-01-01}",
+      "",
+      "[${3:Task 1}] lasts ${4:10} days",
+      "[${5:Task 2}] lasts ${6:15} days",
+      "[${5}] starts at [${3}]'s end",
+      "[${7:Task 3}] lasts ${8:10} days",
+      "[${7}] starts at [${5}]'s end",
+      "",
+      "@endgantt"
+    ]
+  },
+  "JSON Visualization": {
+    "prefix": "puml-json",
+    "description": "PlantUML JSON tree visualization",
+    "body": [
+      "@startjson",
+      "{",
+      "  \"${1:key}\": \"${2:value}\",",
+      "  \"${3:items}\": [",
+      "    \"${4:item1}\",",
+      "    \"${5:item2}\"",
+      "  ]",
+      "}",
+      "@endjson"
+    ]
+  },
+  "YAML Visualization": {
+    "prefix": "puml-yaml",
+    "description": "PlantUML YAML tree visualization",
+    "body": [
+      "@startyaml",
+      "${1:key}: ${2:value}",
+      "${3:list}:",
+      "  - ${4:item1}",
+      "  - ${5:item2}",
+      "@endyaml"
+    ]
+  },
+  "Chronology Diagram": {
+    "prefix": "puml-chronology",
+    "description": "PlantUML chronology/timing overview",
+    "body": [
+      "@startuml",
+      "title ${1:Chronology}",
+      "",
+      "concise \"${2:Process A}\" as a",
+      "concise \"${3:Process B}\" as b",
+      "",
+      "@0",
+      "a is \"${4:Idle}\"",
+      "b is {-}",
+      "",
+      "@${5:5}",
+      "a is \"${6:Running}\"",
+      "b is \"${7:Waiting}\"",
+      "",
+      "@${8:10}",
+      "a is {-}",
+      "b is \"${9:Running}\"",
+      "",
+      "@enduml"
+    ]
+  },
+  "Timing Diagram": {
+    "prefix": "puml-timing",
+    "description": "PlantUML timing/waveform diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Timing Diagram}",
+      "",
+      "clock \"Clock\" as clk with period ${2:2}",
+      "binary \"${3:Signal A}\" as a",
+      "binary \"${4:Signal B}\" as b",
+      "",
+      "@0",
+      "a is low",
+      "b is low",
+      "",
+      "@${5:2}",
+      "a is high",
+      "",
+      "@${6:4}",
+      "b is high",
+      "",
+      "@${7:8}",
+      "a is low",
+      "b is low",
+      "",
+      "@enduml"
+    ]
+  },
+  "Network Diagram": {
+    "prefix": "puml-nwdiag",
+    "description": "PlantUML network diagram (nwdiag)",
+    "body": [
+      "@startuml",
+      "nwdiag {",
+      "  network ${1:lan} {",
+      "    address = \"${2:192.168.0.x/24}\"",
+      "    ${3:server1} [address = \"${4:192.168.0.1}\"]",
+      "    ${5:server2} [address = \"${6:192.168.0.2}\"]",
+      "  }",
+      "}",
+      "@enduml"
+    ]
+  },
+  "Archimate Diagram": {
+    "prefix": "puml-archimate",
+    "description": "PlantUML ArchiMate diagram",
+    "body": [
+      "@startuml",
+      "title ${1:ArchiMate Diagram}",
+      "",
+      "rectangle \"${2:Business Layer}\" <<Business>> {",
+      "  rectangle \"${3:Process}\" as p <<BusinessProcess>>",
+      "}",
+      "",
+      "rectangle \"${4:Application Layer}\" <<Application>> {",
+      "  rectangle \"${5:System}\" as s <<ApplicationComponent>>",
+      "}",
+      "",
+      "p --> s : <<serving>>",
+      "",
+      "@enduml"
+    ]
+  },
+  "DOT Graph": {
+    "prefix": "puml-dot",
+    "description": "PlantUML raw DOT/Graphviz graph",
+    "body": [
+      "@startuml",
+      "digraph ${1:G} {",
+      "  rankdir=${2:LR}",
+      "  node [shape=box style=rounded]",
+      "",
+      "  ${3:A} [label=\"${4:Start}\"]",
+      "  ${5:B} [label=\"${6:End}\"]",
+      "",
+      "  ${3} -> ${5}",
+      "}",
+      "@enduml"
+    ]
+  },
+  "Salt Wireframe": {
+    "prefix": "puml-salt",
+    "description": "PlantUML Salt UI wireframe",
+    "body": [
+      "@startsalt",
+      "{",
+      "  ${1:Form Title}",
+      "  ==",
+      "  {",
+      "    ${2:Label}: | \"${3:input}\"",
+      "  }",
+      "  [${4:Cancel}] | [${5:OK}]",
+      "}",
+      "@endsalt"
+    ]
+  },
+  "Chen ER Diagram": {
+    "prefix": "puml-chen",
+    "description": "PlantUML Chen ER notation",
+    "body": [
+      "@startuml",
+      "title ${1:Chen ER Diagram}",
+      "",
+      "entity ${2:Entity1} {",
+      "}",
+      "",
+      "entity ${3:Entity2} {",
+      "}",
+      "",
+      "diamond ${4:relationship}",
+      "",
+      "${2} -- ${4}",
+      "${4} -- ${3}",
+      "",
+      "@enduml"
+    ]
+  },
+  "EBNF Diagram": {
+    "prefix": "puml-ebnf",
+    "description": "PlantUML EBNF syntax diagram",
+    "body": [
+      "@startuml",
+      "title ${1:Grammar}",
+      "",
+      "<${2:expression}> ::= <${3:term}> ((\"${4:+}\" | \"${5:-}\") <${3}>)*",
+      "<${3}> ::= <${6:factor}> ((\"${7:*}\" | \"${8:/}\") <${6}>)*",
+      "<${6}> ::= <${9:number}> | \"(\" <${2}> \")\"",
+      "",
+      "@enduml"
+    ]
+  },
+  "Regex Diagram": {
+    "prefix": "puml-regex",
+    "description": "PlantUML regex visualization",
+    "body": [
+      "@startuml",
+      "title ${1:Regex}",
+      "",
+      "<${2:pattern}> ::= <${3:term}> (\"|\" <${3}>)*",
+      "<${3}> ::= <${4:factor}>+",
+      "<${4}> ::= <${5:atom}> (\"*\" | \"+\" | \"?\")?",
+      "",
+      "@enduml"
+    ]
+  },
+  "Tree Diagram": {
+    "prefix": "puml-tree",
+    "description": "PlantUML tree structure",
+    "body": [
+      "@startuml",
+      "salt",
+      "{",
+      "  {T",
+      "    + ${1:Root}",
+      "    ++ ${2:Child 1}",
+      "    +++ ${3:Leaf 1}",
+      "    +++ ${4:Leaf 2}",
+      "    ++ ${5:Child 2}",
+      "    +++ ${6:Leaf 3}",
+      "  }",
+      "}",
+      "@enduml"
+    ]
+  },
+  "Ditaa Diagram": {
+    "prefix": "puml-ditaa",
+    "description": "PlantUML Ditaa ASCII art diagram",
+    "body": [
+      "@startditaa",
+      "+--------+   +--------+",
+      "|        |   |        |",
+      "| ${1:Node A} +-->| ${2:Node B} |",
+      "|        |   |        |",
+      "+--------+   +--------+",
+      "@endditaa"
+    ]
+  },
+  "Board Diagram": {
+    "prefix": "puml-board",
+    "description": "PlantUML kanban-style board",
+    "body": [
+      "@startuml",
+      "title ${1:Board}",
+      "",
+      "map \"${2:To Do}\" as todo {",
+      "  ${3:Task 1} => ${4:Description}",
+      "}",
+      "",
+      "map \"${5:In Progress}\" as progress {",
+      "  ${6:Task 2} => ${7:Description}",
+      "}",
+      "",
+      "map \"${8:Done}\" as done {",
+      "  ${9:Task 3} => ${10:Description}",
+      "}",
+      "",
+      "todo --> progress",
+      "progress --> done",
+      "",
+      "@enduml"
+    ]
+  }
+}

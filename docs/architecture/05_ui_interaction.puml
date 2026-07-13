@@ -1,0 +1,277 @@
+@startuml
+title gDiagram — UI Interaction Flows
+
+skinparam sequenceArrowThickness 2
+skinparam sequenceParticipantBorderColor #37474F
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceGroupBorderColor #1565C0
+skinparam sequenceGroupBackgroundColor #E3F2FD
+skinparam sequenceDividerBackgroundColor #ECEFF1
+
+actor User
+participant "MainWindow" as MW
+participant "DocumentView" as DV
+participant "DiagramEngine" as Eng
+participant "Document" as Doc
+participant "Debouncer" as Deb
+participant "TypeDetector" as TD
+participant "Preprocessor" as Pre
+participant "Lexer /\nMermaidLexer" as Lex
+participant "Parser\n(type-specific)" as Parser
+participant "ThemeManager" as TM
+participant "GraphvizRenderer\n/ MermaidRenderer" as Rend
+participant "GraphvizCompat\n(ABI wrapper)" as GVC
+participant "Graphviz\n(DOT engine)" as GV
+participant "PreviewPane" as PP
+participant "Stats/Linter/\nValidator" as Stats
+participant "ExportDialog" as ED
+
+== Application Startup ==
+
+User -> MW : Launch gDiagram
+activate MW
+MW -> DV : create_new_document()
+activate DV
+DV -> Doc : new Document()
+activate Doc
+Doc --> DV : default @startuml template
+DV -> DV : setup GtkSourceView editor
+DV -> PP : embed PreviewPane
+activate PP
+DV -> DV : schedule_render()
+
+== Live Editing & Rendering ==
+
+User -> DV : Types in source editor
+DV -> Deb : schedule_render()
+activate Deb
+Deb -> Deb : wait ~300ms
+Deb -> DV : callback: render_preview()
+deactivate Deb
+
+DV -> TM : set active palette\n(global; renderers read it)
+DV -> Eng : render(type, format, source)
+activate Eng
+
+Eng -> TD : detect_format(source)\ndetect_type(source)
+note right
+    Detection priority:
+    1. File extension (.puml / .mmd)
+    2. Content keywords
+    3. Arrow patterns
+    Detects among 26 PlantUML
+    and 24 Mermaid diagram types.
+    The LSP server and headless CLI
+    export call the same engine
+    (engine.parse() / export_to_*).
+end note
+
+alt PlantUML format
+    Eng -> Pre : preprocess(source)
+    activate Pre
+    Pre --> Eng : expanded source
+    deactivate Pre
+
+    Eng -> Lex : Lexer.scan_all()
+    activate Lex
+    Lex --> Eng : ArrayList<Token>
+    deactivate Lex
+
+    Eng -> Parser : parse(tokens)
+    activate Parser
+    Parser --> Eng : typed AST\n(e.g. ClassDiagram)
+    deactivate Parser
+
+    Eng -> Rend : render_to_surface(diagram)
+    activate Rend
+
+else Mermaid format
+    Eng -> Lex : MermaidLexer.scan_all()
+    activate Lex
+    Lex --> Eng : ArrayList<MermaidToken>
+    deactivate Lex
+
+    Eng -> Parser : parse(source)
+    activate Parser
+    Parser --> Eng : typed Mermaid AST
+    deactivate Parser
+
+    Eng -> Rend : render_to_surface(diagram)
+    activate Rend
+end
+
+Rend -> Rend : generate_dot(diagram)
+Rend -> GVC : render_data(ctx, graph,\nengine, format)
+activate GVC
+GVC -> GV : DOT string\n(bridges ABI mismatch)
+activate GV
+GV --> GVC : SVG / rendered output
+deactivate GV
+GVC --> Rend : uint8[] data
+deactivate GVC
+Rend -> Rend : parse_svg_regions()\n-> ArrayList<ElementRegion>
+Rend --> Eng : Cairo.ImageSurface\n+ ElementRegion list
+deactivate Rend
+
+Eng --> DV : RenderResult\n(status, surface, AST, errors)
+deactivate Eng
+
+DV -> PP : set_surface(surface)\n+ transfer click regions
+DV -> DV : OutlineController.update(type, ast)
+DV -> Stats : collect stats, lint, validate
+activate Stats
+Stats --> DV : metrics, warnings, errors
+deactivate Stats
+DV -> DV : Update outline stats bar\n(perf time, stats, lint/validate\nbuttons, complexity)
+PP -> PP : queue_draw()
+PP --> User : Diagram displayed
+
+== Click-to-Source Navigation ==
+
+User -> PP : Clicks on diagram element
+activate PP
+PP -> PP : on_click(x, y)\nhit test against\nElementRegion list
+PP -> DV : element_clicked(name, source_line)
+deactivate PP
+DV -> DV : Scroll source editor\nto source_line
+DV -> DV : Highlight corresponding text
+DV --> User : Source line highlighted
+
+== Theme Switching ==
+
+User -> DV : Clicks theme button\n(moon icon in stats bar)
+DV -> TM : cycle to next preset\n(Default, Monokai,\nSolarized, Nord, ...)
+activate TM
+TM --> DV : new palette
+deactivate TM
+DV -> PP : set_dark_override(bool?)
+DV -> DV : schedule_render()\n(re-renders with new palette)
+
+== Template Gallery ==
+
+User -> DV : Opens template gallery
+DV -> DV : DiagramTemplates.get_templates()
+DV --> User : Template picker shown
+User -> DV : Selects a template
+DV -> Doc : content = template_source
+DV -> DV : schedule_render()
+
+== Git History & Compare ==
+
+User -> MW : Ctrl+Shift+H (Git History)
+MW -> MW : on_git_history()
+activate MW
+MW --> User : GitHistoryDialog\n(commit list, side-by-side diff)
+User -> MW : Click "Restore" on a commit
+MW -> Doc : content = old version
+MW -> DV : schedule_render()
+deactivate MW
+
+User -> DV : Opens DiagramCompareDialog
+DV --> User : Side-by-side rendered diff\n(semantic for 9 types,\nline-level fallback)
+
+== Git Repository Visualizer ==
+
+User -> MW : Ctrl+Shift+G (Git Visualizer)
+MW -> MW : on_git_visualizer()
+MW --> User : GitRepoView tab\n(branch sidebar + live graph)
+User -> MW : Clicks commit node in graph
+MW -> MW : get_commit_details(hash)
+MW --> User : Commit details shown
+
+== Beautifier ==
+
+User -> DV : Clicks beautify action
+DV -> DV : DiagramBeautifier.format()\n(per-type formatter)
+DV -> Doc : content = formatted source
+DV -> DV : schedule_render()
+
+== Export ==
+
+User -> MW : File -> Export
+MW -> ED : open ExportDialog
+activate ED
+ED --> User : Format (PNG/SVG/PDF)\nScale (0.5x-4.0x)\nExportPresets available
+User -> ED : Select format, click Export
+ED -> DV : export_requested(format, scale, filename)
+deactivate ED
+
+alt PNG export
+    DV -> Rend : export_to_png(diagram, filename)
+    activate Rend
+    Rend -> GVC : render via wrapper
+    GVC -> GV : DOT -> render
+    GV --> GVC : surface
+    GVC --> Rend : data
+    Rend -> Rend : Cairo surface -> PNG file
+    Rend --> DV : success
+    deactivate Rend
+
+else SVG export
+    DV -> Rend : export_to_svg(diagram, filename)
+    activate Rend
+    Rend -> GVC : render via wrapper
+    GVC -> GV : DOT -> SVG
+    GV --> GVC : SVG data
+    GVC --> Rend : data
+    Rend -> Rend : Write SVG file
+    Rend --> DV : success
+    deactivate Rend
+
+else PDF export
+    DV -> Rend : export_to_pdf(diagram, filename)
+    activate Rend
+    Rend -> GVC : render via wrapper
+    GVC -> GV : DOT -> render
+    GV --> GVC : surface
+    GVC --> Rend : data
+    Rend -> Rend : Cairo surface -> PDF file
+    Rend --> DV : success
+    deactivate Rend
+end
+
+DV --> User : Export complete
+
+== File Operations ==
+
+User -> MW : Open file
+MW -> Doc : load_from_file(file)
+Doc -> Doc : Read file content
+Doc -> Doc : start_monitoring()\nvia FileMonitor
+Doc --> DV : content updated
+DV -> DV : refresh_git_dirty()\nrefresh_diff_marks()
+DV -> DV : schedule_render()
+
+...External editor modifies file...
+
+Doc -> Doc : on_file_changed()
+Doc -> DV : external_change signal
+DV -> DV : Show "file changed" banner
+User -> DV : Reload / Ignore
+
+== Zoom & Pan ==
+
+User -> PP : Ctrl+Scroll / Zoom buttons
+PP -> PP : zoom_in() / zoom_out()\nadjust zoom_level
+PP -> PP : queue_draw()
+PP -> DV : zoom_changed(level)
+DV -> DV : Update zoom_label
+
+== Diff Marks & Blame ==
+
+User -> DV : Toggle diff marks\n(in zoom bar)
+DV -> DV : refresh_diff_marks()\ngit diff --unified=0
+DV -> DV : apply_diff_marks()\n(added/changed/removed\nline mark categories)
+DV --> User : Gutter shows diff marks
+
+User -> DV : Toggle blame\n(in zoom bar)
+DV -> DV : git blame --porcelain
+DV -> DV : GtkSource.GutterRendererText\nshows author + date
+DV --> User : Blame annotations in gutter
+
+deactivate PP
+deactivate DV
+deactivate Doc
+deactivate MW
+
+@enduml

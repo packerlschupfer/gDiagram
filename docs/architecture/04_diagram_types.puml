@@ -1,0 +1,156 @@
+@startuml
+title gDiagram — Supported Diagram Types
+
+skinparam linetype ortho
+skinparam padding 3
+skinparam nodesep 50
+
+skinparam component {
+    BackgroundColor<<parser>> #FFF3E0
+    BorderColor<<parser>> #E65100
+    BackgroundColor<<ast>> #E8F5E9
+    BorderColor<<ast>> #2E7D32
+    BackgroundColor<<renderer>> #F3E5F5
+    BorderColor<<renderer>> #6A1B9A
+    BackgroundColor<<infra>> #ECEFF1
+    BorderColor<<infra>> #37474F
+}
+
+package "Shared Infrastructure" as infra {
+    [Preprocessor.vala] <<infra>> as preproc
+    [Lexer.vala + Token.vala\n+ TokenStream.vala] <<infra>> as lexer
+    [MermaidLexer.vala\n+ MermaidToken.vala] <<infra>> as mlexer
+    [TypeDetector.vala\n(format + type detection)] <<infra>> as typedet
+    [RenderUtils.vala\n(escaping, regions)] <<infra>> as rutil
+    [GraphvizRenderer.vala\n(Facade)] <<infra>> as facade
+    [GraphvizCompat\n(ABI wrapper)] <<infra>> as gvcompat
+    [DiagramNode.vala\n(Base types, DiagramType enum)] <<infra>> as base
+    [Theme.vala\n(SkinParams)] <<infra>> as theme
+    [ThemeManager.vala\n(7 palette presets)] <<infra>> as theme_mgr
+}
+
+package "PlantUML Diagram Types (18)" as puml {
+    package "Core (Sequence, Class, Activity)" as p_core {
+        [SequenceDiagramParser\nClassDiagramParser\nActivityDiagramParser\n(+ 7 sub-parsers)] <<parser>> as core_p
+        [DiagramNode.vala (Sequence)\nClassDiagram.vala\nActivityDiagram.vala] <<ast>> as core_a
+        [sequence/ SequenceDiagramRenderer\nstructural/ ClassDiagramRenderer\nbehavioral/ ActivityDiagramRenderer] <<renderer>> as core_r
+    }
+
+    package "Behavioral (UseCase, State)" as p_behav {
+        [UseCaseDiagramParser\nStateDiagramParser] <<parser>> as behav_p
+        [UseCaseDiagram.vala\nStateDiagram.vala] <<ast>> as behav_a
+        [behavioral/\nUseCaseDiagramRenderer\nStateDiagramRenderer] <<renderer>> as behav_r
+    }
+
+    package "Structural (Component, Object)" as p_struct {
+        [ComponentDiagramParser\nObjectDiagramParser] <<parser>> as struct_p
+        [ComponentDiagram.vala\nObjectDiagram.vala] <<ast>> as struct_a
+        [structural/\nComponentDiagramRenderer\nObjectDiagramRenderer] <<renderer>> as struct_r
+    }
+
+    package "Specialized (Deployment, ER, MindMap)" as p_spec1 {
+        [DeploymentDiagramParser\nERDiagramParser\nMindMapDiagramParser] <<parser>> as spec1_p
+        [DeploymentDiagram.vala\nERDiagram.vala\nMindMapDiagram.vala] <<ast>> as spec1_a
+        [specialized/\nDeploymentDiagramRenderer\nERDiagramRenderer\nMindMapDiagramRenderer] <<renderer>> as spec1_r
+    }
+
+    package "Extended (Gantt, Json, Yaml, Chronology,\nTiming, Nwdiag, Archimate)" as p_spec2 {
+        [GanttDiagramParser\nJsonDiagramParser\nYamlDiagramParser\nChronologyDiagramParser\nTimingDiagramParser\nNwdiagDiagramParser\nArchimateDiagramParser] <<parser>> as spec2_p
+        [GanttDiagram.vala\nJsonDiagram.vala\nYamlDiagram.vala\nChronologyDiagram.vala\nTimingDiagram.vala\nNwdiagDiagram.vala\nArchimateDiagram.vala] <<ast>> as spec2_a
+        [specialized/\nGanttDiagramRenderer\nJsonDiagramRenderer\nYamlDiagramRenderer\nChronologyDiagramRenderer\nTimingDiagramRenderer\nNwdiagDiagramRenderer\nArchimateDiagramRenderer] <<renderer>> as spec2_r
+    }
+}
+
+package "Mermaid Diagram Types (24)" as merm {
+    package "Core (Flowchart, Sequence, State, Class)" as m_core {
+        [MermaidFlowchartParser\nMermaidSequenceParser\nMermaidStateParser\nMermaidClassParser] <<parser>> as mcore_p
+        [MermaidDiagram.vala\n(Flowchart, Sequence,\nState, Class)] <<ast>> as mcore_a
+        [MermaidFlowchartRenderer\nMermaidSequenceRenderer\nMermaidStateRenderer\nMermaidClassRenderer] <<renderer>> as mcore_r
+    }
+
+    package "Extended (ER, Gantt, Pie, UserJourney, GitGraph)" as m_ext {
+        [MermaidERParser\nMermaidGanttParser\nMermaidPieParser\nMermaidUserJourneyParser\nMermaidGitGraphParser] <<parser>> as mext_p
+        [MermaidDiagram.vala\n(ER, Gantt, Pie,\nUserJourney, GitGraph)] <<ast>> as mext_a
+        [MermaidERRenderer\nMermaidGanttRenderer\nMermaidPieRenderer\nMermaidUserJourneyRenderer\nMermaidGitGraphRenderer] <<renderer>> as mext_r
+    }
+
+    package "Visualization (Mindmap, Timeline, Quadrant,\nXYChart, Kanban, Sankey)" as m_viz {
+        [MermaidMindmapParser\nMermaidTimelineParser\nMermaidQuadrantParser\nMermaidXYChartParser\nMermaidKanbanParser\nMermaidSankeyParser] <<parser>> as mviz_p
+        [MermaidDiagram.vala\n(Mindmap, Timeline, Quadrant,\nXYChart, Kanban, Sankey)] <<ast>> as mviz_a
+        [MermaidMindmapRenderer\nMermaidTimelineRenderer\nMermaidQuadrantRenderer\nMermaidXYChartRenderer\nMermaidKanbanRenderer\nMermaidSankeyRenderer] <<renderer>> as mviz_r
+    }
+
+    package "Specialized (Requirement, Block, Packet, C4,\nArchitecture, ZenUML, Radar, Treemap)" as m_spec {
+        [MermaidRequirementParser\nMermaidBlockParser\nMermaidPacketParser\nMermaidC4Parser\nMermaidArchitectureParser\nMermaidZenUMLParser\nMermaidRadarParser\nMermaidTreemapParser] <<parser>> as mspec_p
+        [MermaidDiagram.vala\n(Requirement, Block, Packet,\nC4, Architecture, ZenUML,\nRadar, Treemap)] <<ast>> as mspec_a
+        [MermaidRequirementRenderer\nMermaidBlockRenderer\nMermaidPacketRenderer\nMermaidC4Renderer\nMermaidArchitectureRenderer\nMermaidZenUMLRenderer\nMermaidRadarRenderer\nMermaidTreemapRenderer] <<renderer>> as mspec_r
+    }
+}
+
+' Infrastructure connections
+preproc --> lexer : feeds
+typedet --> lexer : selects parser
+typedet --> mlexer : selects parser
+
+lexer --> core_p
+lexer --> behav_p
+lexer --> struct_p
+lexer --> spec1_p
+lexer --> spec2_p
+
+mlexer --> mcore_p
+mlexer --> mext_p
+mlexer --> mviz_p
+mlexer --> mspec_p
+
+' Parser -> AST arrows within each package
+core_p --> core_a
+behav_p --> behav_a
+struct_p --> struct_a
+spec1_p --> spec1_a
+spec2_p --> spec2_a
+
+mcore_p --> mcore_a
+mext_p --> mext_a
+mviz_p --> mviz_a
+mspec_p --> mspec_a
+
+' AST -> Renderer arrows within each package
+core_a --> core_r
+behav_a --> behav_r
+struct_a --> struct_r
+spec1_a --> spec1_r
+spec2_a --> spec2_r
+
+mcore_a --> mcore_r
+mext_a --> mext_r
+mviz_a --> mviz_r
+mspec_a --> mspec_r
+
+' Facade -> PlantUML renderers
+facade --> core_r
+facade --> behav_r
+facade --> struct_r
+facade --> spec1_r
+facade --> spec2_r
+
+' All renderers use GraphvizCompat
+facade --> gvcompat
+
+legend right
+    |= Color |= Role |
+    | <#FFF3E0> | Parser |
+    | <#E8F5E9> | AST Model |
+    | <#F3E5F5> | Renderer |
+    | <#ECEFF1> | Shared Infrastructure |
+    Each diagram type has a
+    Parser -> AST -> Renderer triple.
+    PlantUML renderers go through
+    the GraphvizRenderer facade.
+    Mermaid renderers are called
+    directly from DocumentView.
+    All renderers use GraphvizCompat
+    for patched libgvc ABI safety.
+endlegend
+
+@enduml

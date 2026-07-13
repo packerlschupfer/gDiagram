@@ -1,0 +1,27 @@
+@startuml
+' Real C4-PlantUML stdlib usage. Renders correctly via gDiagram's
+' preprocessor + component parser if you have C4-PlantUML cloned locally.
+'
+' Setup:
+'   git clone https://github.com/plantuml-stdlib/C4-PlantUML.git ~/git/C4-PlantUML
+'
+' Then either edit the !include path below to point at your clone, or
+' set the RELATIVE_INCLUDE flag (which short-circuits the network include
+' that C4_Container.puml falls back to).
+
+!define RELATIVE_INCLUDE "."
+!include /home/USER/git/C4-PlantUML/C4_Container.puml
+
+Person(customer, "Customer", "A user of the system")
+
+System_Boundary(c1, "Online Store") {
+    Container(web, "Web App",  "React",      "User interface")
+    Container(api, "API",      "Go",         "Business logic")
+    ContainerDb(db, "Database","PostgreSQL")
+}
+
+Rel(customer, web, "Uses",  "HTTPS")
+Rel(web,      api, "Calls", "JSON")
+Rel(api,      db,  "Reads/Writes", "SQL")
+
+@enduml

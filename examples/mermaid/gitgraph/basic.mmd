@@ -1,0 +1,14 @@
+gitGraph
+    commit id: "Initial commit"
+    commit id: "Add README"
+
+    branch develop
+    checkout develop
+    commit id: "Add feature A"
+    commit id: "Add feature B"
+
+    checkout main
+    merge develop id: "Merge feature branch"
+
+    commit id: "Hotfix"
+    commit id: "Release v1.0" tag: "v1.0.0"

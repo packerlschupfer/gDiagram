@@ -1,0 +1,19 @@
+@startgantt
+title Project Timeline
+
+[Requirements] requires 5 days
+[Design] requires 7 days
+[Design] starts at [Requirements]'s end
+
+[Development] requires 14 days
+[Development] starts at [Design]'s end
+
+[Testing] requires 5 days
+[Testing] starts at [Development]'s end
+
+[Deployment] requires 2 days
+[Deployment] starts at [Testing]'s end
+
+[Design Complete] happens at [Design]'s end
+[Release] happens at [Deployment]'s end
+@endgantt

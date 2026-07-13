@@ -1,0 +1,7 @@
+@startuml
+state A {
+   state s1 as "Start 1" <<start>>
+   state s2 as "H 2" <<history>>
+   state s3 as "H 3" <<history*>>
+}
+@enduml

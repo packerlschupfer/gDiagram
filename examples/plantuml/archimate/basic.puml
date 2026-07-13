@@ -1,0 +1,17 @@
+@startuml
+title Basic Archimate Example
+
+archimate #Business "Customer" as cust <<Role>>
+archimate #Business "Order Process" as order_proc <<Process>>
+archimate #Application "Web Application" as webapp <<ApplicationComponent>>
+archimate #Application "Order Service" as order_svc <<ApplicationService>>
+archimate #Technology "Database" as db <<DataStore>>
+archimate #Technology "Web Server" as server <<Node>>
+
+cust --> order_proc : initiates
+order_proc --> order_svc : uses
+webapp --> order_svc : provides
+order_svc --> db : reads/writes
+webapp --> server : deployed on
+
+@enduml

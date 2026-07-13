@@ -1,0 +1,21 @@
+zenuml
+    title Authentication Flow
+    @Actor User
+    @Boundary Frontend
+    @Control AuthService
+    @Database UserDB
+
+    User -> Frontend.login(credentials) {
+        Frontend -> AuthService.authenticate(credentials) {
+            AuthService -> UserDB.findUser(email) {
+                return userData
+            }
+            if (userData.valid) {
+                AuthService -> AuthService.generateToken(userData) {
+                    return token
+                }
+                return token
+            }
+        }
+        return token
+    }

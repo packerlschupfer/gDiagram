@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@ --buildsystem=meson
+
+override_dh_auto_configure:
+	dh_auto_configure -- --prefix=/usr
+
+# --ignore-missing-info: in CI the patched Graphviz lives unpackaged in
+# /opt/graphviz-patched, so dpkg-shlibdeps has no owning package to derive a
+# dependency from. Locally the libs belong to the graphviz-gdiagram package
+# and full dependency info is still used. The runtime requirement on Graphviz
+# is carried by debian/control's explicit Depends.
+override_dh_shlibdeps:
+	dh_shlibdeps -l/usr/local/lib/x86_64-linux-gnu -l/opt/graphviz-patched/lib -- --ignore-missing-info

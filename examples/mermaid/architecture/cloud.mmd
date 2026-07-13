@@ -1,0 +1,20 @@
+architecture-beta
+    title Cloud Infrastructure
+
+    group public(cloud)[Public Zone]
+    group private(cloud)[Private Zone]
+
+    service lb(internet)[Load Balancer] in public
+    service web1(server)[Web Server 1] in private
+    service web2(server)[Web Server 2] in private
+    service db(database)[Primary DB] in private
+    service db_replica(database)[Replica DB] in private
+    service cache(disk)[Cache] in private
+
+    lb:R --> L:web1
+    lb:R --> L:web2
+    web1:R --> L:db
+    web2:R --> L:db
+    db:R -- L:db_replica
+    web1:B --> T:cache
+    web2:B --> T:cache

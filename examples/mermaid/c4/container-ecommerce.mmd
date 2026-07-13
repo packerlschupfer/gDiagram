@@ -1,0 +1,11 @@
+C4Container
+    title Container Diagram for E-commerce
+    Person(customer, "Customer", "Buys products")
+    System_Boundary(c1, "Online Store") {
+        Container(web_app, "Web Application", "React", "Frontend")
+        ContainerDb(db, "Database", "PostgreSQL", "Stores orders")
+        Container(api, "API Application", "Go", "Business logic")
+    }
+    Rel(customer, web_app, "Uses", "HTTPS")
+    Rel(web_app, api, "Calls", "JSON/HTTPS")
+    Rel(api, db, "Reads/Writes", "SQL")

@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant Orchestrator
+    participant ServiceA
+    participant ServiceB
+    participant ServiceC
+
+    Orchestrator->>ServiceA: Start task A
+    par Parallel execution
+        Orchestrator->>ServiceB: Start task B
+    and
+        Orchestrator->>ServiceC: Start task C
+    end
+
+    ServiceA-->>Orchestrator: Done A
+    ServiceB-->>Orchestrator: Done B
+    ServiceC-->>Orchestrator: Done C
+
+    Note over Orchestrator: All tasks complete

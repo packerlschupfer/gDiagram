@@ -1,0 +1,27 @@
+gitGraph
+    commit id: "ZERO"
+
+    branch develop
+    checkout develop
+    commit id: "dev-A"
+
+    branch feature/login
+    checkout feature/login
+    commit id: "login-1"
+    commit id: "login-2" type: HIGHLIGHT
+
+    checkout develop
+    merge feature/login id: "merge-login"
+
+    branch feature/payments
+    checkout feature/payments
+    commit id: "pay-1"
+    commit id: "pay-2"
+
+    checkout develop
+    merge feature/payments id: "merge-payments"
+
+    checkout main
+    merge develop id: "Release" tag: "v2.0.0"
+
+    commit id: "Hotfix" type: REVERSE

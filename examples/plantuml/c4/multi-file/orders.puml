@@ -1,0 +1,31 @@
+@startuml
+' Drilled in from api.puml — Order Service component internals.
+' This is one level deeper than the container view, illustrating that
+' drill-down chains are unlimited.
+
+title Order Service — Code View
+
+rectangle "HTTP Router" <<container>> as router
+
+rectangle "Order Service" <<system_boundary>> as orders {
+    rectangle "OrderController\nHTTP request entry"     <<component>> as ctrl
+    rectangle "OrderValidator\nLine-item + total checks" <<component>> as validator
+    rectangle "OrderRepository\nDB persistence"          <<component>> as repo
+    rectangle "OrderEventBus\nFires order.placed events" <<component>> as events
+    rectangle "PaymentAdapter\nStripe integration"       <<component>> as pay
+}
+
+database  "Database" <<container>> as db
+rectangle "Stripe API" <<external_system>> as stripe
+rectangle "Email Service" <<external_system>> as email
+
+router    --> ctrl       : "POST /orders"
+ctrl      --> validator  : "validate(items)"
+ctrl      --> repo       : "save(order)"
+ctrl      --> pay        : "charge(amount)"
+ctrl      --> events     : "publish(order.placed)"
+repo      --> db         : "INSERT INTO orders"
+pay       --> stripe     : "Charges API"
+events    --> email      : "Order confirmation email"
+
+@enduml
