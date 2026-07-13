@@ -1,0 +1,38 @@
+@startuml
+' Drilled from cluster.puml — kube-scheduler internals.
+'
+' How the scheduler picks a node for an unbound Pod. Two-phase process:
+' filtering (predicates) reduces the candidate set, then scoring
+' (priorities) ranks the survivors. Best score wins.
+
+title kube-scheduler — Pod-to-Node Placement
+
+rectangle "kube-apiserver" <<external_system>> as apiserver
+
+rectangle "kube-scheduler" <<container_boundary>> as sched {
+    rectangle "Watch unbound Pods\nspec.nodeName == ''" <<component>> as watch
+
+    rectangle "Filter Phase (predicates)" <<container_boundary>> as filter {
+        rectangle "NodeResourcesFit\nCPU, memory, ephemeral storage" <<component>> as resources
+        rectangle "NodeAffinity / NodeSelector"  <<component>> as affinity
+        rectangle "Taints & Tolerations"         <<component>> as taints
+        rectangle "VolumeBinding\nPV available?" <<component>> as volume
+        rectangle "PodTopologySpread"            <<component>> as spread
+    }
+
+    rectangle "Score Phase (priorities)" <<container_boundary>> as score {
+        rectangle "LeastAllocated\nPrefer empty nodes"      <<component>> as least
+        rectangle "InterPodAffinity\nCo-locate / spread"    <<component>> as interpod
+        rectangle "ImageLocality\nPrefer nodes with image"  <<component>> as imageloc
+    }
+
+    rectangle "Bind\nWrite spec.nodeName" <<component>> as bind
+}
+
+apiserver --> watch  : "Watch Pods"
+watch     --> filter : "Candidates"
+filter    --> score  : "Feasible nodes"
+score     --> bind   : "Best node"
+bind      --> apiserver : "POST /binding"
+
+@enduml

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PlantUML syntax highlighting for GtkSourceView
+  Enhanced version with support for all diagram types
+-->
+<language id="plantuml" name="PlantUML" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-plantuml</property>
+    <property name="globs">*.puml;*.plantuml;*.pu;*.wsd</property>
+    <property name="line-comment-start">'</property>
+    <property name="block-comment-start">/'</property>
+    <property name="block-comment-end">'/</property>
+  </metadata>
+
+  <styles>
+    <style id="directive" name="Directive" map-to="def:preprocessor"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="control-flow" name="Control Flow" map-to="def:keyword"/>
+    <style id="participant-type" name="Participant Type" map-to="def:type"/>
+    <style id="arrow" name="Arrow" map-to="def:operator"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="note-keyword" name="Note Keyword" map-to="def:statement"/>
+    <style id="group-keyword" name="Group Keyword" map-to="def:keyword"/>
+    <style id="color" name="Color" map-to="def:constant"/>
+    <style id="stereotype" name="Stereotype" map-to="def:special-char"/>
+    <style id="preprocessor" name="Preprocessor" map-to="def:preprocessor"/>
+    <style id="builtin" name="Built-in" map-to="def:builtin"/>
+    <style id="special" name="Special" map-to="def:special-constant"/>
+    <style id="creole" name="Creole Markup" map-to="def:emphasis"/>
+  </styles>
+
+  <definitions>
+    <!-- Main context -->
+    <context id="plantuml" class="no-spell-check">
+      <include>
+        <!-- Comments -->
+        <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment">
+          <start>'</start>
+        </context>
+
+        <context id="block-comment" style-ref="comment" class="comment">
+          <start>/'</start>
+          <end>'/</end>
+        </context>
+
+        <!-- Preprocessor directives -->
+        <context id="preprocessor" style-ref="preprocessor">
+          <match>^[ \t]*!(include|define|undef|ifdef|ifndef|else|endif|if|elseif|procedure|endprocedure|function|endfunction|return|local|theme|pragma|assert|log|dump|startsub|endsub|includesub)\b</match>
+        </context>
+
+        <!-- Directives - diagram start/end -->
+        <context id="directive" style-ref="directive">
+          <match>@(startuml|enduml|startmindmap|endmindmap|startwbs|endwbs|startgantt|endgantt|startsalt|endsalt|startjson|endjson|startyaml|endyaml|startditaa|endditaa|startdot|enddot|startmath|endmath|startlatex|endlatex)</match>
+        </context>
+
+        <!-- Activity diagram keywords -->
+        <context id="activity-keywords" style-ref="control-flow">
+          <keyword>start</keyword>
+          <keyword>stop</keyword>
+          <keyword>end</keyword>
+          <keyword>kill</keyword>
+          <keyword>detach</keyword>
+          <keyword>if</keyword>
+          <keyword>then</keyword>
+          <keyword>else</keyword>
+          <keyword>elseif</keyword>
+          <keyword>endif</keyword>
+          <keyword>while</keyword>
+          <keyword>endwhile</keyword>
+          <keyword>repeat</keyword>
+          <keyword>repeat while</keyword>
+          <keyword>backward</keyword>
+          <keyword>fork</keyword>
+          <keyword>fork again</keyword>
+          <keyword>end fork</keyword>
+          <keyword>split</keyword>
+          <keyword>split again</keyword>
+          <keyword>end split</keyword>
+          <keyword>switch</keyword>
+          <keyword>case</keyword>
+          <keyword>endswitch</keyword>
+          <keyword>partition</keyword>
+        </context>
+
+        <!-- State diagram keywords -->
+        <context id="state-keywords" style-ref="participant-type">
+          <keyword>state</keyword>
+          <keyword>hide empty description</keyword>
+        </context>
+
+        <!-- State diagram special -->
+        <context id="state-special" style-ref="special">
+          <match>\[\*\]|\[H\]|\[H\*\]</match>
+        </context>
+
+        <!-- Participant types (sequence, usecase) -->
+        <context id="participant-type" style-ref="participant-type">
+          <keyword>participant</keyword>
+          <keyword>actor</keyword>
+          <keyword>boundary</keyword>
+          <keyword>control</keyword>
+          <keyword>entity</keyword>
+          <keyword>database</keyword>
+          <keyword>collections</keyword>
+          <keyword>queue</keyword>
+          <keyword>usecase</keyword>
+        </context>
+
+        <!-- Component diagram keywords -->
+        <context id="component-keywords" style-ref="participant-type">
+          <keyword>component</keyword>
+          <keyword>interface</keyword>
+          <keyword>cloud</keyword>
+          <keyword>folder</keyword>
+          <keyword>frame</keyword>
+          <keyword>node</keyword>
+          <keyword>artifact</keyword>
+          <keyword>storage</keyword>
+          <keyword>card</keyword>
+          <keyword>agent</keyword>
+          <keyword>rectangle</keyword>
+          <keyword>stack</keyword>
+          <keyword>file</keyword>
+          <keyword>hexagon</keyword>
+          <keyword>label</keyword>
+          <keyword>person</keyword>
+          <keyword>portin</keyword>
+          <keyword>portout</keyword>
+          <keyword>port</keyword>
+        </context>
+
+        <!-- Class diagram keywords -->
+        <context id="class-keywords" style-ref="participant-type">
+          <keyword>class</keyword>
+          <keyword>abstract class</keyword>
+          <keyword>abstract</keyword>
+          <keyword>enum</keyword>
+          <keyword>annotation</keyword>
+          <keyword>package</keyword>
+          <keyword>namespace</keyword>
+          <keyword>extends</keyword>
+          <keyword>implements</keyword>
+          <keyword>object</keyword>
+          <keyword>map</keyword>
+          <keyword>struct</keyword>
+          <keyword>exception</keyword>
+          <keyword>metaclass</keyword>
+          <keyword>protocol</keyword>
+          <keyword>stereotype</keyword>
+          <keyword>entity</keyword>
+        </context>
+
+        <!-- Class visibility modifiers -->
+        <context id="visibility" style-ref="keyword">
+          <match>[-+#~](?=\w)</match>
+        </context>
+
+        <!-- Note keywords -->
+        <context id="note-keywords" style-ref="note-keyword">
+          <keyword>note</keyword>
+          <keyword>end note</keyword>
+          <keyword>rnote</keyword>
+          <keyword>hnote</keyword>
+          <keyword>note left</keyword>
+          <keyword>note right</keyword>
+          <keyword>note top</keyword>
+          <keyword>note bottom</keyword>
+          <keyword>note over</keyword>
+          <keyword>note left of</keyword>
+          <keyword>note right of</keyword>
+          <keyword>note top of</keyword>
+          <keyword>note bottom of</keyword>
+          <keyword>floating note</keyword>
+        </context>
+
+        <!-- Group keywords (sequence diagram) -->
+        <context id="group-keywords" style-ref="group-keyword">
+          <keyword>alt</keyword>
+          <keyword>opt</keyword>
+          <keyword>loop</keyword>
+          <keyword>par</keyword>
+          <keyword>break</keyword>
+          <keyword>critical</keyword>
+          <keyword>group</keyword>
+          <keyword>ref</keyword>
+          <keyword>box</keyword>
+          <keyword>end box</keyword>
+        </context>
+
+        <!-- Legend keywords -->
+        <context id="legend-keywords" style-ref="note-keyword">
+          <keyword>legend</keyword>
+          <keyword>legend left</keyword>
+          <keyword>legend right</keyword>
+          <keyword>legend center</keyword>
+          <keyword>legend top</keyword>
+          <keyword>legend bottom</keyword>
+          <keyword>endlegend</keyword>
+          <keyword>end legend</keyword>
+        </context>
+
+        <!-- General keywords -->
+        <context id="keywords" style-ref="keyword">
+          <keyword>as</keyword>
+          <keyword>autonumber</keyword>
+          <keyword>autoactivate</keyword>
+          <keyword>activate</keyword>
+          <keyword>deactivate</keyword>
+          <keyword>destroy</keyword>
+          <keyword>create</keyword>
+          <keyword>return</keyword>
+          <keyword>title</keyword>
+          <keyword>header</keyword>
+          <keyword>footer</keyword>
+          <keyword>caption</keyword>
+          <keyword>newpage</keyword>
+          <keyword>hide</keyword>
+          <keyword>show</keyword>
+          <keyword>remove</keyword>
+          <keyword>skinparam</keyword>
+          <keyword>scale</keyword>
+          <keyword>top to bottom direction</keyword>
+          <keyword>left to right direction</keyword>
+          <keyword>together</keyword>
+          <keyword>allowmixing</keyword>
+          <keyword>mainframe</keyword>
+          <keyword>sprite</keyword>
+          <keyword>circle</keyword>
+          <keyword>diamond</keyword>
+          <keyword>usecase</keyword>
+        </context>
+
+        <!-- Built-in skinparam names -->
+        <context id="skinparam-names" style-ref="builtin">
+          <keyword>BackgroundColor</keyword>
+          <keyword>BorderColor</keyword>
+          <keyword>FontColor</keyword>
+          <keyword>FontSize</keyword>
+          <keyword>FontStyle</keyword>
+          <keyword>FontName</keyword>
+          <keyword>Shadowing</keyword>
+          <keyword>RoundCorner</keyword>
+          <keyword>ArrowColor</keyword>
+          <keyword>ArrowThickness</keyword>
+          <keyword>LineColor</keyword>
+          <keyword>LineThickness</keyword>
+          <keyword>LineType</keyword>
+          <keyword>Padding</keyword>
+          <keyword>Margin</keyword>
+          <keyword>StereotypeFontColor</keyword>
+          <keyword>StereotypeFontSize</keyword>
+          <keyword>StereotypeFontStyle</keyword>
+        </context>
+
+        <!-- Arrows - all types -->
+        <context id="arrows" style-ref="arrow">
+          <match>(&lt;?-+&gt;?|&lt;?\.+&gt;?|&lt;\|--?|-+\|&gt;|&lt;\|\.\.?|\.+\|&gt;|\*--?|--?\*|o--?|--?o|&lt;--?&gt;|&lt;\.\.?&gt;|#--|--#|-\[[^\]]*\]-&gt;|&lt;-\[[^\]]*\]-|-+&gt;&gt;|&lt;&lt;-+|-+&gt;o|o&lt;-+|-+\)|\(-+)</match>
+        </context>
+
+        <!-- Activity diagram action markers -->
+        <context id="action-markers" style-ref="special">
+          <match>^[ \t]*:|;[ \t]*$</match>
+        </context>
+
+        <!-- Colors - hex and named -->
+        <context id="color" style-ref="color">
+          <match>#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b|#[A-Za-z]+\b</match>
+        </context>
+
+        <!-- Stereotypes -->
+        <context id="stereotype" style-ref="stereotype">
+          <match>&lt;&lt;[^&gt;]+&gt;&gt;</match>
+        </context>
+
+        <!-- Creole bold -->
+        <context id="creole-bold" style-ref="creole">
+          <match>\*\*[^*]+\*\*</match>
+        </context>
+
+        <!-- Creole italic -->
+        <context id="creole-italic" style-ref="creole">
+          <match>//[^/]+//</match>
+        </context>
+
+        <!-- Creole underline -->
+        <context id="creole-underline" style-ref="creole">
+          <match>__[^_]+__</match>
+        </context>
+
+        <!-- Creole strikethrough -->
+        <context id="creole-strike" style-ref="creole">
+          <match>--[^-]+--</match>
+        </context>
+
+        <!-- Creole monospace -->
+        <context id="creole-mono" style-ref="creole">
+          <match>""[^"]+""</match>
+        </context>
+
+        <!-- Strings -->
+        <context id="string" style-ref="string" end-at-line-end="true" class="string">
+          <start>"</start>
+          <end>"</end>
+          <include>
+            <context id="escape">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Multiline strings/notes -->
+        <context id="multiline-string" style-ref="string" class="string">
+          <start>"""</start>
+          <end>"""</end>
+        </context>
+
+      </include>
+    </context>
+  </definitions>
+</language>

@@ -1,0 +1,16 @@
+zenuml
+    title Order Service
+    @Actor Client #FFEBE6
+    @Boundary OrderController
+    @EC2 OrderService
+    @Database Database #whitesmoke
+
+    Client -> OrderController.createOrder(payload) {
+        OrderController -> OrderService.create(payload) {
+            OrderService -> Database.save(order) {
+                return order
+            }
+            return order
+        }
+        return order
+    }

@@ -1,0 +1,18 @@
+gantt
+    title Software Release Plan
+    dateFormat YYYY-MM-DD
+
+    section Design
+    Wireframes       :done,    des1, 2025-01-01, 5d
+    UI Mockups       :done,    des2, after des1, 5d
+    Design Review    :milestone, after des2, 0d
+
+    section Development
+    Backend API      :active,  dev1, 2025-01-12, 14d
+    Frontend UI      :         dev2, after des2, 14d
+    Integration      :crit,    dev3, after dev1, 7d
+
+    section QA
+    Unit Tests       :crit,    qa1, after dev3, 5d
+    UAT              :crit,    qa2, after qa1, 5d
+    Release          :milestone, after qa2, 0d

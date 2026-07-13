@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/org/gnome/gDiagram">
+    <file preprocess="xml-stripblanks">ui/main-window.ui</file>
+    <file preprocess="xml-stripblanks">ui/shortcuts-window.ui</file>
+    <file>lang/plantuml.lang</file>
+    <file>lang/mermaid.lang</file>
+    <!-- Element palette icons (icon theme resource path /org/gnome/gDiagram/icons) -->
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-action-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-actor-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-aggregation-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-association-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-circle-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-class-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-component-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-composition-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-database-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-decision-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-dependency-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-directed-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-er-many-to-many-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-er-one-to-many-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-er-one-to-one-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-final-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-fork-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-fragment-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-generalization-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-initial-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-interface-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-lifeline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-message-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-mindmap-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-node-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-note-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-object-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-package-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-process-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-realization-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-state-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-swimlane-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-task-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-thick-arrow-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-usecase-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/uml-waveform-symbolic.svg</file>
+  </gresource>
+</gresources>

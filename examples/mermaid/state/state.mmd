@@ -1,0 +1,15 @@
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: Start
+    Processing --> Validating: Data received
+    Validating --> Success: Valid
+    Validating --> Error: Invalid
+    Success --> [*]
+    Error --> Idle: Retry
+    Error --> [*]: Abort
+
+    state Processing {
+        [*] --> Loading
+        Loading --> Transforming
+        Transforming --> [*]
+    }

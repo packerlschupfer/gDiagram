@@ -1,0 +1,40 @@
+@startuml
+' Drilled from cluster.puml — kubelet on a worker node.
+'
+' kubelet is the node-level agent. It watches the apiserver for Pods
+' assigned to its node, talks to the container runtime via CRI to start
+' them, and reports status back. It also serves logs/exec endpoints.
+
+title kubelet — Node Agent
+
+rectangle "kube-apiserver" <<external_system>> as apiserver
+
+rectangle "kubelet" <<container_boundary>> as kubelet {
+    rectangle "Pod Sync Loop\nWatch apiserver"     <<component>> as sync
+    rectangle "Static Pod Watcher\n/etc/kubernetes/manifests" <<component>> as static
+    rectangle "Volume Manager\nMount PVs"          <<component>> as vol
+    rectangle "Probe Worker\nLiveness / Readiness / Startup" <<component>> as probe
+    rectangle "Status Reporter\nPod + Node status" <<component>> as status
+    rectangle "Lease Renewer\nkube-node-lease ns"  <<component>> as lease
+    rectangle "cAdvisor\nResource metrics"         <<component>> as cadvisor
+    rectangle "Eviction Manager\nDisk/memory pressure" <<component>> as evict
+}
+
+rectangle "Container Runtime\n(containerd)" <<external_system>> as cri
+rectangle "CNI Plugin"                       <<external_system>> as cni
+rectangle "CSI Plugin"                       <<external_system>> as csi
+
+apiserver --> sync     : "Watch Pods\nfor this node"
+sync      --> cri      : "RunPodSandbox\nCreateContainer"
+sync      --> vol      : "Attach/mount"
+vol       --> csi      : "NodePublishVolume"
+cri       --> cni      : "Setup pod netns"
+probe     --> cri      : "exec / httpGet"
+sync      --> status   : "Container state"
+status    --> apiserver : "PATCH pod status"
+lease     --> apiserver : "Renew lease (10s)"
+cadvisor  --> status    : "CPU/mem usage"
+evict     --> sync      : "Kill pods\non pressure"
+static    --> sync      : "Manifest changes"
+
+@enduml

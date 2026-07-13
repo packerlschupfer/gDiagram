@@ -1,0 +1,21 @@
+gdiagram (0.1.0-1) unstable; urgency=medium
+
+  * Initial release of gDiagram (formerly gPlantUML)
+  * 50 diagram types: 26 PlantUML + 24 Mermaid (complete mermaid.js.org
+    coverage)
+  * Native Graphviz rendering (no Java or Node.js)
+  * Real-time preview with syntax highlighting, click-to-source,
+    outline panel, zoom/pan/minimap
+  * DiagramEngine core shared by the GUI, the LSP server, and the
+    headless CLI export
+  * gdiagram-lsp language server (diagnostics, completion, hover,
+    document symbols) with VS Code extension
+  * Export to SVG, PNG, PDF — dialog or headless CLI (--export)
+  * Git integration: blame gutter, diff marks, history viewer, repo graph
+  * AI assistant (Claude API); key stored in GNOME Keyring (libsecret)
+  * Diagram tools: stats, linting, validation, complexity analysis,
+    beautifier, semantic comparison
+  * Template gallery, multi-tab editing, auto-format detection
+    (.puml, .mmd), dark mode with 7 color presets
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Sun, 13 Jul 2026 16:00:00 +0200

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Mermaid syntax highlighting for GtkSourceView
+  Supports flowcharts, sequence diagrams, state diagrams, and more
+-->
+<language id="mermaid" name="Mermaid" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-mermaid</property>
+    <property name="globs">*.mmd;*.mermaid</property>
+    <property name="line-comment-start">%%</property>
+  </metadata>
+
+  <styles>
+    <style id="diagram-type" name="Diagram Type" map-to="def:preprocessor"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="direction" name="Direction" map-to="def:keyword"/>
+    <style id="arrow" name="Arrow" map-to="def:operator"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="node-id" name="Node ID" map-to="def:identifier"/>
+    <style id="label" name="Label" map-to="def:string"/>
+    <style id="delimiter" name="Delimiter" map-to="def:special-char"/>
+    <style id="special" name="Special" map-to="def:special-constant"/>
+  </styles>
+
+  <definitions>
+    <!-- Main context -->
+    <context id="mermaid" class="no-spell-check">
+      <include>
+        <!-- Comments -->
+        <context id="comment" style-ref="comment" end-at-line-end="true" class="comment">
+          <start>%%</start>
+        </context>
+
+        <!-- Diagram type declarations -->
+        <context id="diagram-type" style-ref="diagram-type">
+          <keyword>flowchart</keyword>
+          <keyword>sequenceDiagram</keyword>
+          <keyword>stateDiagram-v2</keyword>
+          <keyword>classDiagram</keyword>
+          <keyword>erDiagram</keyword>
+          <keyword>gantt</keyword>
+          <keyword>pie</keyword>
+          <keyword>gitGraph</keyword>
+          <keyword>journey</keyword>
+        </context>
+
+        <!-- Direction keywords -->
+        <context id="direction" style-ref="direction">
+          <keyword>TD</keyword>
+          <keyword>TB</keyword>
+          <keyword>BT</keyword>
+          <keyword>LR</keyword>
+          <keyword>RL</keyword>
+        </context>
+
+        <!-- Flowchart keywords -->
+        <context id="flowchart-keywords" style-ref="keyword">
+          <keyword>subgraph</keyword>
+          <keyword>end</keyword>
+          <keyword>style</keyword>
+          <keyword>classDef</keyword>
+          <keyword>class</keyword>
+          <keyword>click</keyword>
+          <keyword>direction</keyword>
+        </context>
+
+        <!-- Sequence diagram keywords -->
+        <context id="sequence-keywords" style-ref="keyword">
+          <keyword>participant</keyword>
+          <keyword>actor</keyword>
+          <keyword>activate</keyword>
+          <keyword>deactivate</keyword>
+          <keyword>Note</keyword>
+          <keyword>over</keyword>
+          <keyword>left of</keyword>
+          <keyword>right of</keyword>
+          <keyword>autonumber</keyword>
+          <keyword>as</keyword>
+          <keyword>title</keyword>
+        </context>
+
+        <!-- Control flow keywords -->
+        <context id="control-flow" style-ref="keyword">
+          <keyword>loop</keyword>
+          <keyword>alt</keyword>
+          <keyword>else</keyword>
+          <keyword>opt</keyword>
+          <keyword>par</keyword>
+          <keyword>and</keyword>
+          <keyword>critical</keyword>
+          <keyword>break</keyword>
+          <keyword>rect</keyword>
+        </context>
+
+        <!-- State diagram keywords -->
+        <context id="state-keywords" style-ref="keyword">
+          <keyword>state</keyword>
+        </context>
+
+        <!-- Special symbols -->
+        <context id="state-markers" style-ref="special">
+          <match>\[\*\]</match>
+        </context>
+
+        <context id="stereotypes" style-ref="special">
+          <match>&lt;&lt;(choice|fork|join|end)&gt;&gt;</match>
+        </context>
+
+        <!-- Arrows - Flowchart style -->
+        <context id="arrows-flowchart" style-ref="arrow">
+          <match>--&gt;|\.-.&gt;|==&gt;|--o|--x|--@|---|\.\.\.|-\.-|===|&lt;--&gt;</match>
+        </context>
+
+        <!-- Arrows - Sequence diagram style -->
+        <context id="arrows-sequence" style-ref="arrow">
+          <match>-&gt;&gt;|--&gt;&gt;|-&gt;|--&gt;|-\)|-x|--x|--\)|---|--</match>
+        </context>
+
+        <!-- Strings - double quoted -->
+        <context id="double-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>"</start>
+          <end>"</end>
+          <include>
+            <context id="double-string-escape" style-ref="def:special-char">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Strings - single quoted -->
+        <context id="single-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>'</start>
+          <end>'</end>
+          <include>
+            <context id="single-string-escape" style-ref="def:special-char">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Strings - backtick quoted -->
+        <context id="backtick-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>`</start>
+          <end>`</end>
+        </context>
+
+        <!-- Node shape delimiters -->
+        <context id="delimiters" style-ref="delimiter">
+          <match>\[\[|\]\]|\(\(|\)\)|\(\(\(|\)\)\)|{{|}}|\(\[|\]\)|\[/|/\]|\[\\|\\]</match>
+        </context>
+
+        <!-- Edge labels (text between pipes) -->
+        <context id="edge-label" style-ref="label">
+          <start>\|</start>
+          <end>\|</end>
+        </context>
+
+      </include>
+    </context>
+  </definitions>
+</language>

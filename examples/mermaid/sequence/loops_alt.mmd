@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Client
+    participant Server
+
+    loop Retry (max 3)
+        Client->>Server: GET /resource
+        alt Success
+            Server-->>Client: 200 OK
+        else Rate Limited
+            Server-->>Client: 429 Too Many Requests
+        else Server Error
+            Server-->>Client: 500 Internal Error
+        end
+    end
+
+    Note over Client,Server: Connection closed

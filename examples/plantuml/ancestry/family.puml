@@ -1,0 +1,40 @@
+@startancestry
+title The Royal House of Example
+
+person GF [George Smith] born 1920-05-12 died 1985-11-03 #male
+person GM [Mary Johnson] born 1922-08-21 died 2010-01-17 #female
+married GF -- GM : 1945
+
+person F [John Smith] born 1950-03-08 #male
+person M [Jane Doe] born 1952-12-24 #female
+married F -- M : 1973
+child GF -- F
+child GM -- F
+
+person U [Robert Smith] born 1953 #male
+person UA [Linda Brown] born 1955 #female
+married U -- UA : 1977
+child GF -- U
+child GM -- U
+
+person S1 [Bob Smith] born 1975-06-15 #male
+person S2 [Alice Smith] born 1978 #female
+child F -- S1
+child M -- S1
+child F -- S2
+child M -- S2
+
+person C1 [David Smith] born 1980 #male
+child U -- C1
+child UA -- C1
+
+person SW [Sarah White] born 1976-09-30 #female
+married S1 -- SW : 2000
+
+person GC1 [Emma Smith] born 2002-04-11 #female
+person GC2 [Tom Smith] born 2005 #male
+child S1 -- GC1
+child SW -- GC1
+child S1 -- GC2
+child SW -- GC2
+@endancestry

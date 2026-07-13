@@ -1,0 +1,332 @@
+{
+  "Flowchart": {
+    "prefix": "mmd-flowchart",
+    "description": "Mermaid flowchart diagram",
+    "body": [
+      "flowchart ${1|TD,TB,BT,LR,RL|}",
+      "    ${2:A}[${3:Start}] --> ${4:B}{${5:Decision}}",
+      "    ${4} -->|${6:Yes}| ${7:C}[${8:Process}]",
+      "    ${4} -->|${9:No}| ${10:D}[${11:Other}]",
+      "    ${7} --> ${12:E}[${13:End}]",
+      "    ${10} --> ${12}"
+    ]
+  },
+  "Sequence Diagram": {
+    "prefix": "mmd-sequence",
+    "description": "Mermaid sequence diagram",
+    "body": [
+      "sequenceDiagram",
+      "    participant ${1:A} as ${2:Client}",
+      "    participant ${3:B} as ${4:Server}",
+      "",
+      "    ${1}->>+${3}: ${5:Request}",
+      "    ${3}-->>-${1}: ${6:Response}",
+      "",
+      "    Note over ${1},${3}: ${7:Description}"
+    ]
+  },
+  "State Diagram": {
+    "prefix": "mmd-state",
+    "description": "Mermaid state diagram",
+    "body": [
+      "stateDiagram-v2",
+      "    [*] --> ${1:Idle}",
+      "",
+      "    ${1} --> ${2:Active} : ${3:start}",
+      "    ${2} --> ${4:Done} : ${5:complete}",
+      "    ${4} --> [*]"
+    ]
+  },
+  "Class Diagram": {
+    "prefix": "mmd-class",
+    "description": "Mermaid class diagram",
+    "body": [
+      "classDiagram",
+      "    class ${1:MyClass} {",
+      "        +${2:String} ${3:name}",
+      "        +${4:method}() ${5:void}",
+      "    }",
+      "",
+      "    class ${6:OtherClass} {",
+      "        +${7:int} ${8:value}",
+      "    }",
+      "",
+      "    ${1} --> ${6}"
+    ]
+  },
+  "ER Diagram": {
+    "prefix": "mmd-er",
+    "description": "Mermaid entity-relationship diagram",
+    "body": [
+      "erDiagram",
+      "    ${1:ENTITY_A} ||--o{ ${2:ENTITY_B} : ${3:has}",
+      "",
+      "    ${1} {",
+      "        int ${4:id} PK",
+      "        string ${5:name}",
+      "    }",
+      "",
+      "    ${2} {",
+      "        int ${6:id} PK",
+      "        int ${7:a_id} FK",
+      "    }"
+    ]
+  },
+  "Gantt Chart": {
+    "prefix": "mmd-gantt",
+    "description": "Mermaid Gantt chart",
+    "body": [
+      "gantt",
+      "    title ${1:Project Schedule}",
+      "    dateFormat YYYY-MM-DD",
+      "",
+      "    section ${2:Phase 1}",
+      "        ${3:Task 1} :${4:a1}, ${5:2024-01-01}, ${6:10d}",
+      "        ${7:Task 2} :${8:a2}, after ${4}, ${9:15d}",
+      "",
+      "    section ${10:Phase 2}",
+      "        ${11:Task 3} :${12:b1}, after ${8}, ${13:20d}"
+    ]
+  },
+  "Pie Chart": {
+    "prefix": "mmd-pie",
+    "description": "Mermaid pie chart",
+    "body": [
+      "pie title ${1:Distribution}",
+      "    \"${2:Category A}\" : ${3:40}",
+      "    \"${4:Category B}\" : ${5:30}",
+      "    \"${6:Category C}\" : ${7:20}",
+      "    \"${8:Category D}\" : ${9:10}"
+    ]
+  },
+  "User Journey": {
+    "prefix": "mmd-journey",
+    "description": "Mermaid user journey map",
+    "body": [
+      "journey",
+      "    title ${1:User Journey}",
+      "    section ${2:Phase 1}",
+      "        ${3:Step 1}: ${4:5}: ${5:User}",
+      "        ${6:Step 2}: ${7:3}: ${5}",
+      "    section ${8:Phase 2}",
+      "        ${9:Step 3}: ${10:4}: ${5}",
+      "        ${11:Step 4}: ${12:5}: ${5}"
+    ]
+  },
+  "Git Graph": {
+    "prefix": "mmd-gitgraph",
+    "description": "Mermaid git graph",
+    "body": [
+      "gitGraph",
+      "    commit id: \"${1:Initial}\"",
+      "    branch ${2:develop}",
+      "    checkout ${2}",
+      "    commit id: \"${3:Feature}\"",
+      "    commit id: \"${4:Update}\"",
+      "    checkout main",
+      "    merge ${2} tag: \"${5:v1.0}\""
+    ]
+  },
+  "Mindmap": {
+    "prefix": "mmd-mindmap",
+    "description": "Mermaid mindmap",
+    "body": [
+      "mindmap",
+      "    root((${1:Central Topic}))",
+      "        ${2:Branch 1}",
+      "            ${3:Item A}",
+      "            ${4:Item B}",
+      "        ${5:Branch 2}",
+      "            ${6:Item C}",
+      "            ${7:Item D}"
+    ]
+  },
+  "Timeline": {
+    "prefix": "mmd-timeline",
+    "description": "Mermaid timeline",
+    "body": [
+      "timeline",
+      "    title ${1:Timeline}",
+      "    section ${2:Period 1}",
+      "        ${3:2024} : ${4:Event A}",
+      "        ${5:2025} : ${6:Event B}",
+      "    section ${7:Period 2}",
+      "        ${8:2026} : ${9:Event C}"
+    ]
+  },
+  "Quadrant Chart": {
+    "prefix": "mmd-quadrant",
+    "description": "Mermaid quadrant chart",
+    "body": [
+      "quadrantChart",
+      "    title ${1:Analysis}",
+      "    x-axis ${2:Low X} --> ${3:High X}",
+      "    y-axis ${4:Low Y} --> ${5:High Y}",
+      "    quadrant-1 ${6:Q1}",
+      "    quadrant-2 ${7:Q2}",
+      "    quadrant-3 ${8:Q3}",
+      "    quadrant-4 ${9:Q4}",
+      "    ${10:Item A}: [${11:0.7}, ${12:0.8}]",
+      "    ${13:Item B}: [${14:0.3}, ${15:0.6}]"
+    ]
+  },
+  "XY Chart": {
+    "prefix": "mmd-xychart",
+    "description": "Mermaid XY chart",
+    "body": [
+      "xychart-beta",
+      "    title \"${1:Chart Title}\"",
+      "    x-axis [${2:Jan, Feb, Mar, Apr, May, Jun}]",
+      "    y-axis \"${3:Values}\" ${4:0} --> ${5:100}",
+      "    bar [${6:30, 45, 60, 50, 70, 85}]",
+      "    line [${7:25, 40, 55, 48, 65, 80}]"
+    ]
+  },
+  "Kanban Board": {
+    "prefix": "mmd-kanban",
+    "description": "Mermaid kanban board",
+    "body": [
+      "kanban",
+      "    ${1:Todo}",
+      "        ${2:Task 1}",
+      "        ${3:Task 2}",
+      "    ${4:In Progress}",
+      "        ${5:Task 3}",
+      "    ${6:Done}",
+      "        ${7:Task 4}"
+    ]
+  },
+  "Sankey Diagram": {
+    "prefix": "mmd-sankey",
+    "description": "Mermaid sankey flow diagram",
+    "body": [
+      "sankey-beta",
+      "    ${1:Source A},${2:Process X},${3:50}",
+      "    ${1},${4:Process Y},${5:30}",
+      "    ${2},${6:Output},${7:45}",
+      "    ${4},${6},${8:25}"
+    ]
+  },
+  "Requirement Diagram": {
+    "prefix": "mmd-requirement",
+    "description": "Mermaid requirement diagram",
+    "body": [
+      "requirementDiagram",
+      "",
+      "    requirement \"${1:Feature}\" {",
+      "        id: ${2:REQ-001}",
+      "        text: ${3:Description of requirement}",
+      "        risk: ${4|low,medium,high|}",
+      "        verifymethod: ${5|test,inspection,analysis,demonstration|}",
+      "    }",
+      "",
+      "    element \"${6:Module}\" {",
+      "        type: ${7:module}",
+      "    }",
+      "",
+      "    \"${6}\" - satisfies -> \"${1}\""
+    ]
+  },
+  "Block Diagram": {
+    "prefix": "mmd-block",
+    "description": "Mermaid block diagram",
+    "body": [
+      "block-beta",
+      "    columns ${1:3}",
+      "",
+      "    block:${2:group1}[\"${3:Group 1}\"]",
+      "        columns 1",
+      "        ${4:A}[\"${5:Block A}\"]",
+      "        ${6:B}[\"${7:Block B}\"]",
+      "    end",
+      "",
+      "    ${8:C}[\"${9:Block C}\"]",
+      "    ${10:D}[\"${11:Block D}\"]",
+      "",
+      "    ${2} --> ${8}",
+      "    ${8} --> ${10}"
+    ]
+  },
+  "Packet Diagram": {
+    "prefix": "mmd-packet",
+    "description": "Mermaid packet structure diagram",
+    "body": [
+      "packet-beta",
+      "    0-${1:7}: \"${2:Field 1}\"",
+      "    ${3:8}-${4:15}: \"${5:Field 2}\"",
+      "    ${6:16}-${7:31}: \"${8:Field 3}\""
+    ]
+  },
+  "C4 Context Diagram": {
+    "prefix": "mmd-c4",
+    "description": "Mermaid C4 context diagram",
+    "body": [
+      "C4Context",
+      "    title ${1:System Context}",
+      "",
+      "    Person(${2:user}, \"${3:User}\", \"${4:A user of the system}\")",
+      "    System(${5:system}, \"${6:System}\", \"${7:Main system}\")",
+      "    System_Ext(${8:ext}, \"${9:External System}\", \"${10:External dependency}\")",
+      "",
+      "    Rel(${2}, ${5}, \"${11:Uses}\", \"${12:HTTPS}\")",
+      "    Rel(${5}, ${8}, \"${13:Calls}\", \"${14:API}\")"
+    ]
+  },
+  "Architecture Diagram": {
+    "prefix": "mmd-architecture",
+    "description": "Mermaid architecture diagram",
+    "body": [
+      "architecture-beta",
+      "    group ${1:platform}(cloud)[${2:Platform}]",
+      "",
+      "    service ${3:api}(server)[${4:API}] in ${1}",
+      "    service ${5:db}(database)[${6:Database}] in ${1}",
+      "    service ${7:web}(internet)[${8:Web}] in ${1}",
+      "",
+      "    ${7}:R --> L:${3}",
+      "    ${3}:R --> L:${5}"
+    ]
+  },
+  "ZenUML Sequence": {
+    "prefix": "mmd-zenuml",
+    "description": "Mermaid ZenUML code-style sequence",
+    "body": [
+      "zenuml",
+      "    title ${1:Interaction}",
+      "",
+      "    ${2:Client}->${3:Server}.${4:request}(${5:data}) {",
+      "        ${3}->${6:DB}.${7:query}(${8:sql}) {",
+      "            return ${9:result}",
+      "        }",
+      "        return ${10:response}",
+      "    }"
+    ]
+  },
+  "Radar Chart": {
+    "prefix": "mmd-radar",
+    "description": "Mermaid radar/spider chart",
+    "body": [
+      "radar-beta",
+      "    title ${1:Assessment}",
+      "    axis ${2:Speed}, ${3:Quality}, ${4:Cost}, ${5:Reliability}, ${6:UX}",
+      "    curve ${7:Team A}: [${8:4, 3, 5, 4, 3}]",
+      "    curve ${9:Team B}: [${10:3, 5, 3, 5, 4}]"
+    ]
+  },
+  "Treemap": {
+    "prefix": "mmd-treemap",
+    "description": "Mermaid treemap chart",
+    "body": [
+      "treemap-beta",
+      "    title ${1:Distribution}",
+      "    root[\"${2:Total}\"]",
+      "        [\"${3:Category A (40%)}\"]",
+      "            [\"${4:Sub A1 (25%)}\"]",
+      "            [\"${5:Sub A2 (15%)}\"]",
+      "        [\"${6:Category B (35%)}\"]",
+      "            [\"${7:Sub B1 (20%)}\"]",
+      "            [\"${8:Sub B2 (15%)}\"]",
+      "        [\"${9:Category C (25%)}\"]"
+    ]
+  }
+}

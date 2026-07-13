@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Alice
+    participant Bob
+    participant Charlie
+
+    Alice->>+Bob: Request
+    Note right of Bob: Processing...
+    Bob->>+Charlie: Delegate
+    Charlie-->>-Bob: Result
+    Bob-->>-Alice: Response
+
+    Note over Alice,Charlie: All participants notified

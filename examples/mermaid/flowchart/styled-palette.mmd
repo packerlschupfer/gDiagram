@@ -1,0 +1,14 @@
+flowchart TD
+    classDef trigger fill:#fed7aa,stroke:#c2410c,color:#374151
+    classDef success fill:#a7f3d0,stroke:#047857,color:#374151
+    classDef decision fill:#fef3c7,stroke:#b45309,color:#374151
+    classDef ai fill:#ddd6fe,stroke:#6d28d9,color:#374151
+    classDef error fill:#fecaca,stroke:#b91c1c,color:#374151
+    classDef primary fill:#3b82f6,stroke:#1e3a5f,color:#ffffff
+
+    Start["Start"]:::trigger --> Decide{"Valid?"}:::decision
+    Decide -->|"yes"| LLM["Call LLM"]:::ai
+    Decide -->|"no"| Err["Show Error"]:::error
+    LLM --> Done["Success"]:::success
+    Err --> Done
+    Done --> Pri["Primary node"]:::primary

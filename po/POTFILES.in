@@ -1,0 +1,3 @@
+data/org.gnome.gPlantUML.desktop.in
+src/Application.vala
+src/ui/MainWindow.vala

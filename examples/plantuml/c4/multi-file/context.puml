@@ -1,0 +1,30 @@
+@startuml
+' C4 Context level — top of the drill-down chain.
+'
+' Double-click any container in this diagram to descend into its
+' internal structure. gDiagram looks for `<alias>.puml` (e.g. `web.puml`)
+' or `context-<alias>.puml` in the same directory. The breadcrumb bar
+' above the preview shows your navigation path.
+
+title E-Commerce Platform — System Context
+
+rectangle "Customer\nA logged-in shopper" <<person>> as customer
+rectangle "Marketing Analyst\nLooks at sales data" <<person>> as analyst
+
+rectangle "E-Commerce Platform\nLets customers browse and buy products" <<system_boundary>> as ecommerce {
+    rectangle "Web App\nPublic-facing website"            <<container>> as web
+    rectangle "API\nBusiness logic + product catalog"     <<container>> as api
+    database  "Database\nProducts, orders, sessions"      <<container>> as db
+}
+
+rectangle "Payments\nThird-party payment provider"  <<external_system>> as payments
+rectangle "Email Service\nTransactional email sender" <<external_system>> as email
+
+customer --> web      : "Browses, places orders"
+analyst  --> web      : "Views sales dashboards"
+web      --> api      : "REST/JSON"
+api      --> db       : "SQL"
+api      --> payments : "Charges via HTTPS"
+api      --> email    : "Sends order confirmations"
+
+@enduml

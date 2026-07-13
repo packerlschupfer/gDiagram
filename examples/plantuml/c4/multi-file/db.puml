@@ -1,0 +1,25 @@
+@startuml
+' Drilled in from context.puml — Database container internals.
+' Reached by double-clicking the `db` element in context.puml.
+
+title Database — Schema View
+
+rectangle "API" <<container>> as api
+
+database "PostgreSQL" <<system_boundary>> as db {
+    rectangle "users\nauthn + profile"          <<container>> as users
+    rectangle "sessions\nlogin tokens, expiry"  <<container>> as sessions
+    rectangle "products\ncatalog + inventory"   <<container>> as products
+    rectangle "carts\nin-progress orders"       <<container>> as carts
+    rectangle "orders\ncompleted purchases"     <<container>> as orders
+    rectangle "audit_log\nimmutable event log"  <<container>> as audit
+}
+
+api --> users    : "SELECT/INSERT"
+api --> sessions : "SELECT/UPDATE"
+api --> products : "SELECT (read-mostly)"
+api --> carts    : "UPSERT"
+api --> orders   : "INSERT"
+api --> audit    : "INSERT (write-only)"
+
+@enduml

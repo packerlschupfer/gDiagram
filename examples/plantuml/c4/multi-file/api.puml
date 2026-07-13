@@ -1,0 +1,34 @@
+@startuml
+' Drilled in from context.puml — API container internals.
+' Reached by double-clicking the `api` element in context.puml.
+
+title API — Container View
+
+rectangle "Web App" <<container>> as web
+
+rectangle "API" <<system_boundary>> as api {
+    rectangle "HTTP Router\nRoute requests to handlers"  <<component>> as router
+    rectangle "Auth Service\nValidates JWT, issues tokens" <<component>> as authsvc
+    rectangle "Catalog Service\nProduct lookup + search"  <<component>> as catalog
+    rectangle "Cart Service\nShopping cart state"         <<component>> as cart
+    rectangle "Order Service\nCheckout + fulfilment"      <<component>> as orders
+    rectangle "Payment Adapter\nCalls Stripe API"         <<component>> as payadapter
+}
+
+database  "Database\nPostgres" <<container>> as db
+rectangle "Stripe API"        <<external_system>> as stripe
+rectangle "Email Service"     <<external_system>> as email
+
+web      --> router   : "REST/JSON"
+router   --> authsvc  : "Validate token"
+router   --> catalog  : "GET /products"
+router   --> cart     : "POST /cart"
+router   --> orders   : "POST /orders"
+catalog  --> db       : "SELECT"
+cart     --> db       : "UPSERT"
+orders   --> db       : "INSERT"
+orders   --> payadapter : "Charge"
+payadapter --> stripe : "HTTPS"
+orders   --> email    : "SMTP"
+
+@enduml

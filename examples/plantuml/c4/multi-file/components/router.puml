@@ -1,0 +1,28 @@
+@startuml
+' Drilled in from api.puml — HTTP Router component code view.
+' Lives in components/ subdirectory; gDiagram finds it via the
+' recursive subdirectory search in find_drill_candidate.
+
+title HTTP Router — Code View
+
+rectangle "Web App" <<container>> as web
+
+rectangle "HTTP Router" <<system_boundary>> as router {
+    rectangle "RouteResolver\nPath → handler"        <<component>> as resolver
+    rectangle "Middleware Chain\nLogging, auth, CORS" <<component>> as middleware
+    rectangle "RequestParser\nReads body + query"    <<component>> as parser
+    rectangle "ResponseWriter\nFormats JSON output"  <<component>> as writer
+}
+
+rectangle "Auth Service" <<component>> as authsvc
+rectangle "Catalog Service" <<component>> as catalog
+
+web        --> middleware  : "HTTP"
+middleware --> parser      : "Request"
+parser     --> resolver    : "Resolve"
+resolver   --> authsvc     : "If protected"
+resolver   --> catalog     : "If /products/*"
+resolver   --> writer      : "Result"
+writer     --> web         : "JSON response"
+
+@enduml

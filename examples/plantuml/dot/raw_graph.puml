@@ -1,0 +1,12 @@
+@startdot
+digraph G {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  A -> B -> C;
+  A -> D -> C;
+  B -> E;
+  D -> E;
+  E -> F;
+}
+@enddot

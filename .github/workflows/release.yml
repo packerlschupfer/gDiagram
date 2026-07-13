@@ -1,0 +1,219 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+# Graphviz: our HTML <TD> text-centering fix merged upstream (2cddb8456)
+# and first shipped in release 14.1.3 — build from the upstream release tag
+# (the old packerlschupfer/graphviz fork branch no longer exists).
+env:
+  GV_COMMIT: 09e05516758a1e448b652412197c37b0b05286ea  # tag 14.1.3
+  GV_CACHE_KEY: graphviz-14.1.3
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Graphviz build dependencies
+      # These build GRAPHVIZ from source in the step below. They are not
+      # gDiagram's own build deps, so they cannot come from debian/control and
+      # have to stay listed here.
+      # devscripts + equivs provide mk-build-deps, used in the next step.
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          devscripts \
+          equivs \
+          libpango1.0-dev \
+          libgd-dev \
+          libexpat1-dev \
+          libltdl-dev \
+          bison \
+          flex
+
+    - name: Install gDiagram build dependencies from debian/control
+      # Single source of truth: debian/control's Build-Depends. Do NOT re-list
+      # them here. A second copy of the list drifts, and a -dev package missing
+      # from one of this repo's three apt lists is a failure mode that has bitten
+      # this pipeline before.
+      #
+      # This installs libgraphviz-dev too, which is safe and deliberate: the
+      # archive ships libgvc.so.6 while the patched Graphviz we build and link
+      # against is libgvc.so.7, so dpkg-shlibdeps cannot confuse the two, and
+      # PKG_CONFIG_PATH (set below) already points meson at /opt regardless.
+      # If the archive ever ships a .so.7 graphviz, check the shlibs:Depends in
+      # this job's log before trusting the release.
+      #
+      # Recommends are intentionally NOT disabled — that matches what the plain
+      # apt-get install here used to do.
+      run: |
+        sudo mk-build-deps --install --remove \
+          --tool 'apt-get -y' debian/control
+
+    - name: Cache patched Graphviz
+      id: cache-graphviz
+      uses: actions/cache@v4
+      with:
+        path: /opt/graphviz-patched
+        key: ${{ env.GV_CACHE_KEY }}-${{ runner.os }}
+
+    - name: Build and install Graphviz 14.1.3
+      if: steps.cache-graphviz.outputs.cache-hit != 'true'
+      run: |
+        git clone https://gitlab.com/graphviz/graphviz.git /tmp/graphviz
+        cd /tmp/graphviz && git checkout ${{ env.GV_COMMIT }}
+        cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
+        make -C build -j$(nproc)
+        sudo make -C build install
+
+    - name: Configure Graphviz environment
+      run: |
+        echo "PKG_CONFIG_PATH=/opt/graphviz-patched/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/opt/graphviz-patched/lib:${LD_LIBRARY_PATH:-}" >> $GITHUB_ENV
+        echo "/opt/graphviz-patched/bin" >> $GITHUB_PATH
+
+    - name: Build Debian package
+      # No -d: mk-build-deps really installed the Build-Depends, so the
+      # dpkg-checkbuilddeps check is now a genuine gate rather than something
+      # to skip. If it fails, debian/control is wrong — fix it there.
+      run: dpkg-buildpackage -us -uc -b
+
+    - name: Collect debs
+      # upload-artifact@v4 forbids parent-relative paths; move into workspace.
+      # Ubuntu's debhelper renames the dbgsym package to .ddeb — collect it
+      # too and restore the .deb suffix (it IS a regular deb; Debian keeps
+      # the .deb name, and the release asset should match).
+      run: |
+        mkdir -p dist && mv ../gdiagram*.deb dist/
+        for f in ../gdiagram*.ddeb; do
+          [ -e "$f" ] && mv "$f" "dist/$(basename "${f%.ddeb}").deb"
+        done
+        ls -la dist/
+
+    - name: Upload deb artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: debian-package
+        path: dist/*.deb
+
+  build-appimage:
+    # noble: the app needs gtk4 >= 4.10 (jammy has 4.6)
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          meson \
+          ninja-build \
+          valac \
+          libgtk-4-dev \
+          libadwaita-1-dev \
+          libgtksourceview-5-dev \
+          libgee-0.8-dev \
+          librsvg2-dev \
+          libcairo2-dev \
+          libsoup-3.0-dev \
+          libjson-glib-dev \
+          libsecret-1-dev \
+          libpango1.0-dev \
+          libgd-dev \
+          libexpat1-dev \
+          libltdl-dev \
+          bison \
+          flex \
+          gettext \
+          desktop-file-utils \
+          fuse3 \
+          libfuse2t64
+
+    - name: Cache patched Graphviz
+      id: cache-graphviz
+      uses: actions/cache@v4
+      with:
+        path: /opt/graphviz-patched
+        key: ${{ env.GV_CACHE_KEY }}-${{ runner.os }}
+
+    - name: Build and install Graphviz 14.1.3
+      if: steps.cache-graphviz.outputs.cache-hit != 'true'
+      run: |
+        git clone https://gitlab.com/graphviz/graphviz.git /tmp/graphviz
+        cd /tmp/graphviz && git checkout ${{ env.GV_COMMIT }}
+        cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
+        make -C build -j$(nproc)
+        sudo make -C build install
+
+    - name: Configure Graphviz environment
+      run: |
+        echo "PKG_CONFIG_PATH=/opt/graphviz-patched/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/opt/graphviz-patched/lib:${LD_LIBRARY_PATH:-}" >> $GITHUB_ENV
+        echo "/opt/graphviz-patched/bin" >> $GITHUB_PATH
+
+    - name: Install appimage-builder
+      run: |
+        wget -q -O appimage-builder \
+          https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+        chmod +x appimage-builder
+        sudo mv appimage-builder /usr/local/bin/
+
+    - name: Build AppImage
+      run: |
+        cd appimage
+        appimage-builder --recipe AppImageBuilder.yml --skip-test
+
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: appimage
+        path: appimage/gDiagram-*.AppImage
+
+  build-flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: gdiagram.flatpak
+        manifest-path: org.gnome.gDiagram.json
+        cache-key: flatpak-builder-${{ github.sha }}
+
+  release:
+    needs: [build-deb, build-appimage, build-flatpak]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Display structure of downloaded files
+      run: ls -la */
+
+    - name: Generate checksums
+      run: |
+        sha256sum debian-package/*.deb appimage/*.AppImage \
+          gdiagram-x86_64.flatpak/*.flatpak > sha256sums.txt
+        cat sha256sums.txt
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          debian-package/*.deb
+          appimage/*.AppImage
+          gdiagram-x86_64.flatpak/*.flatpak
+          sha256sums.txt
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

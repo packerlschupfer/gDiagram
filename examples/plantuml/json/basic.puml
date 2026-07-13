@@ -1,0 +1,16 @@
+@startjson
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 30,
+  "email": "john@example.com",
+  "address": {
+    "street": "123 Main St",
+    "city": "Springfield",
+    "zip": "12345"
+  },
+  "hobbies": ["coding", "reading", "hiking"],
+  "active": true,
+  "score": null
+}
+@endjson

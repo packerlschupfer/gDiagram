@@ -1,0 +1,14 @@
+@startchronology
+title Software Project Milestones
+
+[Project Kickoff] happens on 2024-01-15
+[Requirements Complete] happens on 2024-02-01
+[Architecture Design] happens on 2024-02-20
+[Development Sprint 1] happens on 2024-03-01
+[Development Sprint 2] happens on 2024-03-15
+[Alpha Release] happens on 2024-04-10
+[Beta Testing Begins] happens on 2024-05-01
+[Bug Fix Sprint] happens on 2024-05-20
+[Release Candidate] happens on 2024-06-15
+[Production Launch] happens on 2024-07-01
+@endchronology

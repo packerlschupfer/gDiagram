@@ -1,0 +1,21 @@
+C4Container
+    title Container Diagram for Internet Banking
+
+    Person(customer, "Customer", "A customer of the bank")
+
+    System_Boundary(b1, "Internet Banking") {
+        Container(web_app, "Web Application", "React", "Delivers the SPA to the user's browser")
+        Container(api, "API Application", "Node.js/Express", "Provides banking functionality via REST API")
+        ContainerDb(database, "Database", "PostgreSQL", "Stores user accounts and transactions")
+        Container(cache, "Cache", "Redis", "Session and data cache")
+    }
+
+    System_Ext(email, "E-Mail System", "External email service")
+    System_Ext(mainframe, "Mainframe", "Core banking system")
+
+    Rel(customer, web_app, "Uses", "HTTPS")
+    Rel(web_app, api, "API calls", "JSON/HTTPS")
+    Rel(api, database, "Reads/writes", "SQL")
+    Rel(api, cache, "Reads/writes", "Redis protocol")
+    Rel(api, email, "Sends emails", "SMTP")
+    Rel(api, mainframe, "Queries", "XML/HTTPS")

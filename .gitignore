@@ -1,0 +1,57 @@
+# Claude Code local files
+.claude/
+
+# Build directories
+build/
+builddir/
+build-graphviz-pkg/
+obj-x86_64-linux-gnu/
+
+# Debian packaging artifacts
+debian/.debhelper/
+debian/gplantuml/
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/debhelper-build-stamp
+
+# Meson build artifacts
+*.stamp
+
+
+# Object files
+*.o
+*.a
+
+# Compiled binaries
+src/gplantuml
+
+# Generated configuration
+config.vala
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Package files
+*.deb
+*.buildinfo
+*.changes
+
+# AppImage build
+appimage/*.AppImage
+
+# Temporary files
+*.log
+.DS_Store
+debian/gdiagram/
+debian/.debhelper/
+
+# Generated GSettings schema cache (compiled at install time)
+data/gschemas.compiled
+
+# Node.js dependencies (vscode-extension)
+node_modules/

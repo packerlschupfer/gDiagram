@@ -1,0 +1,82 @@
+flowchart TD
+    %% This example demonstrates ALL advanced features of gDiagram's Mermaid support
+
+    %% Define reusable style classes
+    classDef startStyle fill:#90EE90,stroke:#228B22,stroke-width:3
+    classDef processStyle fill:#87CEEB,stroke:#4682B4,stroke-width:2
+    classDef decisionStyle fill:#FFD700,stroke:#DAA520,stroke-width:2
+    classDef errorStyle fill:#FFB6C1,stroke:#DC143C,stroke-width:2
+    classDef successStyle fill:#98FB98,stroke:#32CD32,stroke-width:3
+
+    %% Node declarations with various shapes
+    Start([🚀 Start Process])
+    Input{📝 Input Valid?}
+    Process[⚙️ Process Data]
+    Transform((🔄 Transform))
+    Validate{✓ Validate}
+    Save[(💾 Database)]
+    Success([✨ Success!])
+    Error[❌ Error]
+    Retry{🔁 Retry?}
+    Log[[📋 Log Event]]
+    End[🏁 End]
+
+    %% Apply style classes
+    class Start startStyle
+    class Process,Transform processStyle
+    class Input,Validate,Retry decisionStyle
+    class Error errorStyle
+    class Success successStyle
+
+    %% Individual node styling (overrides class styles)
+    style Save fill:#DDA0DD,stroke:#9370DB,stroke-width:2
+    style Log fill:#F0E68C,stroke:#BDB76B,stroke-width:1
+    style End fill:#D3D3D3,stroke:#808080,stroke-width:2
+
+    %% Edge connections with labels
+    Start --> Input
+    Input -->|Valid Data| Process
+    Input -->|Invalid| Error
+
+    Process --> Transform
+    Transform --> Log
+    Log --> Validate
+
+    Validate -->|Pass| Save
+    Validate -->|Fail| Error
+
+    Save --> Success
+    Success --> End
+
+    Error --> Retry
+    Retry -->|Yes| Input
+    Retry -->|No| End
+
+    %% Subgraph for core processing
+    subgraph CoreProcessing
+        Process
+        Transform
+        Validate
+    end
+
+    %% Subgraph for error handling
+    subgraph ErrorHandling
+        Error
+        Retry
+    end
+
+    %% Click actions for interactive diagrams
+    click Start "https://github.com/packerlschupfer/gDiagram" "View gDiagram Repository"
+    click Success "https://github.com/packerlschupfer/gDiagram/releases" "Download Release"
+
+    %% This diagram demonstrates:
+    %% ✅ All 11 node shapes (rectangle, rounded, stadium, diamond, circle, etc.)
+    %% ✅ Custom styling with fill, stroke, and stroke-width
+    %% ✅ Reusable style classes (classDef)
+    %% ✅ Class assignment to multiple nodes
+    %% ✅ Individual node style overrides
+    %% ✅ Edge labels
+    %% ✅ Subgraphs for organization
+    %% ✅ Click actions with URLs and tooltips
+    %% ✅ Unicode emoji support
+    %% ✅ Complex multi-path workflows

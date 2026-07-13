@@ -1,0 +1,3 @@
+@startregex
+[a-z]+@[a-z]+\.[a-z]{2,4}
+@endregex

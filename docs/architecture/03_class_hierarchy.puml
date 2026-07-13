@@ -1,0 +1,301 @@
+@startuml
+title gDiagram — Class Hierarchy (gdiagram-core)
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam padding 3
+
+skinparam class {
+    BackgroundColor<<engine>> #FFEBEE
+    BorderColor<<engine>> #B71C1C
+    BackgroundColor<<parser>> #FFF3E0
+    BorderColor<<parser>> #E65100
+    BackgroundColor<<ast>> #E8F5E9
+    BorderColor<<ast>> #2E7D32
+    BackgroundColor<<renderer>> #F3E5F5
+    BorderColor<<renderer>> #6A1B9A
+    BackgroundColor<<editor>> #FFF9C4
+    BorderColor<<editor>> #F9A825
+}
+
+' ===== Engine =====
+class DiagramEngine <<engine>> {
+    +last_regions: ArrayList<ElementRegion>
+    +detect_format(source, filename): DiagramFormat
+    +detect_plantuml_type(source): DiagramType
+    +detect_mermaid_type(source): DiagramType
+    +preprocess(source, base_path): string
+    +parse(source, filename, base_path): ParseResult
+    +render(type, format, source): RenderResult
+    +generate_dot(source, filename, base_path): string
+    +generate_svg(source, filename, base_path): uint8[]
+    +export_to_png/svg/pdf(source, ..., filename): bool
+}
+
+class RenderResult <<engine>> {
+    +status: RenderStatus
+    +diagram_type: DiagramType
+    +surface: Cairo.ImageSurface
+    +ast: Object
+    +errors: ArrayList<ParseError>
+    +message: string
+}
+
+class ParseResult <<engine>> {
+    +format: DiagramFormat
+    +diagram_type: DiagramType
+    +ast: Object
+    +errors: ArrayList<ParseError>
+    +unsupported: bool
+}
+
+' ===== Parsers =====
+package "parser/" {
+    class TypeDetector <<parser>> {
+        {static} +is_mermaid(source): bool
+        {static} +detect_plantuml(source): DiagramType
+        {static} +detect_mermaid(source): DiagramType
+    }
+
+    class Preprocessor <<parser>> {
+        +errors: ArrayList<PreprocessorError>
+        +process(source, base_path): string
+        {static} +source_line_numbers(lines): int[]
+    }
+
+    class Lexer <<parser>> {
+        +scan_all(): ArrayList<Token>
+    }
+
+    class TokenStream <<parser>> {
+        +peek(): Token
+        +advance(): Token
+        +check(type): bool
+        +match(types): bool
+    }
+
+    class "PlantUML parsers (25)" as PumlParsers <<parser>> {
+        plantuml/*DiagramParser.vala
+        --
+        Parser (sequence), Class, Activity,
+        UseCase, State, Component, Object,
+        ER, MindMap (+ WBS), Gantt, Json,
+        Yaml, Chronology, Timing, Nwdiag,
+        Archimate, Dot, Salt, Chen, Ebnf,
+        Regex, Tree, Board, Ditaa,
+        Ancestry (+ GedcomParser)
+    }
+
+    class "ActivityDiagramParser" as ActivityParser <<parser>> {
+        orchestrator
+        --
+        activity/: Action, ControlFlow,
+        Structure, Metadata, Edge,
+        TextFormatter, ParserUtils
+    }
+
+    class MermaidLexer <<parser>> {
+        +scan_all(): ArrayList<MermaidToken>
+    }
+
+    class "Mermaid parsers (23)" as MermaidParsers <<parser>> {
+        mermaid/Mermaid*Parser.vala
+        --
+        Flowchart, Sequence, State, Class,
+        ER, Gantt, Pie, UserJourney,
+        GitGraph, Mindmap, Timeline,
+        Quadrant, XYChart, Kanban, Sankey,
+        Requirement, Block, Packet, C4,
+        Architecture, ZenUML, Radar, Treemap
+    }
+}
+
+' ===== AST =====
+package "ast/" {
+    class DiagramNode <<ast>> {
+        DiagramNode.vala
+        --
+        enum DiagramType (26 PlantUML incl. WBS,
+        23 Mermaid, UNKNOWN)
+        Participant, Message, Note,
+        SequenceDiagram
+    }
+
+    class ParseError <<ast>> {
+        +message: string
+        +line: int
+        +column: int
+    }
+
+    class SkinParams <<ast>> {
+        Theme.vala
+        --
+        +set_global(prop, value)
+        +get_global(prop): string
+    }
+
+    class "PlantUML ASTs" as PumlASTs <<ast>> {
+        ast/*Diagram.vala
+        --
+        ClassDiagram, ActivityDiagram,
+        ComponentDiagram (+ deployment),
+        StateDiagram, UseCaseDiagram, ...
+    }
+
+    class "Mermaid ASTs" as MermaidASTs <<ast>> {
+        ast/mermaid/Mermaid*.vala
+        --
+        one file per type; MermaidDiagram.vala
+        keeps only enum MermaidDiagramType
+    }
+}
+
+' ===== Renderers =====
+package "renderer/" {
+    class GraphvizRenderer <<renderer>> {
+        facade
+        --
+        +layout_engine: string
+        +last_regions: ArrayList<ElementRegion>
+        +render_class_to_surface(d) ...
+        +render_mermaid_c4_to_surface(d) ...
+    }
+
+    class "plantuml/sequence/" as RSeq <<renderer>> {
+        SequenceDiagramRenderer
+    }
+
+    class "plantuml/structural/" as RStruct <<renderer>> {
+        ClassDiagramRenderer
+        ComponentDiagramRenderer
+        ObjectDiagramRenderer
+    }
+
+    class "plantuml/behavioral/" as RBehav <<renderer>> {
+        ActivityDiagramRenderer
+        StateDiagramRenderer
+        UseCaseDiagramRenderer
+    }
+
+    class "plantuml/specialized/ (18)" as RSpec <<renderer>> {
+        ER, MindMap, Gantt, Json, Yaml,
+        Chronology, Timing, Nwdiag, Archimate,
+        Dot, Salt, Chen, Ebnf, Regex,
+        Tree, Board, Ditaa, Ancestry
+    }
+
+    class "mermaid/ (23)" as RMermaid <<renderer>> {
+        Mermaid*Renderer
+        --
+        +generate_dot(d): string
+        +render_to_svg(d): uint8[]
+        +render_to_surface(d): ImageSurface
+        +export_to_png/svg/pdf(d, filename): bool
+    }
+
+    class RenderUtils <<renderer>> {
+        {static} +escape_label(s): string
+        {static} +sanitize_color(c): string
+        {static} +svg_to_surface(svg): ImageSurface
+        {static} +run_graphviz_subprocess(dot, engine, suffix)
+        {static} +draw_custom_markers(svg): uint8[]
+        {static} +draw_actor_figures(svg): uint8[]
+        {static} +parse_svg_regions(svg, regions, ...)
+        {static} +export_svg_to_pdf(svg, filename): bool
+    }
+
+    class ElementRegion <<renderer>> {
+        +name: string
+        +source_line: int
+        +x, y, width, height: double
+    }
+
+    class GraphvizCompat <<renderer>> {
+        {static} +render_data(ctx, graph, format, out data): int
+        --
+        graphviz_compat.c: size_t vs unsigned int
+    }
+}
+
+' ===== Editor support =====
+package "editor support" {
+    class ElementInspector <<editor>> {
+        {static} +is_covered(type): bool
+        {static} +inspect(type, ast, name, line, source): ElementInfo
+        {static} +set_label / set_stereotype / set_color(...)
+        {static} +rename(info, source, new_id): string
+    }
+
+    class MermaidElementInspector <<editor>> {
+        {static} +covers(type): bool
+        {static} +inspect(...): ElementInfo
+        {static} +set_label / set_stereotype / set_color / rename(...)
+    }
+
+    class ElementInfo <<editor>> {
+        +kind, id, label, alias: string
+        +stereotype, color, note: string
+        +line: int
+        +can_label, can_color, can_rename: bool
+    }
+
+    class PaletteCatalog <<editor>> {
+        {static} +get_groups(): ArrayList<PaletteGroup>
+        {static} +relevance(group, type, format): int
+        {static} +wrap_document(body, type): string
+    }
+
+    class PaletteGroup <<editor>> {
+        +name: string
+        +entries: ArrayList<PaletteEntry>
+    }
+
+    class PaletteEntry <<editor>> {
+        +label, icon_name, snippet: string
+        +select: string
+    }
+}
+
+' ===== Relationships =====
+DiagramEngine ..> RenderResult : returns
+DiagramEngine ..> ParseResult : returns
+DiagramEngine --> TypeDetector : detection
+DiagramEngine *-- Preprocessor
+DiagramEngine *-- PumlParsers
+DiagramEngine *-- MermaidParsers
+DiagramEngine *-- GraphvizRenderer
+DiagramEngine *-- RMermaid
+
+Lexer --> TokenStream : tokens
+PumlParsers ..> Lexer : uses
+PumlParsers ..> PumlASTs : produces
+PumlParsers o-- ActivityParser : one of them
+MermaidParsers ..> MermaidLexer : uses
+MermaidParsers ..> MermaidASTs : produces
+PumlASTs ..> SkinParams
+PumlASTs ..> ParseError
+DiagramNode ..> PumlASTs
+
+GraphvizRenderer *-- RSeq
+GraphvizRenderer *-- RStruct
+GraphvizRenderer *-- RBehav
+GraphvizRenderer *-- RSpec
+RSpec ..> RenderUtils
+RStruct ..> RenderUtils
+RMermaid ..> RenderUtils
+RStruct ..> GraphvizCompat
+RMermaid ..> GraphvizCompat
+RenderUtils ..> ElementRegion : produces
+
+ElementInspector ..> ElementInfo : returns
+MermaidElementInspector ..> ElementInfo : returns
+ElementInspector ..> MermaidElementInspector : Mermaid types
+ElementInspector ..> PumlASTs : reads
+PaletteCatalog *-- PaletteGroup
+PaletteGroup *-- PaletteEntry
+
+' layout only: stack editor support under the parser/AST packages
+TokenStream -[hidden]-> PaletteCatalog
+ParseError -[hidden]-> ElementInspector
+
+@enduml
