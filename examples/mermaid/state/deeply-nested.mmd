@@ -1,0 +1,19 @@
+stateDiagram-v2
+    [*] --> SystemActive
+    state SystemActive {
+        [*] --> Initializing
+        Initializing --> Running : boot_complete
+        state Running {
+            [*] --> NormalOps
+            NormalOps --> Degraded : partial_failure
+            Degraded --> NormalOps : recovered
+            state NormalOps {
+                [*] --> Listening
+                Listening --> Handling : request_in
+                Handling --> Listening : response_sent
+            }
+        }
+        Running --> ShuttingDown : shutdown_signal
+        ShuttingDown --> [*]
+    }
+    SystemActive --> [*]

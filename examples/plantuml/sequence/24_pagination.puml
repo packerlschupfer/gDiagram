@@ -1,0 +1,10 @@
+@startuml
+footer This is %page% of %lastpage%
+Alice --> Bob : A1
+newpage
+Alice --> Bob : A2
+newpage
+Alice --> Bob : A3
+newpage
+Alice --> Bob : A4
+@enduml

@@ -1,0 +1,17 @@
+' Every @startchart command in one diagram: a stacked bar pair, an area and a
+' line on the secondary axis, a scatter with an explicit marker, custom ticks,
+' a legend and an annotation.
+@startchart
+title Sales mix 2026
+h-axis "Month" [Jan, Feb, Mar, Apr, May, Jun] grid
+v-axis "Units" 0 --> 240 spacing 40 grid
+v2-axis "Margin" 0 --> 1
+bar "Hardware" [40, 55, 60, 75, 90, 110] #4C8BF5
+bar "Services" [20, 25, 35, 40, 45, 50] #F5A623
+area "Backlog" [15, 18, 30, 26, 44, 52] #9CF
+line "Margin" [0.21, 0.24, 0.26, 0.29, 0.31, 0.34] #red v2 labels
+scatter "Audit" [60, 80, 95, 115, 135, 160] #green <<triangle>>
+stackMode stacked
+legend right
+annotation "Launch" at (4, 180) <<arrow>>
+@endchart

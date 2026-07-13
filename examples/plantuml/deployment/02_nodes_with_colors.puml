@@ -1,0 +1,19 @@
+@startuml
+node "Load Balancer" #LightBlue {
+  component [nginx]
+}
+
+node "Application Servers" #LightGreen {
+  component [App1]
+  component [App2]
+}
+
+node "Database" #Pink {
+  database [PostgreSQL]
+}
+
+[nginx] --> [App1]
+[nginx] --> [App2]
+[App1] --> [PostgreSQL]
+[App2] --> [PostgreSQL]
+@enduml

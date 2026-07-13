@@ -1,0 +1,44 @@
+@startuml
+' Drilled from cluster.puml — Security & RBAC.
+'
+' Three pillars: Authentication (who), Authorization (what), Admission
+' (final checks). RBAC is the dominant authorization model. Pods run as
+' a ServiceAccount which is mapped to permissions via Roles/Bindings.
+
+title Security — AuthN, AuthZ, RBAC, Admission
+
+rectangle "User\n(human)"            <<person>> as user
+rectangle "Pod ServiceAccount"        <<external_person>> as sa
+
+rectangle "Authentication" <<container_boundary>> as authn {
+    rectangle "x509 Client Cert\n(kubeadm default)"  <<component>> as x509
+    rectangle "Bearer Token\n(SA token, OIDC)"        <<component>> as token
+    rectangle "Basic Auth\n(deprecated)"              <<component>> as basic
+}
+
+rectangle "Authorization (RBAC)" <<container_boundary>> as authz {
+    rectangle "Role\nNamespace-scoped"               <<component>> as role
+    rectangle "ClusterRole\nCluster-scoped"          <<component>> as crole
+    rectangle "RoleBinding\nSubject -> Role (ns)"    <<component>> as rb
+    rectangle "ClusterRoleBinding\nSubject -> CRole" <<component>> as crb
+}
+
+rectangle "Admission Controllers" <<container_boundary>> as admit {
+    rectangle "NodeRestriction\nLimits kubelet"      <<component>> as noderes
+    rectangle "ResourceQuota\nNamespace limits"      <<component>> as quota
+    rectangle "PodSecurity\nrestricted/baseline"     <<component>> as pss
+    rectangle "ValidatingAdmissionWebhook\nOPA / Kyverno" <<component>> as webhook
+}
+
+rectangle "Secret\nbase64-encoded"  <<component>> as secret
+
+user   --> x509   : "kubeconfig cert"
+sa     --> token  : "Mounted token"
+x509   --> role   : "Maps to subject"
+token  --> role   : "Maps to subject"
+rb     --> role   : "Binds"
+crb    --> crole  : "Binds"
+role   --> admit  : "Passes auth"
+admit  --> secret : "Allowed to read?"
+
+@enduml

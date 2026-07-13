@@ -1,0 +1,46 @@
+railroad-abnf-beta
+title HTTP request line (ABNF, RFC 5234 style)
+
+request-line = method SP request-target SP http-version CRLF;
+
+method = "GET" / "HEAD" / "POST" / "PUT" / "DELETE" / "OPTIONS" / "TRACE";
+
+request-target = origin-form / absolute-form / asterisk-form;
+
+origin-form = path-absolute [ "?" query ];
+
+absolute-form = scheme "://" authority path-absolute;
+
+asterisk-form = "*";
+
+path-absolute = 1*( "/" segment );
+
+segment = *pchar;
+
+query = *( pchar / "/" / "?" );
+
+pchar = unreserved / pct-encoded / ":" / "@";
+
+pct-encoded = "%" 2HEXDIG;
+
+unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~";
+
+scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." );
+
+authority = host [ ":" port ];
+
+host = 1*( unreserved / pct-encoded );
+
+port = *DIGIT;
+
+http-version = "HTTP/" DIGIT "." DIGIT;
+
+ALPHA = %x41-5A / %x61-7A;
+
+DIGIT = %x30-39;
+
+HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F";
+
+SP = %x20;
+
+CRLF = %x0D %x0A;

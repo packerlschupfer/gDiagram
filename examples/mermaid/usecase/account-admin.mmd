@@ -1,0 +1,19 @@
+usecase-beta
+direction TB
+actor Admin, Guest
+actor Robot@{ icon: "fa:fa-robot" }
+actor "Main Admin"
+Maintain(Maintain system)@{ business: true }
+Delete(Delete account)<<danger>>:::critical
+Archive[Archive account]
+json config @{ "retries": 3, "mode": "safe" }
+Admin e1@--> Maintain
+e1@{ animation: slow }
+Guest x-- Delete
+Robot o-- Archive
+Archive <-- restores -- Delete
+Main_Admin --- Maintain
+Delete --x Archive
+Admin --> config
+classDef critical fill:#f96,stroke:#333
+class Archive critical

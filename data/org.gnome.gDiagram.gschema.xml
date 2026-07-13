@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.gDiagram" path="/org/gnome/gDiagram/">
+    <key name="window-width" type="i">
+      <default>1200</default>
+      <summary>Window width</summary>
+    </key>
+    <key name="window-height" type="i">
+      <default>800</default>
+      <summary>Window height</summary>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized</summary>
+    </key>
+    <key name="editor-font" type="s">
+      <default>'Monospace 12'</default>
+      <summary>Editor font</summary>
+    </key>
+    <key name="show-line-numbers" type="b">
+      <default>true</default>
+      <summary>Show line numbers</summary>
+    </key>
+    <key name="highlight-current-line" type="b">
+      <default>true</default>
+      <summary>Highlight current line</summary>
+    </key>
+    <key name="render-delay" type="i">
+      <default>300</default>
+      <summary>Render delay in milliseconds</summary>
+      <description>Delay before re-rendering after typing stops</description>
+    </key>
+    <key name="layout-engine" type="s">
+      <default>'dot'</default>
+      <summary>Layout engine</summary>
+      <description>Graphviz layout engine (dot, neato, fdp, sfdp, circo, twopi)</description>
+    </key>
+    <key name="recent-files" type="as">
+      <default>[]</default>
+      <summary>Recent files</summary>
+      <description>List of recently opened file paths</description>
+    </key>
+    <key name="max-recent-files" type="i">
+      <default>10</default>
+      <summary>Maximum recent files</summary>
+      <description>Maximum number of recent files to remember</description>
+    </key>
+    <key name="split-orientation" type="s">
+      <default>'horizontal'</default>
+      <summary>Split view orientation</summary>
+      <description>Orientation of the editor/preview split (horizontal or vertical)</description>
+    </key>
+    <key name="drill-down-patterns" type="as">
+      <default>[
+        '$alias.puml',
+        '$alias.mmd',
+        '$base-$alias.puml',
+        '$base-$alias.mmd',
+        '$alias-container.puml',
+        '$alias-component.puml',
+        '$alias_container.puml',
+        '$alias_component.puml'
+      ]</default>
+      <summary>Drill-down filename patterns</summary>
+      <description>
+        Templates used by the drill-down navigation to find a related
+        file when the user double-clicks an element. $alias is replaced
+        with the clicked element's identifier; $base is replaced with
+        the current file's basename (without extension). Patterns are
+        tried in order; the first existing file wins.
+
+        Patterns containing a forward slash are treated as relative paths
+        from the source directory (e.g. 'containers/$alias.puml').
+      </description>
+    </key>
+    <key name="drill-down-subdirs" type="as">
+      <default>['containers', 'components', 'c4', 'levels', 'sub']</default>
+      <summary>Drill-down subdirectory search</summary>
+      <description>
+        Subdirectories under the source file's directory that the
+        drill-down navigation also searches for matching files. Each
+        subdirectory is searched with all the drill-down-patterns.
+      </description>
+    </key>
+    <key name="color-scheme-follow-system" type="b">
+      <default>true</default>
+      <summary>Follow system theme for diagram colors</summary>
+      <description>
+        When true, the active color preset switches automatically between
+        color-scheme-light and color-scheme-dark based on the libadwaita
+        system theme. When false, color-scheme-light is always used.
+      </description>
+    </key>
+    <key name="color-scheme-light" type="s">
+      <default>'default-light'</default>
+      <summary>Light color preset</summary>
+      <description>
+        Built-in palette id used when the system is in light mode.
+        Valid values: default-light, default-dark, solarized-light,
+        solarized-dark, dracula, nord-light, nord-dark.
+      </description>
+    </key>
+    <key name="color-scheme-dark" type="s">
+      <default>'default-dark'</default>
+      <summary>Dark color preset</summary>
+      <description>
+        Built-in palette id used when the system is in dark mode.
+      </description>
+    </key>
+    <key name="custom-palette-overrides" type="s">
+      <default>''</default>
+      <summary>Custom palette slot overrides</summary>
+      <description>
+        JSON object mapping Palette slot names to hex color strings.
+        Applied on top of the active preset. Empty string means no
+        overrides. Example: {"background":"#111","person_fill":"#F00"}.
+      </description>
+    </key>
+  </schema>
+</schemalist>

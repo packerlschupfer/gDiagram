@@ -1,0 +1,33 @@
+swimlane-beta TB
+    subgraph Monitoring
+        Alert[Alert fires]
+        Close[Close incident]
+    end
+
+    subgraph OnCall
+        Ack[Acknowledge]
+        Triage{Severity?}
+        Mitigate[Apply mitigation]
+        Verify[Verify recovery]
+    end
+
+    subgraph Engineering
+        Investigate[Root cause analysis]
+        Fix[Ship fix]
+    end
+
+    subgraph Comms
+        Notify[Post status update]
+        Report[Publish postmortem]
+    end
+
+    Alert --> Ack
+    Ack --> Triage
+    Triage -->|SEV1| Notify
+    Triage -->|SEV2| Mitigate
+    Notify --> Mitigate
+    Mitigate --> Verify
+    Verify --> Investigate
+    Investigate --> Fix
+    Fix --> Report
+    Report --> Close

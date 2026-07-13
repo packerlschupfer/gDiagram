@@ -1,0 +1,14 @@
+' @startgit redraws the output of `git log --graph`: paste the art in as-is.
+' Produce it with, for example:
+'   git log --graph --oneline --decorate --all
+' The commits are the lines carrying a `*`; the `| / \` characters are the
+' lanes, and they are what gives the drawing its edges.
+@startgit
+*   a1b2c3d (HEAD -> main) Merge branch 'feature'
+|\
+| * 9f8e7d6 (feature) Add the chart renderer
+| * 5c4b3a2 Add the chart parser
+* | 1a2b3c4 Fix the locale handling
+|/
+* 0f1e2d3 (tag: v0.1.0) Initial release
+@endgit

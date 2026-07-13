@@ -1,0 +1,101 @@
+@startuml
+title gDiagram — UI Interaction Flows
+
+skinparam sequenceArrowThickness 2
+skinparam sequenceParticipantBorderColor #37474F
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceGroupBorderColor #1565C0
+skinparam sequenceGroupBackgroundColor #E3F2FD
+skinparam sequenceDividerBackgroundColor #ECEFF1
+
+actor User
+participant "MainWindow\n(header bar, tabs, Adw.Breakpoint,\nTemplateGallery, RecentFilesManager)" as MW
+participant "DocumentView\n(GtkSourceView editor)" as DV
+participant "OutlineController /\nElementPalette\n(left sidebar)" as Left
+participant "PreviewPane" as PP
+participant "PropertiesPanel\n(right sidebar)" as Props
+participant "ElementInspector /\nMermaidElementInspector" as Insp
+participant "SourceEdit" as SE
+participant "GitGutterController" as Git
+participant "DiagramEngine" as Eng
+participant "gdiagram-lsp\n(LspServer /\nLspDocumentState)" as LSP
+participant "VS Code\nextension" as VSC
+
+== Window & layout ==
+
+User -> MW : open / new
+MW -> DV : new (per tab)
+DV -> DV : build layout: left Adw.OverlaySplitView\n(Outline | Palette, filter, stats footer),\neditor | PreviewPane in a Gtk.Paned,\nright Adw.OverlaySplitView (properties)
+User -> MW : narrow window
+MW -> DV : set_narrow()
+
+== Live editing & rendering ==
+
+User -> DV : types in editor
+DV -> Git : schedule_diff_refresh()
+DV -> DV : schedule_render() → Debouncer
+DV -> DV : render_preview()
+DV -> Eng : detect_format(), preprocess(),\ndetect_plantuml_type() / detect_mermaid_type()
+DV -> Left : set_diagram_type()
+DV -> Eng : render(type, format, source)
+Eng --> DV : RenderResult (status, surface, AST, errors)
+DV -> DV : apply_render_result(result)
+DV -> DV : PARSE_ERROR / EMPTY / UNKNOWN:\nerror highlights + placeholder text
+DV -> DV : OK: update_ui_after_render()\n(stats, lint, validate, complexity)
+DV -> Left : update(type, ast)
+DV -> Props : refresh(type, ast, last_regions)
+DV -> PP : set_surface(surface)
+DV -> PP : add_region() per\nElementRegion
+PP --> User : diagram displayed
+
+== Click-to-source & properties ==
+
+User -> PP : click element
+PP -> PP : hit test
+PP -> DV : element_clicked(name, line)
+DV -> Props : show_element(name, line)
+Props -> Insp : inspect()
+Insp --> Props : ElementInfo
+DV -> DV : search_and_navigate(name)\n(else navigate_to_line)
+DV --> User : identifier selected in editor
+
+User -> Props : edit label / stereotype / colour / rename
+Props -> Insp : set_label() ...
+Insp --> Props : new source
+Props -> DV : source_edited(new_text)
+DV -> SE : replace_source_text → replace_text(buffer, new_text)
+SE -> SE : replace only the changed middle inside\nbegin/end_user_action = ONE undo step\n(the source text stays the single source of truth)
+SE --> DV : buffer changed → re-render (see above)
+
+== Outline & palette ==
+
+User -> Left : outline row
+Left -> DV : navigate_to_element()
+DV --> User : element selected in editor
+
+User -> Left : palette button
+Left -> DV : snippet_activated()
+DV -> SE : insert_snippet(buffer, text, select, insert_type)
+SE -> SE : insert above the closing end line\n(PaletteCatalog snippet), select placeholder,\none undo step
+SE --> DV : buffer changed → re-render
+
+== Git gutter ==
+
+User -> DV : toggle blame / diff
+DV -> Git : set_blame_active() / set_diff_marks_active()
+Git -> Git : git blame (porcelain) and\ngit diff (unified=0)
+Git --> User : blame column + diff marks
+
+== Separate consumers: LSP server and headless CLI ==
+
+VSC -> LSP : spawn (stdio)
+VSC -> LSP : didChange
+LSP -> Eng : parse()
+Eng --> LSP : ParseResult
+LSP --> VSC : diagnostics
+VSC -> LSP : renderSvg
+LSP -> Eng : generate_svg()
+Eng --> LSP : SVG
+User -> Eng : gdiagram file.puml -e out.png -f png\n(Application.run_headless_export, no GTK window)
+
+@enduml

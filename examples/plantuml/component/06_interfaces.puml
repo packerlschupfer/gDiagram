@@ -1,0 +1,14 @@
+@startuml
+component [BusinessService]
+interface "HTTP API" as HTTP
+interface "gRPC API" as GRPC
+
+[BusinessService] -up- HTTP
+[BusinessService] -up- GRPC
+
+component [WebClient]
+component [MobileClient]
+
+[WebClient] --> HTTP
+[MobileClient] --> GRPC
+@enduml

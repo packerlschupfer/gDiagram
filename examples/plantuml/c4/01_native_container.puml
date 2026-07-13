@@ -1,0 +1,25 @@
+@startuml
+' Self-contained C4-style container diagram using gDiagram's component
+' parser directly. No external !include needed — the C4 stereotypes
+' (<<person>>, <<container>>, <<container_db>>, <<system_boundary>>)
+' are recognised by gDiagram and rendered with the canonical C4 colors:
+'
+'   Person      → dark blue   (#08427B)
+'   Container   → medium blue (#438DD5)
+'   Boundary    → dashed transparent box
+'
+' For the FULL C4-PlantUML stdlib (with the Person()/Container()/Rel()
+' macro syntax) see 02_full_stdlib.puml.
+
+rectangle "Customer" <<person>> as customer
+rectangle "Online Store" <<system_boundary>> as store {
+    rectangle "Web App\n[React]\nUser interface"   <<container>>    as web
+    rectangle "API\n[Go]\nBusiness logic"           <<container>>    as api
+    database  "Database\n[PostgreSQL]"              <<container>>    as db
+}
+
+customer --> web : "Uses\n[HTTPS]"
+web      --> api : "Calls\n[JSON]"
+api      --> db  : "Reads/Writes\n[SQL]"
+
+@enduml

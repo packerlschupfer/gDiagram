@@ -1,0 +1,11 @@
+venn-beta
+    title Team responsibilities
+    set Dev ["Development"]: 20
+    set Ops ["Operations"]: 16
+    set Sec ["Security"]: 12
+    union Dev,Ops ["Deploys"]: 5
+    union Dev,Sec ["Threat modelling"]: 4
+    union Ops,Sec ["Hardening"]: 3
+    union Dev,Ops,Sec ["Incident review"]: 2
+    style Dev fill: #4C78A8, stroke: #2C4C6E
+    style Ops color: #704000

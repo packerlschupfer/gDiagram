@@ -1,0 +1,8 @@
+@startuml
+component [Web Server] #Yellow
+component [App Server] #LightGreen
+component [Database] #Pink
+
+[Web Server] --> [App Server]
+[App Server] --> [Database]
+@enduml

@@ -1,0 +1,35 @@
+swimlane-beta LR
+    subgraph Customer
+        Browse[Browse catalogue] --> Cart[Add to cart]
+        Cart --> Checkout[Place order]
+        Confirm[Receive confirmation]
+        Receive[Receive parcel]
+    end
+
+    subgraph Sales
+        Validate{Order valid?}
+        Reject[Notify customer]
+        Invoice[Raise invoice]
+    end
+
+    subgraph Warehouse
+        Pick[Pick items]
+        Pack[Pack parcel]
+        Hand[Hand to carrier]
+    end
+
+    subgraph Carrier
+        Collect[Collect parcel]
+        Deliver[Deliver parcel]
+    end
+
+    Checkout --> Validate
+    Validate -->|No| Reject
+    Validate -->|Yes| Invoice
+    Invoice --> Confirm
+    Invoice --> Pick
+    Pick --> Pack
+    Pack --> Hand
+    Hand --> Collect
+    Collect --> Deliver
+    Deliver --> Receive

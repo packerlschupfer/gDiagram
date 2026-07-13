@@ -1,0 +1,28 @@
+eventmodeling
+  %% A `data` block can be attached to a frame by reference with `[[name]]`,
+  %% or written inline on the frame itself.
+  data InvoiceData {
+  invoiceId: INV-2026-0042
+  amount: 49.00
+  currency: EUR
+}
+
+  tf 01 ui BillingPortal
+  tf 02 cmd StartSubscription {"plan": "pro", "seats": 5}
+  tf 03 evt SubscriptionStarted
+  tf 04 rmo ActiveSubscriptions
+  tf 05 pcr BillingScheduler
+  tf 06 cmd IssueInvoice
+  tf 07 evt InvoiceIssued [[InvoiceData]]
+  tf 08 rmo OutstandingInvoices
+  tf 09 ui InvoiceList
+  tf 10 cmd RecordPayment
+  tf 11 evt PaymentRecorded
+  tf 12 rmo PaymentHistory ->>11
+
+  %% Notes and given/when/then are parsed and kept on the AST. Mermaid 12.2.0
+  %% draws neither, and gDiagram matches that.
+  note 07 {
+  The invoice is issued once per billing period.
+}
+  gwt 11 given evt InvoiceIssued when cmd RecordPayment then evt PaymentRecorded

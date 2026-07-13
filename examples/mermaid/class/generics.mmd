@@ -1,0 +1,22 @@
+classDiagram
+    class Repository~T~ {
+        -List~T~ items
+        +add(item T)
+        +remove(id int)
+        +findById(id int) T
+        +findAll() List~T~
+        +count() int
+    }
+
+    class UserRepository {
+        +findByEmail(email string) User
+        +findByRole(role string) List~User~
+    }
+
+    class OrderRepository {
+        +findByUser(userId int) List~Order~
+        +findPending() List~Order~
+    }
+
+    Repository~T~ <|-- UserRepository
+    Repository~T~ <|-- OrderRepository

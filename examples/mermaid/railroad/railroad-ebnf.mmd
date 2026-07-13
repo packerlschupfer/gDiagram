@@ -1,0 +1,38 @@
+railroad-ebnf-beta
+title JSON value grammar (EBNF)
+
+(* Groups use ( ), optional parts [ ], repetition { }, and the
+   postfix operators ?, * and + are accepted as well. *)
+
+value       = object | array | string | number | "true" | "false" | "null";
+
+object      = "{" [ member { "," member } ] "}";
+
+member      = string ":" value;
+
+array       = "[" [ value { "," value } ] "]";
+
+string      = '"' { character } '"';
+
+(* A literal backslash inside an EBNF string is written "\\": the string
+   terminal is /"([^"\\]|\\.)*"/, so a lone "\" would escape its own
+   closing quote. *)
+character   = ? any Unicode code point except a quote or a backslash ? | escape;
+
+escape      = "\\" ( '"' | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | unicode );
+
+unicode     = "u" hex hex hex hex;
+
+number      = [ "-" ] integer [ fraction ] [ exponent ];
+
+integer     = "0" | digit19 digit*;
+
+fraction    = "." digit+;
+
+exponent    = ( "e" | "E" ) [ "+" | "-" ] digit+;
+
+digit       = "0" | digit19;
+
+digit19     = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+
+hex         = digit | "a" | "b" | "c" | "d" | "e" | "f";

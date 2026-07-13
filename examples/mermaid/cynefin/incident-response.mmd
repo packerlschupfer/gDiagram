@@ -1,0 +1,15 @@
+cynefin-beta:
+    title Incident response sense-making
+    accTitle: Cynefin framework for incident response
+    chaotic
+        "Site down"
+        "Data loss"
+    complex
+        "Flapping latency"
+    complicated
+        "Slow query plan"
+    clear
+        "Expired certificate"
+    chaotic --> complex : "contain"
+    complex --> complicated : "diagnose"
+    complicated --> clear : "write runbook"

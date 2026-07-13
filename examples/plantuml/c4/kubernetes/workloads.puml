@@ -1,0 +1,46 @@
+@startuml
+' Drilled from cluster.puml — Workload resource hierarchy.
+'
+' Pod is the atomic unit. Higher-level controllers create Pods for
+' different use cases. Understand which controller to pick: stateless?
+' Deployment. Stateful? StatefulSet. Per-node? DaemonSet. Batch? Job.
+
+title Workloads — Resource Hierarchy
+
+rectangle "User / kubectl" <<external_person>> as user
+
+rectangle "Workload Controllers" <<container_boundary>> as wl {
+    rectangle "Deployment\nStateless apps, rolling updates"    <<container>> as deploy
+    rectangle "StatefulSet\nStable identity + storage"          <<container>> as sts
+    rectangle "DaemonSet\nOne Pod per node\n(CNI, log agents)" <<container>> as ds
+    rectangle "Job\nRun-to-completion"                          <<container>> as job
+    rectangle "CronJob\nScheduled Jobs"                         <<container>> as cron
+}
+
+rectangle "ReplicaSet\nManages Pod replicas\n(usually owned by Deployment)" <<container>> as rs
+
+rectangle "Pod\nOne or more containers,\nshared network + storage" <<container>> as pod
+
+rectangle "Container 1\nApp"        <<component>> as c1
+rectangle "Container 2\nSidecar"    <<component>> as c2
+rectangle "Init Container\nRun before app" <<component>> as init
+rectangle "pause container\nHolds netns"   <<component>> as pause
+
+user   --> deploy : "kubectl apply"
+user   --> sts    : "kubectl apply"
+user   --> ds     : "kubectl apply"
+user   --> job    : "kubectl apply"
+cron   --> job    : "Creates on schedule"
+
+deploy --> rs  : "Owns"
+rs     --> pod : "Creates replicas"
+sts    --> pod : "Creates ordered"
+ds     --> pod : "One per node"
+job    --> pod : "Runs to completion"
+
+pod --> c1
+pod --> c2
+pod --> init
+pod --> pause
+
+@enduml

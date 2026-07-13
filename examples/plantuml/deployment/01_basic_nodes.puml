@@ -1,0 +1,8 @@
+@startuml
+node "Web Server" as web
+node "App Server" as app
+node "Database Server" as db
+
+web --> app
+app --> db
+@enduml

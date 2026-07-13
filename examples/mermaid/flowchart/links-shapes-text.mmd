@@ -1,0 +1,25 @@
+flowchart LR
+    %% Link forms, Mermaid 11 shape data, classes on nodes and subgraphs, rich text
+    classDef hot fill:#fecaca,stroke:#b91c1c,color:#374151
+    classDef cool fill:#e0f2fe,stroke:#0369a1,color:#374151
+
+    subgraph intake ["`**Intake**`"]
+        req([🚀 Request]):::hot -- validate --> check{Valid?}
+        check -. retry .-> req
+    end
+
+    subgraph store [Storage]
+        db@{ shape: cyl, label: "Orders DB" }
+        docs@{ shape: docs, label: "Receipts" }
+    end
+
+    check == yes ==> proc[/Process order/]
+    check -->|no| err[\Reject\]
+    proc <--> cache[(Cache)]
+    proc o--o audit@{ shape: doc, label: "Audit log" }
+    err --x done((Done))
+    intake --> store
+    note["Line one<br>line two #quot;quoted#quot; #9829;"]:::cool ~~~ done
+
+    style store fill:#f0fdf4,stroke:#15803d
+    linkStyle 0 stroke:#b91c1c,stroke-width:2px

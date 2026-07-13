@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+
+    User->>Frontend: Click Login
+    Frontend->>Backend: POST /auth/login
+    activate Backend
+    Backend->>Database: Query user
+    Database-->>Backend: User data
+    Backend-->>Frontend: Auth token
+    deactivate Backend
+    Frontend-->>User: Show dashboard
+
+    Note over User,Frontend: Authentication complete
+    Note right of Database: Data persisted
+
+    alt Successful login
+        Frontend->>User: Redirect to dashboard
+    else Failed login
+        Frontend->>User: Show error message
+    end

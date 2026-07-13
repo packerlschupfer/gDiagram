@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph Frontend
+        UI[User Interface]
+        State[State Management]
+        UI --> State
+    end
+
+    subgraph Backend
+        API[API Server]
+        BL[Business Logic]
+        API --> BL
+    end
+
+    subgraph Database
+        DB[(PostgreSQL)]
+    end
+
+    State --> API
+    BL --> DB

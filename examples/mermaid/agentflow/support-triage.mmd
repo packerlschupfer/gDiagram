@@ -1,0 +1,29 @@
+agentflow-beta LR
+  %% `global` exempts the ids inside it from container membership, so the policy
+  %% document stays at top level even though the flows below reference it.
+  global
+    Policy@{ shape: refdoc, label: "Support policy" }
+  end
+
+  Ticket@{ shape: input, label: "Incoming ticket" } --> Classify@{ shape: task, label: "Classify" }
+
+  flow Auto[Automated path]
+    Classify --> Lookup@{ shape: tool, label: "Search knowledge base" }
+    Lookup --> Match@{ shape: decision, label: "Confident match?" }
+    Match -- yes --> Reply@{ shape: task, label: "Draft reply" }
+  end
+
+  flow Human[Human path]
+    Match -- no --> Escalate@{ shape: action, label: "Escalate to agent" }
+    Escalate --> Resolve@{ shape: task, label: "Resolve manually" }
+  end
+
+  connector Done
+  Reply --> Done
+  Resolve --> Done
+  Done --> Close@{ shape: action, label: "Close ticket" }
+
+  Classify -.- Policy
+  Escalate -.- Policy
+
+  Ticket --x Spam@{ shape: task, label: "Discard spam" }

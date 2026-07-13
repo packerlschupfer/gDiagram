@@ -1,0 +1,111 @@
+@startuml
+title gDiagram — Rendering Pipeline
+
+start
+
+:Source text arrives
+(DocumentView edit after the Debouncer,
+LspServer didChange / renderSvg,
+or headless CLI export);
+
+:DiagramEngine.detect_format()
+file extension (.puml / .mmd / .ged),
+else TypeDetector.is_mermaid();
+
+if (Format?) then (PlantUML)
+    :DiagramEngine.preprocess()
+    Preprocessor: includes (with markers),
+    macros (define / procedure / function),
+    conditionals (if / ifdef),
+    style blocks → skinparam lines;
+    note right
+        Included text is wrapped in marker
+        comment lines, so element line
+        numbers still point into the main
+        file (Preprocessor.source_line_numbers).
+    end note
+    :TypeDetector.detect_plantuml()
+    the @start tag, then content keywords
+    → one of 25 PlantUML types
+    (deployment files → COMPONENT,
+    WBS → MindMap parser);
+    :Lexer → Tokens → TokenStream
+    (or line-based parsing
+    for data-style types);
+    :Type-specific parser
+    (Sequence = GDiagram.Parser,
+    Activity = orchestrator + 7 sub-parsers)
+    → typed AST + ParseErrors;
+else (Mermaid)
+    :TypeDetector.detect_mermaid()
+    first keyword (flowchart, sequenceDiagram,
+    gitGraph, C4Context, ...)
+    → one of 23 Mermaid types;
+    :MermaidLexer → MermaidTokens;
+    :Mermaid<Type>Parser
+    → typed AST + ParseErrors;
+endif
+
+if (Parse errors?) then (yes)
+    :RenderResult PARSE_ERROR
+    → editor error highlights;
+    stop
+else (no)
+endif
+
+:Renderer.generate_dot(ast)
+PlantUML via GraphvizRenderer facade
+(sequence, structural, behavioral,
+specialized), Mermaid renderers direct —
+reads Theme SkinParams + ThemeManager palette,
+normalizes colors (#red → red);
+note right
+    DiagramEngine.parse() stops before
+    this step: the LSP server reparses on
+    every didChange and only needs the AST
+    and ParseErrors — no Graphviz work.
+    CLI -f dot writes this DOT and stops
+    (DiagramEngine.generate_dot).
+end note
+
+if (Renderer?) then (most)
+    :GraphvizCompat.render_data(ctx, graph, svg)
+    C wrapper around patched libgvc
+    (gvRenderData length: size_t, not unsigned int);
+else (Activity)
+    :RenderUtils.run_graphviz_subprocess()
+    runs patched /usr/local/bin/dot -Tsvg
+    (HTML TABLE text centering fix);
+endif
+
+:SVG post-processing
+RenderUtils.draw_custom_markers() (class/component
+arrow ends), RenderUtils.draw_actor_figures()
+(sequence/use case actors),
+ComponentDiagramRenderer.place_ports_on_border();
+
+fork
+    :render_to_surface()
+    RenderUtils.svg_to_surface()
+    librsvg → Cairo.ImageSurface;
+    :RenderUtils.parse_svg_regions()
+    → ElementRegion list (id, source line, bounds)
+    → DiagramEngine.last_regions;
+    :RenderResult OK
+    (surface, AST, diagram type)
+    → PreviewPane + outline + properties;
+fork again
+    :export_to_png()
+    Cairo surface → PNG file;
+fork again
+    :export_to_svg()
+    post-processed SVG → file;
+fork again
+    :export_to_pdf()
+    RenderUtils.export_svg_to_pdf()
+    librsvg → Cairo PDF surface;
+end fork
+
+stop
+
+@enduml

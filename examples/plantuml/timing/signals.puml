@@ -1,0 +1,35 @@
+@startuml
+title Digital Signal Timing
+
+clock "System Clock" as CLK with period 20
+binary "Reset" as RST
+binary "Enable" as EN
+concise "State" as STATE
+robust "Output" as OUT
+
+@0
+RST is 1
+EN is 0
+STATE is Reset
+OUT is Idle
+
+@20
+RST is 0
+EN is 0
+STATE is Idle
+OUT is Idle
+
+@40
+EN is 1
+STATE is Active
+OUT is Running
+
+@80
+EN is 0
+STATE is Idle
+OUT is Done
+
+@100
+STATE is Idle
+OUT is Idle
+@enduml

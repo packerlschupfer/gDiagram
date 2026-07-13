@@ -1,0 +1,19 @@
+wardley-beta
+title Pipelines and sourcing
+size [1000, 700]
+evolution Novel @0.2 -> Emerging @0.45 -> Good @0.7 -> Best @1.0
+anchor User [0.90, 0.20]
+component Platform [0.70, 0.55]
+component Compute [0.45, 0.85] (market)
+component Billing [0.35, 0.40] label [8, 16]
+pipeline Platform {
+  component Runtime [0.40]
+  component Scheduler [0.62]
+  component Registry [0.80]
+}
+User->Platform
+Platform +> Compute
+Platform +<> Billing
+Billing +'bills'< Compute
+Compute -.-> Billing
+evolve Billing 0.75

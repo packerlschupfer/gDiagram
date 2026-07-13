@@ -1,0 +1,21 @@
+railroad-beta
+title URL grammar (native railroad syntax)
+
+url = sequence(
+    nonterminal("scheme"),
+    terminal("://"),
+    optional(sequence(nonterminal("userinfo"), terminal("@"))),
+    nonterminal("host"),
+    optional(sequence(terminal(":"), nonterminal("port"))),
+    zeroOrMore(sequence(terminal("/"), nonterminal("segment")))
+);
+
+scheme = choice(terminal("http"), terminal("https"), terminal("ftp"));
+
+userinfo = sequence(nonterminal("user"), optional(sequence(terminal(":"), nonterminal("password"))));
+
+host = choice(nonterminal("hostname"), nonterminal("ipv4"), special("IPv6 literal in brackets"));
+
+port = oneOrMore(special("decimal digit"));
+
+segment = zeroOrMore(special("unreserved or escaped character"));

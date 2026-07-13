@@ -1,0 +1,20 @@
+eventmodeling
+  tf 01 ui Checkout
+  tf 02 cmd PlaceOrder
+  tf 03 evt OrderPlaced
+  tf 04 rmo OrderSummary
+  tf 05 ui OrderConfirmation
+  tf 06 pcr ReserveStock
+  tf 07 cmd ReserveItems
+  tf 08 evt StockReserved
+  tf 09 rmo PickList
+  tf 10 ui WarehouseScreen
+  tf 11 cmd ShipOrder
+  tf 12 evt OrderShipped
+  tf 13 rmo TrackingView
+  tf 14 ui TrackingPage
+
+  %% A reset frame starts a new slice: no relation is drawn into it unless it
+  %% names its own source with `->>`.
+  rf 20 evt DayClosed
+  tf 21 rmo DailyTotals ->>12

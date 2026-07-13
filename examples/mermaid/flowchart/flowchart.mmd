@@ -1,0 +1,17 @@
+flowchart TD
+    Start[Start Process] --> Input{Input Valid?}
+    Input -->|Yes| Process[Process Data]
+    Input -->|No| Error[Show Error]
+    Process --> Transform((Transform))
+    Transform --> Output[Display Result]
+    Error --> End([End])
+    Output --> End
+
+    subgraph Processing
+        Process
+        Transform
+    end
+
+    style Start fill:#90EE90
+    style Error fill:#FFB6C1
+    style End fill:#87CEEB

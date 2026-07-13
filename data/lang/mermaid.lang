@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Mermaid syntax highlighting for GtkSourceView
+  Supports flowcharts, sequence diagrams, state diagrams, and more
+-->
+<language id="mermaid" name="Mermaid" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-mermaid</property>
+    <property name="globs">*.mmd;*.mermaid</property>
+    <property name="line-comment-start">%%</property>
+  </metadata>
+
+  <styles>
+    <style id="diagram-type" name="Diagram Type" map-to="def:preprocessor"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="direction" name="Direction" map-to="def:keyword"/>
+    <style id="arrow" name="Arrow" map-to="def:operator"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="node-id" name="Node ID" map-to="def:identifier"/>
+    <style id="label" name="Label" map-to="def:string"/>
+    <style id="delimiter" name="Delimiter" map-to="def:special-char"/>
+    <style id="special" name="Special" map-to="def:special-constant"/>
+  </styles>
+
+  <definitions>
+    <!-- Main context -->
+    <context id="mermaid" class="no-spell-check">
+      <include>
+        <!-- Init directives: %%{init: ...}%% (before comments, which also start with %%) -->
+        <context id="directive" style-ref="diagram-type">
+          <match>%%\{.*\}%%</match>
+        </context>
+
+        <!-- Comments -->
+        <context id="comment" style-ref="comment" end-at-line-end="true" class="comment">
+          <start>%%</start>
+        </context>
+
+        <!-- Diagram type declarations (the header line) -->
+        <context id="diagram-type" style-ref="diagram-type">
+          <match>^[ \t]*(flowchart|graph|sequenceDiagram|stateDiagram(-v2)?|classDiagram(-v2)?|erDiagram|gantt|pie|gitGraph|journey|mindmap|timeline|quadrantChart|xychart(-beta)?|kanban|sankey(-beta)?|requirementDiagram|block(-beta)?|packet(-beta)?|C4(Context|Container|Component|Dynamic|Deployment)|architecture(-beta)?|zenuml|radar(-beta)?|treemap(-beta)?)\b(?![ \t]*:)</match>
+        </context>
+
+        <!-- Shared statements: title, accessibility -->
+        <context id="common-statements" style-ref="keyword">
+          <match>^[ \t]*(title|accTitle|accDescr)\b</match>
+        </context>
+
+        <!-- Flowchart / kanban / architecture node metadata: A@{ shape: rect, label: "x" } -->
+        <context id="node-metadata" style-ref="delimiter">
+          <start>@\{</start>
+          <end>\}</end>
+          <include>
+            <context id="metadata-key" style-ref="keyword">
+              <match>\b(shape|label|icon|form|pos|h|w|img|constraint|assigned|ticket|priority|animate|curve)\b(?=[ \t]*:)</match>
+            </context>
+            <context ref="double-string"/>
+          </include>
+        </context>
+
+        <!-- Gantt statements and task tags -->
+        <context id="gantt-keywords" style-ref="keyword">
+          <match>^[ \t]*(dateFormat|axisFormat|tickInterval|excludes|includes|todayMarker|weekday|weekend|inclusiveEndDates|topAxis|displayMode|section)\b|(?&lt;=:)[ \t]*(done|active|crit|milestone)\b|\b(done|active|crit|milestone)\b(?=[ \t]*,)|\b(after|until)\b(?=[ \t]+[A-Za-z_])</match>
+        </context>
+
+        <!-- Pie / radar / quadrant / xychart / packet / block / sankey options -->
+        <context id="chart-keywords" style-ref="keyword">
+          <match>^[ \t]*(showData|axis|curve|max|min|ticks|graticule|showLegend|x-axis|y-axis|quadrant-[1-4]|bar|line|columns|space|block|blockArrowId[0-9]*|horizontal)\b</match>
+        </context>
+
+        <!-- gitGraph -->
+        <context id="gitgraph-keywords" style-ref="keyword">
+          <match>^[ \t]*(commit|branch|checkout|switch|merge|cherry-pick|tag)\b|\b(id|type|tag|order|parent)(?=[ \t]*:)|\b(NORMAL|REVERSE|HIGHLIGHT)\b</match>
+        </context>
+
+        <!-- Architecture -->
+        <context id="architecture-keywords" style-ref="keyword">
+          <match>^[ \t]*(group|service|junction)\b|\bin\b(?=[ \t]+[A-Za-z_])|(?&lt;=:)[LRTB](?=[ \t]*(--|&lt;|&gt;))|(?&lt;=--|&lt;|&gt;)[ \t]*[LRTB](?=:)</match>
+        </context>
+
+        <!-- Requirement diagram -->
+        <context id="requirement-keywords" style-ref="keyword">
+          <match>^[ \t]*(requirement|functionalRequirement|interfaceRequirement|performanceRequirement|physicalRequirement|designConstraint|element)\b|^[ \t]*(id|text|risk|verifymethod|verifyMethod|type|docref|docRef)(?=[ \t]*:)|\b(satisfies|traces|contains|copies|derives|refines|verifies)\b(?=[ \t]*-&gt;)</match>
+        </context>
+
+        <!-- C4 macros -->
+        <context id="c4-macros" style-ref="node-id">
+          <match>\b(Person|System|SystemDb|SystemQueue|Container|ContainerDb|ContainerQueue|Component|ComponentDb|ComponentQueue)(_Ext)?(?=[ \t]*\()|\b(Boundary|Enterprise_Boundary|System_Boundary|Container_Boundary|Deployment_Node|Node(_L|_R)?|Rel(_[A-Za-z]+)?|BiRel|UpdateElementStyle|UpdateRelStyle|UpdateLayoutConfig)(?=[ \t]*\()</match>
+        </context>
+
+        <!-- Sequence / class / state / timeline / ZenUML extras -->
+        <context id="extra-keywords" style-ref="keyword">
+          <match>^[ \t]*(box|create|destroy|link|links|properties|details|namespace|note|cssClass|callback|direction|classDef|click)\b|\bnote[ \t]+for\b|\b(PK|FK|UK)\b|^[ \t]*@(Actor|Boundary|Collection|Control|Database|Entity|Queue|Starter)\b|^[ \t]*(try|catch|finally|if|while|for|forEach|return|new)\b(?=[ \t]*[({A-Za-z])</match>
+        </context>
+
+        <context id="class-annotations" style-ref="special">
+          <match>&lt;&lt;[^&gt;\n]+&gt;&gt;</match>
+        </context>
+
+        <!-- Direction keywords -->
+        <context id="direction" style-ref="direction">
+          <keyword>TD</keyword>
+          <keyword>TB</keyword>
+          <keyword>BT</keyword>
+          <keyword>LR</keyword>
+          <keyword>RL</keyword>
+        </context>
+
+        <!-- Flowchart keywords -->
+        <context id="flowchart-keywords" style-ref="keyword">
+          <keyword>subgraph</keyword>
+          <keyword>end</keyword>
+          <keyword>style</keyword>
+          <keyword>classDef</keyword>
+          <keyword>class</keyword>
+          <keyword>click</keyword>
+          <keyword>direction</keyword>
+        </context>
+
+        <!-- Sequence diagram keywords -->
+        <context id="sequence-keywords" style-ref="keyword">
+          <keyword>participant</keyword>
+          <keyword>actor</keyword>
+          <keyword>activate</keyword>
+          <keyword>deactivate</keyword>
+          <keyword>Note</keyword>
+          <keyword>over</keyword>
+          <keyword>left of</keyword>
+          <keyword>right of</keyword>
+          <keyword>autonumber</keyword>
+          <keyword>as</keyword>
+          <keyword>title</keyword>
+        </context>
+
+        <!-- Control flow keywords -->
+        <context id="control-flow" style-ref="keyword">
+          <keyword>loop</keyword>
+          <keyword>alt</keyword>
+          <keyword>else</keyword>
+          <keyword>opt</keyword>
+          <keyword>par</keyword>
+          <keyword>and</keyword>
+          <keyword>critical</keyword>
+          <keyword>break</keyword>
+          <keyword>rect</keyword>
+        </context>
+
+        <!-- State diagram keywords -->
+        <context id="state-keywords" style-ref="keyword">
+          <keyword>state</keyword>
+        </context>
+
+        <!-- Special symbols -->
+        <context id="state-markers" style-ref="special">
+          <match>\[\*\]</match>
+        </context>
+
+        <context id="stereotypes" style-ref="special">
+          <match>&lt;&lt;(choice|fork|join|end)&gt;&gt;</match>
+        </context>
+
+        <!-- Arrows - Flowchart style -->
+        <context id="arrows-flowchart" style-ref="arrow">
+          <match>--&gt;|\.-.&gt;|==&gt;|--o|--x|--@|---|\.\.\.|-\.-|===|&lt;--&gt;</match>
+        </context>
+
+        <!-- Arrows - Sequence diagram style -->
+        <context id="arrows-sequence" style-ref="arrow">
+          <match>-&gt;&gt;|--&gt;&gt;|-&gt;|--&gt;|-\)|-x|--x|--\)|---|--</match>
+        </context>
+
+        <!-- Strings - double quoted -->
+        <context id="double-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>"</start>
+          <end>"</end>
+          <include>
+            <context id="double-string-escape" style-ref="def:special-char">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Strings - single quoted -->
+        <context id="single-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>'</start>
+          <end>'</end>
+          <include>
+            <context id="single-string-escape" style-ref="def:special-char">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Strings - backtick quoted -->
+        <context id="backtick-string" style-ref="string" end-at-line-end="false" class="string">
+          <start>`</start>
+          <end>`</end>
+        </context>
+
+        <!-- Node shape delimiters -->
+        <context id="delimiters" style-ref="delimiter">
+          <match>\[\[|\]\]|\(\(|\)\)|\(\(\(|\)\)\)|{{|}}|\(\[|\]\)|\[/|/\]|\[\\|\\]</match>
+        </context>
+
+        <!-- Edge labels (text between pipes) -->
+        <context id="edge-label" style-ref="label">
+          <start>\|</start>
+          <end>\|</end>
+        </context>
+
+      </include>
+    </context>
+  </definitions>
+</language>

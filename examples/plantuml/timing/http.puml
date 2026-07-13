@@ -1,0 +1,32 @@
+@startuml
+title HTTP Request Timing
+
+robust "HTTP" as HTTP
+concise "Server" as SRV
+binary "Connected" as CON
+
+@0
+HTTP is Idle
+SRV is Idle
+CON is 0
+
+@50
+HTTP is Connecting
+SRV is Idle
+CON is 1
+
+@100
+HTTP is RequestSent
+SRV is Processing
+CON is 1
+
+@200
+SRV is Done
+HTTP is ResponseReceived
+CON is 1
+
+@300
+HTTP is Idle
+SRV is Idle
+CON is 0
+@enduml

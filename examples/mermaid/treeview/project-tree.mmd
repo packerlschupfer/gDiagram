@@ -1,0 +1,20 @@
+treeView-beta
+title gDiagram source layout
+src/
+    core/
+        DiagramEngine.vala ## the only entry point to parsers and renderers
+        parser/
+            plantuml/
+            mermaid/
+        renderer/
+            GraphvizRenderer.vala ## facade over the per-type renderers
+    ui/
+        MainWindow.vala
+        DocumentView.vala :::highlight
+    lsp/
+        LspServer.vala
+data/
+    icons/ icon(folder)
+    stdlib/
+meson.build icon(file)
+README.md ## start here

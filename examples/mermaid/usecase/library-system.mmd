@@ -1,0 +1,20 @@
+usecase-beta
+accTitle: Library lending
+accDescr: Members borrow and return books.
+direction LR
+actor Member
+actor Librarian@{ type: hollow }
+systemBoundary Library[Library system]
+  Borrow(Borrow a book)
+  Return(Return a book)
+  Fine[Pay a fine]
+end
+Member -- requests --> Borrow
+Member --> Return
+Librarian --o Fine
+Return ..>: include Fine
+Borrow --|> Return
+note for Borrow "Max 5 books per member"
+classDef critical fill:#f96,stroke:#333,stroke-width:2px
+class Fine critical
+style Member fill:#eef

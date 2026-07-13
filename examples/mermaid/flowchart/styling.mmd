@@ -1,0 +1,11 @@
+flowchart TD
+    classDef startEnd fill:#98D8C8,stroke:#27AE60,stroke-width:3px
+    classDef process fill:#87CEEB,stroke:#4682B4,stroke-width:2px
+    classDef decision fill:#FFD700,stroke:#DAA520,stroke-width:2px
+    classDef error fill:#FFB6C1,stroke:#DC143C,stroke-width:2px
+
+    Start([Start]):::startEnd --> Check{Input Valid?}:::decision
+    Check -->|Yes| Process[Process Data]:::process
+    Check -->|No| Err[Show Error]:::error
+    Process --> Done([Done]):::startEnd
+    Err --> Check

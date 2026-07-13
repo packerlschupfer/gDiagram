@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PlantUML syntax highlighting for GtkSourceView
+  Enhanced version with support for all diagram types
+-->
+<language id="plantuml" name="PlantUML" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-plantuml</property>
+    <property name="globs">*.puml;*.plantuml;*.pu;*.wsd</property>
+    <property name="line-comment-start">'</property>
+    <property name="block-comment-start">/'</property>
+    <property name="block-comment-end">'/</property>
+  </metadata>
+
+  <styles>
+    <style id="directive" name="Directive" map-to="def:preprocessor"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="control-flow" name="Control Flow" map-to="def:keyword"/>
+    <style id="participant-type" name="Participant Type" map-to="def:type"/>
+    <style id="arrow" name="Arrow" map-to="def:operator"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="note-keyword" name="Note Keyword" map-to="def:statement"/>
+    <style id="group-keyword" name="Group Keyword" map-to="def:keyword"/>
+    <style id="color" name="Color" map-to="def:constant"/>
+    <style id="stereotype" name="Stereotype" map-to="def:special-char"/>
+    <style id="preprocessor" name="Preprocessor" map-to="def:preprocessor"/>
+    <style id="builtin" name="Built-in" map-to="def:builtin"/>
+    <style id="special" name="Special" map-to="def:special-constant"/>
+    <style id="creole" name="Creole Markup" map-to="def:emphasis"/>
+    <style id="macro" name="Stdlib Macro" map-to="def:function"/>
+  </styles>
+
+  <definitions>
+    <!-- Main context -->
+    <context id="plantuml" class="no-spell-check">
+      <include>
+        <!-- Comments -->
+        <!-- A quote only starts a comment at the start of a line: "[Task]'s end" is gantt syntax -->
+        <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment">
+          <start>^[ \t]*'</start>
+        </context>
+
+        <context id="block-comment" style-ref="comment" class="comment">
+          <start>/'</start>
+          <end>'/</end>
+        </context>
+
+        <!-- Preprocessor directives -->
+        <context id="preprocessor" style-ref="preprocessor">
+          <match>^[ \t]*!(include|define|undef|ifdef|ifndef|else|endif|if|elseif|procedure|endprocedure|function|endfunction|return|local|theme|pragma|assert|log|dump|startsub|endsub|includesub)\b</match>
+        </context>
+
+        <!-- Directives - diagram start/end -->
+        <context id="directive" style-ref="directive">
+          <match>@(start|end)(uml|mindmap|wbs|gantt|salt|json|yaml|ditaa|dot|math|latex|chen|ebnf|regex|board|nwdiag|packetdiag|chronology|creole|tree|files|wire|ancestry)\b</match>
+        </context>
+
+        <!-- Stdlib include target: !include <C4/C4_Container> -->
+        <context id="stdlib-include" style-ref="string">
+          <match>&lt;[A-Za-z0-9_]+/[A-Za-z0-9_/.-]+&gt;</match>
+        </context>
+
+        <!-- C4-PlantUML and ArchiMate stdlib macros: Person(...), Rel_U(...), SHOW_LEGEND() -->
+        <context id="stdlib-macro" style-ref="macro">
+          <match>\b(Person|System|SystemDb|SystemQueue|Container|ContainerDb|ContainerQueue|Component|ComponentDb|ComponentQueue)(_Ext)?(?=[ \t]*\()|\b(Boundary|Enterprise_Boundary|System_Boundary|Container_Boundary|Deployment_Node(_L|_R)?|Node(_L|_R)?|Rel(_[A-Za-z]+)?|BiRel(_[A-Za-z]+)?|RelIndex(_[A-Za-z]+)?|Lay_(U|D|L|R|Distance)|SHOW_(LEGEND|FLOATING_LEGEND|PERSON_OUTLINE|PERSON_PORTRAIT|PERSON_SPRITE)|HIDE_(STEREOTYPE|PERSON_SPRITE)|LAYOUT_[A-Z_]+|Add(Element|Rel|Boundary|Person|System|Container|Component|Node)Tag|Update(Element|Rel|Boundary|Container|System|Component|Node)(Style|BoundaryStyle)|UpdateLayoutConfig|SetPropertyHeader|WithoutPropertyHeader|AddProperty|Increment|SetIndex|(Business|Application|Technology|Motivation|Physical|Implementation|Strategy|Other)_[A-Za-z_]+|Junction_(And|Or)|Grouping|Group)(?=[ \t]*\()</match>
+        </context>
+
+        <!-- Timing: participant declarations (robust/concise/binary/clock/analog, compact prefix) -->
+        <context id="timing-participant" style-ref="participant-type">
+          <match>^[ \t]*(compact[ \t]+)?(robust|concise|binary|clock|analog)\b</match>
+        </context>
+
+        <!-- Timing: time points and participant blocks: @0, @+50, @2026/01/05, @:anchor+10, @WU -->
+        <context id="timing-time" style-ref="special">
+          <match>^[ \t]*@(?!start|end)([+-]?[0-9][0-9.:/]*|:[A-Za-z_][A-Za-z0-9_.]*([+-][0-9.]+)?|[A-Za-z_][A-Za-z0-9_.]*(\*[0-9]+)?)(?=[ \t]*(as\b|$))</match>
+        </context>
+
+        <!-- Timing: "@0 as :start" anchors and "@:start+10" references -->
+        <context id="timing-anchor" style-ref="special">
+          <match>(?&lt;=@|as )(:[A-Za-z_][A-Za-z0-9_.]*)</match>
+        </context>
+
+        <!-- Timing: "U is Idle", "+50 is Busy", "WU has Idle,Busy" -->
+        <context id="timing-is" class="no-spell-check">
+          <match>^[ \t]*(?!today\b)([+-]?[A-Za-z0-9_.:@]+)[ \t]+(is|has)\b(?![ \t]+(colou?red|closed|open|[0-9]+[ \t]*%))</match>
+          <include>
+            <context sub-pattern="2" style-ref="keyword"/>
+          </include>
+        </context>
+
+        <!-- Timing: signal options and diagram statements -->
+        <context id="timing-statements" style-ref="keyword">
+          <match>\bwith[ \t]+period\b|\b(pulse|offset)\b(?=[ \t]+[0-9])|\bbetween\b(?=[ \t]+-?[0-9.]+[ \t]+and\b)|\bticks[ \t]+(num[ \t]+on[ \t]+multiple|every)\b|^[ \t]*(hide|manual)[ \t]+time.?axis\b|^[ \t]*mode[ \t]+compact\b|^[ \t]*highlight\b|\bpixels?([ \t]+height)?\b|^[ \t]*use[ \t]+date[ \t]+format\b</match>
+        </context>
+
+        <!-- Gantt: task references [Task] before a gantt verb, or as "[Task]'s end" -->
+        <context id="gantt-task" style-ref="participant-type">
+          <match>\[[^\]\n]+\](?=([ \t]+as[ \t]+\[[^\]\n]+\])?[ \t]+(lasts|requires|starts|ends|happens|is|on|and|pauses|displays|links|occurs|as)\b|'s[ \t]+(start|end)\b)|(?&lt;=then )\[[^\]\n]+\]</match>
+        </context>
+
+        <!-- Gantt: statements -->
+        <context id="gantt-statements" style-ref="keyword">
+          <match>^[ \t]*[Pp]roject[ \t]+starts\b|\b(lasts|requires)\b(?=[ \t]+[0-9])|\b(starts|ends)\b(?=[ \t]+(at|on|after|before|with|[0-9]|D\+|\[))|\bhappens\b(?=[ \t]+(at|on|after|before|[0-9]|D\+|\[))|\boccurs[ \t]+from\b|\bis[ \t]+[0-9]+[ \t]*%[ \t]+complete(d)?\b|\bis[ \t]+completed?\b|\bis[ \t]+colou?red[ \t]+in\b|\b(is|are)[ \t]+(closed|open)\b|^[ \t]*today[ \t]+is\b|^[ \t]*(printscale|projectscale|ganttscale)\b|\bzoom\b(?=[ \t]+[0-9])|^[ \t]*language\b|^[ \t]*hide[ \t]+(ressources|resources)[ \t]+(names|footbox)\b|^[ \t]*then\b(?=[ \t]*\[)|\bat[ \t]+\[|'s[ \t]+(start|end)\b|^[ \t]*print[ \t]+between\b|\bpauses[ \t]+on\b</match>
+        </context>
+
+        <!-- Gantt resources: on {Alice:50%} {Bob} -->
+        <context id="gantt-resources" style-ref="special">
+          <match>(?&lt;=on )(\{[^{}\n]+\}[ \t]*)+</match>
+        </context>
+
+        <!-- Gantt separator lines (dashes, a name, dashes) and state region separators alone on a line -->
+        <context id="separator-line" style-ref="special">
+          <match>^[ \t]*--[ \t]*[^-\n][^\n]*[^-\n][ \t]*--[ \t]*$|^[ \t]*(--|\|\|)[ \t]*$</match>
+        </context>
+
+        <!-- Sequence: teoz anchors {start}, participant order, page and activation statements -->
+        <context id="sequence-statements" style-ref="keyword">
+          <match>^[ \t]*\{[A-Za-z_][A-Za-z0-9_]*\}(?=[ \t]*[^ \t\n:]+[ \t]*[-&lt;])|\border\b(?=[ \t]+-?[0-9])|^[ \t]*ignore[ \t]+newpage\b|^[ \t]*autonumber[ \t]+(stop|resume|inc)\b|^[ \t]*autoactivate[ \t]+(on|off)\b|^[ \t]*end[ \t]*(hnote|rnote)\b</match>
+        </context>
+
+        <!-- Sequence: border and short arrows [-> ->] ?-> ->? -->
+        <context id="border-arrows" style-ref="arrow">
+          <match>\[[ox]?(&lt;?-+&gt;?&gt;?|&lt;?\.+&gt;?)|(&lt;?-+&gt;?&gt;?|&lt;?\.+&gt;?)[ox]?\]|\?(&lt;?-+&gt;?&gt;?)|(&lt;?-+&gt;&gt;?)\?</match>
+        </context>
+
+        <!-- State: note on link, pseudo-state stereotypes -->
+        <context id="state-statements" style-ref="note-keyword">
+          <match>^[ \t]*note[ \t]+on[ \t]+link\b</match>
+        </context>
+        <context id="state-stereotypes" style-ref="special">
+          <match>&lt;&lt;[ \t]*(start|end|choice|fork|join|history\*?|sdlreceive|inputPin|outputPin|expansionInput|expansionOutput|entryPoint|exitPoint)[ \t]*&gt;&gt;</match>
+        </context>
+
+        <!-- Class: {field} {method} modifiers, hide/show forms, set separator, lollipops -->
+        <context id="class-modifiers" style-ref="builtin">
+          <match>\{(field|method|static|abstract|classifier)\}</match>
+        </context>
+        <context id="class-statements" style-ref="keyword">
+          <match>^[ \t]*(hide|show|remove|restore)[ \t]+(([A-Za-z0-9_.$"&lt;&gt;*]+|@unlinked)[ \t]+)?(empty[ \t]+)?(members|fields|methods|attributes|circles?|stereotypes?|unlinked|@unlinked|private|protected|public|package)\b|^[ \t]*set[ \t]+(separator|namespaceSeparator)\b|^[ \t]*\(\)(?=[ \t])|\(\)-+|-+\(\)</match>
+        </context>
+        <context id="class-declarations" style-ref="participant-type">
+          <match>^[ \t]*(dataclass|record|circle|diamond|json)\b(?=[ \t]+[A-Za-z_"])</match>
+        </context>
+
+        <!-- Inline element style: #back:red;line:blue;text:white -->
+        <context id="inline-style" style-ref="color">
+          <match>#(back|line|text)[:.][A-Za-z0-9#]+(;(back|line|text|line\.(bold|dashed|dotted))[:.]?[A-Za-z0-9#]*)*</match>
+        </context>
+
+        <!-- Component/deployment: business actor/use case, element keywords, link attributes -->
+        <context id="component-statements" style-ref="participant-type">
+          <match>^[ \t]*(actor|usecase)/|^[ \t]*(archimate|collections|relationship)\b(?=[ \t])</match>
+        </context>
+
+        <!-- Chen ER cardinality links: Person -N- Rents, A =1= B -->
+        <context id="chen-links" style-ref="arrow">
+          <match>(?&lt;=[ \t])[-=]([0-9NnMm]|\([0-9Nn],[ \t]*[0-9NnMm]\))[-=](?=[ \t])</match>
+        </context>
+
+        <!-- nwdiag / packetdiag blocks and attributes -->
+        <context id="nwdiag-keywords" style-ref="keyword">
+          <match>^[ \t]*(nwdiag|packetdiag|network|group|inet)\b(?=[ \t]*([A-Za-z0-9_"]|\{))|\b(address|description|shape|color|width|colwidth|node_height|node_width|default_fontsize|scale_interval|scale_direction|same_height|rotate|len|height)\b(?=[ \t]*=)</match>
+        </context>
+        <context id="packet-range" style-ref="special">
+          <match>^[ \t]*[0-9]+(-[0-9]+)?(?=[ \t]*:)</match>
+        </context>
+
+        <!-- Board cards (+, ++) and Salt block markers ({T {# {+ ...) -->
+        <context id="board-card" style-ref="special">
+          <match>^[ \t]*\++(?=[ \t])|^[ \t]*\{(T|#|\+|!|-|/|\*|S[IT-]?|\^"[^"\n]*")?[ \t]*$</match>
+        </context>
+
+        <!-- Activity diagram keywords -->
+        <context id="activity-keywords" style-ref="control-flow">
+          <keyword>start</keyword>
+          <keyword>stop</keyword>
+          <keyword>end</keyword>
+          <keyword>kill</keyword>
+          <keyword>detach</keyword>
+          <keyword>if</keyword>
+          <keyword>then</keyword>
+          <keyword>else</keyword>
+          <keyword>elseif</keyword>
+          <keyword>endif</keyword>
+          <keyword>while</keyword>
+          <keyword>endwhile</keyword>
+          <keyword>repeat</keyword>
+          <keyword>repeat while</keyword>
+          <keyword>backward</keyword>
+          <keyword>fork</keyword>
+          <keyword>fork again</keyword>
+          <keyword>end fork</keyword>
+          <keyword>split</keyword>
+          <keyword>split again</keyword>
+          <keyword>end split</keyword>
+          <keyword>switch</keyword>
+          <keyword>case</keyword>
+          <keyword>endswitch</keyword>
+          <keyword>partition</keyword>
+        </context>
+
+        <!-- State diagram keywords -->
+        <context id="state-keywords" style-ref="participant-type">
+          <keyword>state</keyword>
+          <keyword>hide empty description</keyword>
+        </context>
+
+        <!-- State diagram special -->
+        <context id="state-special" style-ref="special">
+          <match>\[\*\]|\[H\]|\[H\*\]</match>
+        </context>
+
+        <!-- Participant types (sequence, usecase) -->
+        <context id="participant-type" style-ref="participant-type">
+          <keyword>participant</keyword>
+          <keyword>actor</keyword>
+          <keyword>boundary</keyword>
+          <keyword>control</keyword>
+          <keyword>entity</keyword>
+          <keyword>database</keyword>
+          <keyword>collections</keyword>
+          <keyword>queue</keyword>
+          <keyword>usecase</keyword>
+        </context>
+
+        <!-- Component diagram keywords -->
+        <context id="component-keywords" style-ref="participant-type">
+          <keyword>component</keyword>
+          <keyword>interface</keyword>
+          <keyword>cloud</keyword>
+          <keyword>folder</keyword>
+          <keyword>frame</keyword>
+          <keyword>node</keyword>
+          <keyword>artifact</keyword>
+          <keyword>storage</keyword>
+          <keyword>card</keyword>
+          <keyword>agent</keyword>
+          <keyword>rectangle</keyword>
+          <keyword>stack</keyword>
+          <keyword>file</keyword>
+          <keyword>hexagon</keyword>
+          <keyword>label</keyword>
+          <keyword>person</keyword>
+          <keyword>portin</keyword>
+          <keyword>portout</keyword>
+          <keyword>port</keyword>
+        </context>
+
+        <!-- Class diagram keywords -->
+        <context id="class-keywords" style-ref="participant-type">
+          <keyword>class</keyword>
+          <keyword>abstract class</keyword>
+          <keyword>abstract</keyword>
+          <keyword>enum</keyword>
+          <keyword>annotation</keyword>
+          <keyword>package</keyword>
+          <keyword>namespace</keyword>
+          <keyword>extends</keyword>
+          <keyword>implements</keyword>
+          <keyword>object</keyword>
+          <keyword>map</keyword>
+          <keyword>struct</keyword>
+          <keyword>exception</keyword>
+          <keyword>metaclass</keyword>
+          <keyword>protocol</keyword>
+          <keyword>stereotype</keyword>
+          <keyword>entity</keyword>
+        </context>
+
+        <!-- Class visibility modifiers -->
+        <context id="visibility" style-ref="keyword">
+          <match>^[ \t]*[-+#~](?=\w)</match>
+        </context>
+
+        <!-- Note keywords -->
+        <context id="note-keywords" style-ref="note-keyword">
+          <keyword>note</keyword>
+          <keyword>end note</keyword>
+          <keyword>rnote</keyword>
+          <keyword>hnote</keyword>
+          <keyword>note left</keyword>
+          <keyword>note right</keyword>
+          <keyword>note top</keyword>
+          <keyword>note bottom</keyword>
+          <keyword>note over</keyword>
+          <keyword>note left of</keyword>
+          <keyword>note right of</keyword>
+          <keyword>note top of</keyword>
+          <keyword>note bottom of</keyword>
+          <keyword>floating note</keyword>
+        </context>
+
+        <!-- Group keywords (sequence diagram) -->
+        <context id="group-keywords" style-ref="group-keyword">
+          <keyword>alt</keyword>
+          <keyword>opt</keyword>
+          <keyword>loop</keyword>
+          <keyword>par</keyword>
+          <keyword>break</keyword>
+          <keyword>critical</keyword>
+          <keyword>group</keyword>
+          <keyword>ref</keyword>
+          <keyword>box</keyword>
+          <keyword>end box</keyword>
+        </context>
+
+        <!-- Legend keywords -->
+        <context id="legend-keywords" style-ref="note-keyword">
+          <keyword>legend</keyword>
+          <keyword>legend left</keyword>
+          <keyword>legend right</keyword>
+          <keyword>legend center</keyword>
+          <keyword>legend top</keyword>
+          <keyword>legend bottom</keyword>
+          <keyword>endlegend</keyword>
+          <keyword>end legend</keyword>
+        </context>
+
+        <!-- General keywords -->
+        <context id="keywords" style-ref="keyword">
+          <keyword>as</keyword>
+          <keyword>autonumber</keyword>
+          <keyword>autoactivate</keyword>
+          <keyword>activate</keyword>
+          <keyword>deactivate</keyword>
+          <keyword>destroy</keyword>
+          <keyword>create</keyword>
+          <keyword>return</keyword>
+          <keyword>title</keyword>
+          <keyword>header</keyword>
+          <keyword>footer</keyword>
+          <keyword>caption</keyword>
+          <keyword>newpage</keyword>
+          <keyword>hide</keyword>
+          <keyword>show</keyword>
+          <keyword>remove</keyword>
+          <keyword>skinparam</keyword>
+          <keyword>scale</keyword>
+          <keyword>top to bottom direction</keyword>
+          <keyword>left to right direction</keyword>
+          <keyword>together</keyword>
+          <keyword>allowmixing</keyword>
+          <keyword>mainframe</keyword>
+          <keyword>sprite</keyword>
+          <keyword>circle</keyword>
+          <keyword>diamond</keyword>
+          <keyword>usecase</keyword>
+        </context>
+
+        <!-- Built-in skinparam names -->
+        <context id="skinparam-names" style-ref="builtin">
+          <keyword>BackgroundColor</keyword>
+          <keyword>BorderColor</keyword>
+          <keyword>FontColor</keyword>
+          <keyword>FontSize</keyword>
+          <keyword>FontStyle</keyword>
+          <keyword>FontName</keyword>
+          <keyword>Shadowing</keyword>
+          <keyword>RoundCorner</keyword>
+          <keyword>ArrowColor</keyword>
+          <keyword>ArrowThickness</keyword>
+          <keyword>LineColor</keyword>
+          <keyword>LineThickness</keyword>
+          <keyword>LineType</keyword>
+          <keyword>Padding</keyword>
+          <keyword>Margin</keyword>
+          <keyword>StereotypeFontColor</keyword>
+          <keyword>StereotypeFontSize</keyword>
+          <keyword>StereotypeFontStyle</keyword>
+        </context>
+
+        <!-- Arrows - all types -->
+        <context id="arrows" style-ref="arrow">
+          <match>(&lt;?-+&gt;?|&lt;?\.+&gt;?|&lt;\|--?|-+\|&gt;|&lt;\|\.\.?|\.+\|&gt;|\*--?|--?\*|o--?|--?o|&lt;--?&gt;|&lt;\.\.?&gt;|#--|--#|-\[[^\]]*\]-&gt;|&lt;-\[[^\]]*\]-|-+&gt;&gt;|&lt;&lt;-+|-+&gt;o|o&lt;-+|-+\)|\(-+)</match>
+        </context>
+
+        <!-- Activity diagram action markers -->
+        <context id="action-markers" style-ref="special">
+          <match>^[ \t]*:|;[ \t]*$</match>
+        </context>
+
+        <!-- Colors - hex and named -->
+        <context id="color" style-ref="color">
+          <match>#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b|#[A-Za-z]+\b</match>
+        </context>
+
+        <!-- Stereotypes -->
+        <context id="stereotype" style-ref="stereotype">
+          <match>&lt;&lt;[^&gt;]+&gt;&gt;</match>
+        </context>
+
+        <!-- Creole bold -->
+        <context id="creole-bold" style-ref="creole">
+          <match>\*\*[^*]+\*\*</match>
+        </context>
+
+        <!-- Creole italic -->
+        <context id="creole-italic" style-ref="creole">
+          <match>//[^/]+//</match>
+        </context>
+
+        <!-- Creole underline -->
+        <context id="creole-underline" style-ref="creole">
+          <match>__[^_]+__</match>
+        </context>
+
+        <!-- Creole strikethrough -->
+        <context id="creole-strike" style-ref="creole">
+          <match>--[^-]+--</match>
+        </context>
+
+        <!-- Creole monospace -->
+        <context id="creole-mono" style-ref="creole">
+          <match>""[^"]+""</match>
+        </context>
+
+        <!-- Strings -->
+        <context id="string" style-ref="string" end-at-line-end="true" class="string">
+          <start>"</start>
+          <end>"</end>
+          <include>
+            <context id="escape">
+              <match>\\.</match>
+            </context>
+          </include>
+        </context>
+
+        <!-- Multiline strings/notes -->
+        <context id="multiline-string" style-ref="string" class="string">
+          <start>"""</start>
+          <end>"""</end>
+        </context>
+
+      </include>
+    </context>
+  </definitions>
+</language>

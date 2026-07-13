@@ -1,0 +1,149 @@
+@startuml
+title gDiagram — Architecture Overview
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam padding 4
+skinparam nodesep 60
+skinparam ranksep 40
+
+skinparam component {
+    BackgroundColor<<ui>> #E3F2FD
+    BorderColor<<ui>> #1565C0
+    BackgroundColor<<lsp>> #E0F7FA
+    BorderColor<<lsp>> #00838F
+    BackgroundColor<<engine>> #FFEBEE
+    BorderColor<<engine>> #B71C1C
+    BackgroundColor<<parser>> #FFF3E0
+    BorderColor<<parser>> #E65100
+    BackgroundColor<<ast>> #E8F5E9
+    BorderColor<<ast>> #2E7D32
+    BackgroundColor<<renderer>> #F3E5F5
+    BorderColor<<renderer>> #6A1B9A
+    BackgroundColor<<external>> #ECEFF1
+    BorderColor<<external>> #37474F
+    BackgroundColor<<util>> #FFF9C4
+    BorderColor<<util>> #F9A825
+    BackgroundColor<<service>> #FCE4EC
+    BorderColor<<service>> #C62828
+}
+
+package "gdiagram (GUI executable, ui_sources)" as ui_layer {
+    [Application\n(GUI startup, accelerators,\nheadless CLI: -e / -f png|svg|pdf|dot)] as app <<ui>>
+    [MainWindow\n(header bar, tabs, Adw.Breakpoint,\nTemplateGallery, RecentFilesManager)] as mw <<ui>>
+    [DocumentView\n(editor + ONE generic render path,\nsidebars, stats bar)] as dv <<ui>>
+    [OutlineController · ElementPalette\n(left sidebar)] as sidebar_left <<ui>>
+    [PreviewPane\n(zoom/pan/minimap,\nclick-to-source)] as pp <<ui>>
+    [PropertiesPanel + SourceEdit\n(right sidebar, one-undo-step edits)] as props <<ui>>
+    [GitGutterController\n(blame, diff marks)] as ggc <<ui>>
+    [Dialogs & views\n(Export, Preferences, AIAssistant,\nGitHistory, DiagramCompare, GitRepoView)] as dialogs <<ui>>
+}
+
+package "gdiagram-lsp (LSP executable, lsp_sources)" as lsp_layer {
+    [LspServer\n(JSON-RPC over stdio:\ndiagnostics, completion, hover,\nsymbols, gdiagram/renderSvg,\ngdiagram/exportFile)] as lsp <<lsp>>
+    [LspDocumentState\n(per-document parse state)] as lspdoc <<lsp>>
+}
+
+[VS Code extension\n(vscode-extension/)] as vscode <<external>>
+
+package "gdiagram-core (static_library, core_sources)" as core_lib {
+    [DiagramEngine\n(single entry point: detect_format ·\npreprocess · parse() · render() ·\ngenerate_dot() · export_to_png/svg/pdf ·\nlast_regions — owns every parser & renderer)] as engine <<engine>>
+
+    package "Parsers" as parser_layer {
+        [Preprocessor\n(!include, macros,\nstyle blocks → skinparam)] as preproc <<parser>>
+        [TypeDetector\n(format + type detection)] as typedet <<parser>>
+        [PlantUML: Lexer / TokenStream\n+ 25 diagram parsers] as puml_p <<parser>>
+        [Mermaid: MermaidLexer\n+ 23 diagram parsers] as merm_p <<parser>>
+    }
+
+    package "AST" as ast_layer {
+        [DiagramNode\n(DiagramType enum, Participant,\nMessage, ParseError)] as base_ast <<ast>>
+        [PlantUML ASTs\n(ast/*.vala)] as puml_ast <<ast>>
+        [Mermaid ASTs\n(ast/mermaid/*.vala)] as merm_ast <<ast>>
+        [Theme (SkinParams)\n+ ThemeManager palettes] as theme <<ast>>
+    }
+
+    package "Renderers" as renderer_layer {
+        [GraphvizRenderer facade\n→ plantuml/{sequence, structural,\nbehavioral, specialized}] as puml_r <<renderer>>
+        [Mermaid renderers\n(renderer/mermaid/)] as merm_r <<renderer>>
+        [RenderUtils\n(escaping, SVG post-processing,\nsvg_to_surface, ElementRegion)] as rutil <<renderer>>
+        [GraphvizCompat\n(C wrapper for gvRenderData)] as gvcompat <<renderer>>
+    }
+
+    package "Editor support & analysis" as util_layer {
+        [ElementInspector ·\nMermaidElementInspector\n(read + rewrite element source)] as inspector <<util>>
+        [PaletteCatalog\n(snippets per diagram type)] as catalog <<util>>
+        [Document\n(file I/O, monitoring)] as doc <<util>>
+        [Stats · Linter · Validator ·\nComplexity · Optimizer ·\nBeautifier · Comparison] as analysis <<util>>
+        [GitRepoGraph] as gitgraph <<util>>
+    }
+
+    [AIService\n(Claude API via libsoup;\nkey: env var or GNOME Keyring)] as aiservice <<service>>
+}
+
+package "External" as externals {
+    [Graphviz\n(patched libgvc + /usr/local/bin/dot)] as graphviz <<external>>
+    [librsvg + Cairo] as rsvg <<external>>
+    [GTK4 · libadwaita · GtkSourceView] as gtk <<external>>
+    [libsoup · json-glib · libsecret] as soup <<external>>
+}
+
+' Three consumers of the one engine
+app --> mw : creates (GUI)
+app --> engine : headless export
+dv --> engine : preprocess / render
+lsp --> engine : owns shared instance
+lspdoc --> engine : parse() per didChange
+vscode --> lsp : spawns (stdio)
+
+' GUI internals
+mw --> dv : one per tab
+dv --> sidebar_left
+dv --> pp
+dv --> props
+dv --> ggc
+mw --> dialogs
+dv --> doc
+dv --> analysis
+props --> inspector
+sidebar_left --> catalog
+dialogs --> aiservice
+dialogs --> gitgraph
+
+' Engine internals
+engine --> typedet
+engine --> preproc
+engine --> puml_p
+engine --> merm_p
+engine --> puml_r
+engine --> merm_r
+puml_p ..> puml_ast : produces
+merm_p ..> merm_ast : produces
+puml_p ..> base_ast
+puml_r --> rutil
+merm_r --> rutil
+puml_r --> gvcompat
+merm_r --> gvcompat
+puml_r ..> theme : reads palette
+
+' Externals
+gvcompat --> graphviz : libgvc
+rutil --> rsvg : SVG → surface / PDF
+ui_layer --> gtk
+aiservice --> soup
+
+legend right
+    |= Color |= Part |
+    | <#E3F2FD> | GTK UI (gdiagram) |
+    | <#E0F7FA> | LSP server (gdiagram-lsp) |
+    | <#FFEBEE> | DiagramEngine |
+    | <#FFF3E0> | Parsers |
+    | <#E8F5E9> | AST |
+    | <#F3E5F5> | Renderers |
+    | <#FFF9C4> | Editor support / analysis |
+    | <#FCE4EC> | Services |
+    | <#ECEFF1> | External |
+    gdiagram, gdiagram-lsp and all tests
+    link the gdiagram-core static library.
+endlegend
+
+@enduml

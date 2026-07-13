@@ -1,0 +1,166 @@
+/* librsvg-2.0.vapi — stripped of deprecated Gdk.Pixbuf methods so tests
+ * that don't link against gdk-pixbuf-2.0 can compile without errors.
+ * We only use: Handle.from_stream_sync, get_intrinsic_size_in_pixels,
+ *              render_document, HandleFlags, Rectangle.
+ */
+
+[CCode (cprefix = "Rsvg", gir_namespace = "Rsvg", gir_version = "2.0", lower_case_cprefix = "rsvg_")]
+namespace Rsvg {
+	namespace Version {
+		[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_MAJOR_VERSION")]
+		public const int MAJOR;
+		[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_MICRO_VERSION")]
+		public const int MICRO;
+		[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_MINOR_VERSION")]
+		public const int MINOR;
+		[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_VERSION")]
+		public const string STRING;
+		[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_CHECK_VERSION")]
+		public static bool check (int major, int minor, int micro);
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", type_id = "rsvg_handle_get_type ()")]
+	public class Handle : GLib.Object {
+		[CCode (has_construct_function = false)]
+		public Handle ();
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.14")]
+		public Handle.from_data ([CCode (array_length_cname = "data_len", array_length_pos = 1.1, array_length_type = "gsize")] uint8[] data) throws GLib.Error;
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.14")]
+		public Handle.from_file (string filename) throws GLib.Error;
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.32")]
+		public Handle.from_gfile_sync (GLib.File file, Rsvg.HandleFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.32")]
+		public Handle.from_stream_sync (GLib.InputStream input_stream, GLib.File? base_file, Rsvg.HandleFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (since = "2.8")]
+		public unowned string get_base_uri ();
+		[Version (deprecated = true, deprecated_since = "2.52.", since = "2.14")]
+		public Rsvg.DimensionData get_dimensions ();
+		[Version (since = "2.46")]
+		public bool get_geometry_for_element (string? id, out Rsvg.Rectangle out_ink_rect, out Rsvg.Rectangle out_logical_rect) throws GLib.Error;
+		[Version (since = "2.46")]
+		public bool get_geometry_for_layer (string? id, Rsvg.Rectangle viewport, out Rsvg.Rectangle out_ink_rect, out Rsvg.Rectangle out_logical_rect) throws GLib.Error;
+		[Version (since = "2.46")]
+		public void get_intrinsic_dimensions (out bool out_has_width, out Rsvg.Length out_width, out bool out_has_height, out Rsvg.Length out_height, out bool out_has_viewbox, out Rsvg.Rectangle out_viewbox);
+		[Version (since = "2.52")]
+		public bool get_intrinsic_size_in_pixels (out double out_width, out double out_height);
+		[Version (since = "2.22")]
+		public bool has_sub (string id);
+		public void internal_set_testing (bool testing);
+		[Version (since = "2.32")]
+		public bool read_stream_sync (GLib.InputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (deprecated = true, deprecated_since = "2.52.", since = "2.14")]
+		public bool render_cairo (Cairo.Context cr);
+		[Version (deprecated = true, deprecated_since = "2.52.", since = "2.14")]
+		public bool render_cairo_sub (Cairo.Context cr, string? id);
+		[Version (since = "2.46")]
+		public bool render_document (Cairo.Context cr, Rsvg.Rectangle viewport) throws GLib.Error;
+		[Version (since = "2.46")]
+		public bool render_element (Cairo.Context cr, string? id, Rsvg.Rectangle element_viewport) throws GLib.Error;
+		[Version (since = "2.46")]
+		public bool render_layer (Cairo.Context cr, string? id, Rsvg.Rectangle viewport) throws GLib.Error;
+		[Version (since = "2.32")]
+		public void set_base_gfile (GLib.File base_file);
+		[Version (since = "2.9")]
+		public void set_base_uri (string base_uri);
+		[Version (since = "2.59.0")]
+		public void set_cancellable_for_rendering (GLib.Cancellable? cancellable = null);
+		[Version (since = "2.8")]
+		public void set_dpi (double dpi);
+		[Version (since = "2.8")]
+		public void set_dpi_x_y (double dpi_x, double dpi_y);
+		[Version (since = "2.48")]
+		public bool set_stylesheet ([CCode (array_length_cname = "css_len", array_length_pos = 1.1, array_length_type = "gsize")] uint8[] css) throws GLib.Error;
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.36")]
+		public Handle.with_flags (Rsvg.HandleFlags flags);
+		public string base_uri { get; set construct; }
+		[NoAccessorMethod]
+		public double dpi_x { get; set construct; }
+		[NoAccessorMethod]
+		public double dpi_y { get; set construct; }
+		[NoAccessorMethod]
+		[Version (since = "2.36")]
+		public Rsvg.HandleFlags flags { get; construct; }
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", has_type_id = false)]
+	[Version (deprecated = true, deprecated_since = "2.46.")]
+	public struct DimensionData {
+		public int width;
+		public int height;
+		public double em;
+		public double ex;
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", has_type_id = false)]
+	public struct Length {
+		public double length;
+		public Rsvg.Unit unit;
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", has_type_id = false)]
+	[Version (deprecated = true, deprecated_since = "2.46.")]
+	public struct PositionData {
+		public int x;
+		public int y;
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", has_type_id = false)]
+	[Version (since = "2.46")]
+	public struct Rectangle {
+		public double x;
+		public double y;
+		public double width;
+		public double height;
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", cprefix = "RSVG_HANDLE_", type_id = "rsvg_handle_flags_get_type ()")]
+	[Flags]
+	[Version (since = "2.40.3")]
+	public enum HandleFlags {
+		FLAGS_NONE,
+		FLAG_UNLIMITED,
+		FLAG_KEEP_IMAGE_DATA
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", cprefix = "RSVG_UNIT_", has_type_id = false)]
+	public enum Unit {
+		PERCENT,
+		PX,
+		EM,
+		EX,
+		IN,
+		CM,
+		MM,
+		PT,
+		PC,
+		[Version (since = "2.58")]
+		CH
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", cprefix = "RSVG_ERROR_", type_id = "rsvg_error_get_type ()")]
+	public errordomain Error {
+		FAILED;
+		public static GLib.Quark quark ();
+	}
+	[CCode (cheader_filename = "librsvg/rsvg.h", instance_pos = 2.9)]
+	[Version (deprecated = true, deprecated_since = "2.14.")]
+	public delegate void SizeFunc (out int width, out int height);
+	[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_HAVE_CSS")]
+	public const bool HAVE_CSS;
+	[CCode (cheader_filename = "librsvg/rsvg.h", cname = "LIBRSVG_HAVE_SVGZ")]
+	public const bool HAVE_SVGZ;
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	[Version (deprecated = true, deprecated_since = "2.46", since = "2.36")]
+	public static void cleanup ();
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	public static GLib.Quark error_quark ();
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	[Version (deprecated = true, deprecated_since = "2.36", since = "2.9")]
+	public static void init ();
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	[Version (deprecated = true, deprecated_since = "2.36", since = "2.9")]
+	public static void term ();
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	[Version (deprecated = true, deprecated_since = "2.42.3", since = "2.8")]
+	public static void set_default_dpi (double dpi);
+	[CCode (cheader_filename = "librsvg/rsvg.h")]
+	[Version (deprecated = true, deprecated_since = "2.42.3", since = "2.8")]
+	public static void set_default_dpi_x_y (double dpi_x, double dpi_y);
+}

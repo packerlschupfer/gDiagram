@@ -1,0 +1,17 @@
+stateDiagram-v2
+    [*] --> Ready
+
+    Ready --> fork_state
+    state fork_state <<fork>>
+
+    fork_state --> TaskA
+    fork_state --> TaskB
+    fork_state --> TaskC
+
+    TaskA --> join_state
+    TaskB --> join_state
+    TaskC --> join_state
+    state join_state <<join>>
+
+    join_state --> Done
+    Done --> [*]

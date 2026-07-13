@@ -1,0 +1,67 @@
+@startuml
+title gDiagram — Supported Diagram Types (25 PlantUML + 23 Mermaid)
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam padding 3
+skinparam nodesep 40
+skinparam ranksep 50
+
+skinparam component {
+    BackgroundColor<<engine>> #FFEBEE
+    BorderColor<<engine>> #B71C1C
+    BackgroundColor<<puml>> #FFF3E0
+    BorderColor<<puml>> #E65100
+    BackgroundColor<<mermaid>> #E8F5E9
+    BorderColor<<mermaid>> #2E7D32
+    BackgroundColor<<infra>> #ECEFF1
+    BorderColor<<infra>> #37474F
+}
+
+[DiagramEngine\n(detect_format → detect_plantuml_type /\ndetect_mermaid_type → parse / render / export switch)] as engine <<engine>>
+
+[Preprocessor + Lexer / TokenStream\n(PlantUML only)] as puml_infra <<infra>>
+[MermaidLexer / MermaidToken] as merm_infra <<infra>>
+[GraphvizRenderer facade · RenderUtils · GraphvizCompat\n(every type renders through Graphviz DOT)] as render_infra <<infra>>
+
+package "PlantUML (25 parser/renderer pairs; .puml / .plantuml / .pu / .ged)" as puml {
+    [UML — renderer/plantuml/sequence/\n───\nSequence (startuml default)] as p_seq <<puml>>
+    [UML — renderer/plantuml/structural/\n───\nClass\nObject\nComponent (incl. deployment:\nnode, artifact, cloud, device, C4 macros)] as p_struct <<puml>>
+    [UML — renderer/plantuml/behavioral/\n───\nActivity (orchestrator + 7 sub-parsers)\nState\nUse Case] as p_behav <<puml>>
+    [Modelling — specialized/\n───\nER (IE / crows-foot notation)\nChen ER (startchen)\nArchimate\nTiming\nNwdiag (startnwdiag)] as p_model <<puml>>
+    [Planning & hierarchy — specialized/\n───\nMindMap (startmindmap)\n  + WBS (startwbs, same parser)\nGantt (startgantt)\nChronology (startchronology)\nTree (starttree)\nBoard (startboard)\nAncestry (startancestry, GEDCOM .ged)] as p_plan <<puml>>
+    [Data, grammar & drawing — specialized/\n───\nJson (startjson)\nYaml (startyaml)\nEbnf (startebnf)\nRegex (startregex)\nSalt wireframes (startsalt)\nDitaa ASCII art (startditaa)\nDot passthrough (startdot)] as p_data <<puml>>
+}
+
+package "Mermaid (23 parser/renderer pairs; .mmd / .mermaid)" as merm {
+    [UML-style — renderer/mermaid/\n───\nFlowchart (flowchart / graph)\nSequence (sequenceDiagram)\nState (stateDiagram, stateDiagram-v2)\nClass (classDiagram)\nER (erDiagram)\nRequirement (requirementDiagram)\nZenUML (zenuml)] as m_uml <<mermaid>>
+    [Architecture — renderer/mermaid/\n───\nC4 (C4Context / Container /\nComponent / Dynamic / Deployment)\nArchitecture (architecture-beta)\nBlock (block-beta)\nPacket (packet-beta, startpacketdiag)] as m_arch <<mermaid>>
+    [Planning & process — renderer/mermaid/\n───\nGantt (gantt)\nTimeline (timeline)\nUser Journey (journey)\nKanban (kanban)\nGitGraph (gitGraph)\nMindmap (mindmap)] as m_plan <<mermaid>>
+    [Charts — renderer/mermaid/\n───\nPie (pie)\nQuadrant (quadrantChart)\nXY Chart (xychart, xychart-beta)\nSankey (sankey)\nRadar (radar-beta)\nTreemap (treemap-beta)] as m_chart <<mermaid>>
+}
+
+engine --> puml_infra : PlantUML
+engine --> merm_infra : Mermaid
+puml_infra --> p_seq
+puml_infra --> p_struct
+puml_infra --> p_behav
+puml_infra --> p_model
+puml_infra --> p_plan
+puml_infra --> p_data
+merm_infra --> m_uml
+merm_infra --> m_arch
+merm_infra --> m_plan
+merm_infra --> m_chart
+
+p_seq --> render_infra
+p_struct --> render_infra
+p_behav --> render_infra
+p_model --> render_infra
+p_plan --> render_infra
+p_data --> render_infra
+m_uml --> render_infra
+m_arch --> render_infra
+m_plan --> render_infra
+m_chart --> render_infra
+
+@enduml

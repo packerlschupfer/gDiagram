@@ -1,0 +1,36 @@
+classDiagram
+    class Shape {
+        <<interface>>
+        +draw()
+        +area() float
+    }
+
+    class Color {
+        <<enumeration>>
+        RED
+        GREEN
+        BLUE
+    }
+
+    class Rectangle {
+        +double width
+        +double height
+        +draw()
+        +area() float
+    }
+
+    class Circle {
+        +double radius
+        +draw()
+        +area() float
+    }
+
+    class Canvas {
+        +List~Shape~ shapes
+        +render()
+    }
+
+    Shape <|.. Rectangle : implements
+    Shape <|.. Circle : implements
+    Canvas o-- Shape : aggregates
+    Rectangle -- Color : uses

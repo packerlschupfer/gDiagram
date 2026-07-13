@@ -1,0 +1,25 @@
+@startuml
+' Drilled in from context.puml — Web App container internals.
+' Reached by double-clicking the `web` element in context.puml.
+
+title Web App — Container View
+
+rectangle "Customer's Browser" <<person>> as browser
+
+rectangle "Web App" <<system_boundary>> as web {
+    rectangle "Page Templates\nServer-rendered HTML (Astro)" <<component>> as templates
+    rectangle "Client Bundle\nReact islands for interactivity" <<component>> as client
+    rectangle "Auth Module\nSession + cookie handling"         <<component>> as auth
+    rectangle "Static Asset Server\nServes CSS/JS/images"      <<component>> as static
+}
+
+rectangle "API\nBusiness logic" <<container>> as api
+
+browser   --> templates : "HTTPS"
+browser   --> static    : "Asset fetch"
+templates --> client    : "Hydrates"
+templates --> auth      : "Reads session cookie"
+templates --> api       : "REST/JSON"
+client    --> api       : "REST/JSON"
+
+@enduml

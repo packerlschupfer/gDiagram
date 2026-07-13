@@ -1,0 +1,8 @@
+@startchart
+title Quarterly Revenue
+h-axis "Quarter" [Q1, Q2, Q3, Q4]
+v-axis "Value" 0 --> 100 grid
+bar "Revenue" [30, 50, 70, 90] #blue labels
+line "Cost" [20, 30, 40, 50]
+legend right
+@endchart

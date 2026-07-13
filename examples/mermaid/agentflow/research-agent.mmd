@@ -1,0 +1,18 @@
+agentflow-beta
+  Start@{ shape: input, label: "Research question" } --> Plan@{ shape: task, label: "Plan the search" }
+
+  flow Gather[Gather evidence]
+    Plan --> Search@{ shape: tool, label: "Web search" }
+    Search --> Fetch@{ shape: tool, label: "Fetch page" }
+    Fetch --> Enough@{ shape: decision, label: "Enough sources?" }
+    Enough -- no --> Search
+  end
+
+  Enough -- yes --> Draft@{ shape: task, label: "Draft the answer" }
+  Draft --> Cite@{ shape: refdoc, label: "Attach citations" }
+  Cite --> Review@{ shape: decision, label: "Passes review?" }
+  Review -- no --> Draft
+  Review -- yes --> Publish@{ shape: action, label: "Publish" }
+
+  Notes@{ shape: refdoc, label: "Scratchpad" }
+  Draft -.- Notes
