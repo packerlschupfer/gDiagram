@@ -1,0 +1,16 @@
+stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> Active: start
+
+    state Active {
+        [*] --> Connecting
+        Connecting --> Connected: success
+        Connecting --> Failed: timeout
+        Connected --> Disconnecting: stop
+        Disconnecting --> [*]
+        Failed --> [*]
+    }
+
+    Active --> Idle: reset
+    Active --> [*]: quit

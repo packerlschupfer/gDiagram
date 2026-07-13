@@ -1,0 +1,40 @@
+@startuml
+title Enterprise Architecture Layers
+
+rectangle "Strategy Layer" {
+  archimate #Strategy "Business Strategy" as strat <<Driver>>
+  archimate #Strategy "Cost Reduction" as goal <<Goal>>
+}
+
+rectangle "Motivation Layer" {
+  archimate #Motivation "Stakeholder" as stakeholder <<Stakeholder>>
+  archimate #Motivation "Compliance" as comply <<Requirement>>
+}
+
+rectangle "Business Layer" {
+  archimate #Business "Sales Rep" as sales <<Role>>
+  archimate #Business "Invoice Process" as invoice <<Process>>
+  archimate #Business "Contract" as contract <<BusinessObject>>
+}
+
+rectangle "Application Layer" {
+  archimate #Application "CRM System" as crm <<ApplicationComponent>>
+  archimate #Application "ERP System" as erp <<ApplicationComponent>>
+  archimate #Application "Customer API" as api <<ApplicationService>>
+}
+
+rectangle "Technology Layer" {
+  archimate #Technology "App Server" as appserver <<Node>>
+  archimate #Technology "SQL Database" as sqldb <<DataStore>>
+}
+
+strat --> goal : realizes
+stakeholder --> comply : associates
+sales --> invoice : performs
+invoice --> contract : creates
+crm --> api : exposes
+api --> erp : integrates
+crm --> appserver : deployed on
+erp --> sqldb : stores data
+
+@enduml

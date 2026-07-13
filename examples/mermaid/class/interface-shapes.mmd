@@ -1,0 +1,20 @@
+classDiagram
+    class Shape {
+        <<interface>>
+        +draw()
+        +getArea() float
+    }
+    class Circle {
+        -float radius
+        +Circle(radius)
+    }
+    class Square {
+        -float side
+    }
+    Shape <|-- Circle : implements
+    Shape <|-- Square : implements
+    class Canvas {
+        +List shapes
+        +renderAll()
+    }
+    Canvas *-- Shape : contains

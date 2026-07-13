@@ -1,0 +1,11 @@
+@startuml
+component A
+component B
+component C
+component D
+
+A -right-> B : right
+A -down-> C : down
+B -down-> D : down
+C -right-> D : right
+@enduml

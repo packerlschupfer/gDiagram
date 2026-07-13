@@ -1,0 +1,46 @@
+@startuml
+' Drilled from cluster.puml — Networking concepts.
+'
+' Four layers of K8s networking: Pod-to-Pod (CNI), Pod-to-Service
+' (kube-proxy), external-to-Service (Ingress/LB), and DNS resolution
+' (CoreDNS). NetworkPolicy enforces who can talk to whom.
+
+title Networking — Service, Ingress, DNS
+
+rectangle "External Client" <<external_person>> as client
+
+rectangle "Ingress Layer" <<container_boundary>> as ingress_layer {
+    rectangle "Ingress Resource\nHost/path rules"      <<component>> as ingress
+    rectangle "Ingress Controller\nnginx / traefik"    <<container>> as ic
+    rectangle "Gateway API\nHTTPRoute, GatewayClass"   <<component>> as gw
+}
+
+rectangle "Service Layer" <<container_boundary>> as svc_layer {
+    rectangle "ClusterIP\nInternal VIP"             <<component>> as cip
+    rectangle "NodePort\n30000-32767"               <<component>> as np
+    rectangle "LoadBalancer\nCloud LB"              <<component>> as lb
+    rectangle "Headless\nclusterIP: None"           <<component>> as headless
+    rectangle "EndpointSlice\nBackend pod IPs"      <<component>> as eps
+}
+
+rectangle "Pod Network (CNI)" <<container_boundary>> as cni_layer {
+    rectangle "Pod IP\nUnique per pod" <<component>> as podip
+    rectangle "kube-proxy\niptables / ipvs / nftables" <<component>> as kproxy
+    rectangle "NetworkPolicy\nIngress/egress rules"    <<component>> as netpol
+}
+
+rectangle "CoreDNS\n*.svc.cluster.local" <<container>> as dns
+
+client    --> ic    : "HTTPS"
+ic        --> ingress : "Reads rules"
+ingress   --> cip   : "Routes to Service"
+gw        --> cip   : "HTTPRoute target"
+cip       --> eps   : "Resolves to"
+eps       --> podip : "Backend pods"
+kproxy    --> eps   : "Watch + program rules"
+netpol    --> podip : "Enforces"
+podip     --> dns   : "Resolves Service names"
+lb        --> np    : "Forwards"
+np        --> cip   : "Forwards"
+
+@enduml

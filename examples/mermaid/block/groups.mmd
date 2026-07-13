@@ -1,0 +1,20 @@
+---
+title: Grouped Block Diagram
+---
+block-beta
+    columns 3
+
+    block:frontend["Frontend"]
+        UI["UI Layer"] API["API Client"]
+    end
+
+    block:backend["Backend"]
+        Server["Server"] DB["Database"]
+    end
+
+    Ext["External Service"]
+
+    UI --> API
+    API --> Server
+    Server --> DB
+    Server --> Ext

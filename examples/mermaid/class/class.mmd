@@ -1,0 +1,29 @@
+classDiagram
+    class Animal {
+        +string name
+        +int age
+        +makeSound()
+        +eat()
+    }
+
+    class Dog {
+        +string breed
+        +bark()
+        +fetch()
+    }
+
+    class Cat {
+        +bool indoor
+        +meow()
+        +scratch()
+    }
+
+    class Bird {
+        +int wingspan
+        +fly()
+        +sing()
+    }
+
+    Animal <|-- Dog
+    Animal <|-- Cat
+    Animal <|-- Bird

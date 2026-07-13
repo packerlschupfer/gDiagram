@@ -1,0 +1,35 @@
+@startuml
+' Drilled from cluster.puml — kube-apiserver request flow.
+'
+' Shows what happens to a request from kubectl to etcd: authentication,
+' authorization, admission, validation, and persistence.
+
+title kube-apiserver — Request Processing Pipeline
+
+rectangle "kubectl / Client" <<external_system>> as client
+
+rectangle "kube-apiserver" <<container_boundary>> as apiserver {
+    rectangle "1. Authentication\nx509, Bearer token, OIDC" <<component>> as authn
+    rectangle "2. Authorization\nRBAC, ABAC, Webhook"        <<component>> as authz
+    rectangle "3. Mutating Admission\nMutatingAdmissionWebhook" <<component>> as mutate
+    rectangle "4. Object Schema Validation"                     <<component>> as validate
+    rectangle "5. Validating Admission\nValidatingAdmissionWebhook, OPA" <<component>> as vadmit
+    rectangle "6. Persist to etcd"                              <<component>> as persist
+    rectangle "Watch Cache\nServes watch streams"              <<component>> as watch
+}
+
+database "etcd" <<container>> as etcd
+
+rectangle "Controllers / Schedulers / kubelets" <<external_system>> as watchers
+
+client  --> authn   : "HTTPS:6443"
+authn   --> authz   : "Who are you?"
+authz   --> mutate  : "Allowed?"
+mutate  --> validate : "Mutate spec\n(defaults, sidecars)"
+validate --> vadmit : "Schema OK"
+vadmit  --> persist : "Final checks"
+persist --> etcd    : "Write"
+etcd    --> watch   : "Change events"
+watch   --> watchers : "Watch streams"
+
+@enduml

@@ -1,0 +1,129 @@
+.TH GDIAGRAM 1 "February 2026" "gDiagram 0.1.0" "User Commands"
+.SH NAME
+gdiagram \- GTK4 diagram viewer and editor for PlantUML and Mermaid
+.SH SYNOPSIS
+.B gdiagram
+[\fIOPTIONS\fR] [\fIFILE\fR]
+.SH DESCRIPTION
+.B gdiagram
+is a native Linux diagram viewer and editor supporting PlantUML and Mermaid
+syntax. It renders diagrams natively using Graphviz (no Java required) with
+real-time preview, click-to-source navigation, and headless export.
+
+When invoked with a \fIFILE\fR and no \fB\-\-export\fR option, the file is
+opened in the graphical editor. When \fB\-\-export\fR is specified, gdiagram
+runs headless and writes the rendered output to the given path.
+.SH OPTIONS
+.TP
+.BR \-e ", " \-\-export " " \fIOUTPUT\fR
+Export the diagram to \fIOUTPUT\fR and exit (headless mode). Requires a
+\fIFILE\fR argument. The output format is controlled by \fB\-\-format\fR.
+.TP
+.BR \-f ", " \-\-format " " \fIFORMAT\fR
+Set the export format. Supported values:
+.RS
+.TP
+.B png
+Portable Network Graphics (default)
+.TP
+.B svg
+Scalable Vector Graphics
+.TP
+.B pdf
+Portable Document Format
+.TP
+.B dot
+Graphviz DOT source (useful for debugging)
+.RE
+.TP
+.B \-\-scale
+Scale the PNG output to 71.5% of its native Graphviz size, matching the
+visual dimensions of PlantUML-rendered diagrams. Requires
+.BR \-\-format " png"
+(or the default png format). Uses ImageMagick
+.BR convert (1)
+with a Lanczos filter.
+.TP
+.BR \-d ", " \-\-debug
+Enable verbose debug output. Prints parser diagnostics, render timings, and
+GLib debug messages to standard output.
+.TP
+.BR \-h ", " \-\-help
+Print a brief usage summary and exit.
+.TP
+.B \-\-version
+Print the version string and exit.
+.SH FILE FORMATS
+.TP
+.B .puml
+PlantUML source. Supports sequence, class, activity, state, component,
+deployment, use-case, object, ER, Gantt, mind-map, JSON, YAML, timing,
+nwdiag, Archimate, and chronology diagrams.
+.TP
+.B .mmd
+Mermaid source. Supports flowchart, sequence, state, class, ER, Gantt, pie,
+user journey, git graph, mindmap, timeline, quadrant, XY chart, kanban,
+sankey, requirement, block, packet, C4, architecture, ZenUML, radar, and
+treemap diagrams.
+.PP
+File format is auto-detected from the extension and from content keywords,
+so either extension works for either format.
+.SH EXAMPLES
+Open a diagram in the GUI:
+.PP
+.RS
+.nf
+gdiagram diagram.puml
+gdiagram diagram.mmd
+.fi
+.RE
+.PP
+Export a PlantUML sequence diagram to PNG:
+.PP
+.RS
+.nf
+gdiagram diagram.puml \-e output.png
+.fi
+.RE
+.PP
+Export a Mermaid flowchart to SVG:
+.PP
+.RS
+.nf
+gdiagram flowchart.mmd \-e out.svg \-f svg
+.fi
+.RE
+.PP
+Export to PNG scaled to PlantUML dimensions:
+.PP
+.RS
+.nf
+gdiagram diagram.puml \-e output.png \-\-scale
+.fi
+.RE
+.PP
+Export the raw DOT source for inspection:
+.PP
+.RS
+.nf
+gdiagram diagram.puml \-e diagram.dot \-f dot
+.fi
+.RE
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Export failed (parse error, rendering error, or I/O error).
+.SH SEE ALSO
+.BR dot (1),
+.BR convert (1)
+.PP
+PlantUML language reference: https://plantuml.com/
+.br
+Mermaid language reference: https://mermaid.js.org/
+.SH BUGS
+Report bugs at https://github.com/PackerlSchupfer/gDiagram/issues
+.SH AUTHORS
+gDiagram Contributors.

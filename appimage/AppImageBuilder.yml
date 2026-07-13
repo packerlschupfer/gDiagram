@@ -1,0 +1,74 @@
+version: 1
+script:
+  - rm -rf AppDir || true
+  # The patched Graphviz is pre-built and installed to /opt/graphviz-patched by the CI job.
+  # We copy its libraries into the AppDir so they are bundled in the image.
+  - PKG_CONFIG_PATH=/opt/graphviz-patched/lib/pkgconfig meson setup build .. --prefix=/usr
+  - meson compile -C build
+  - DESTDIR=$PWD/AppDir meson install -C build
+  - mkdir -p AppDir/usr/lib/x86_64-linux-gnu
+  - cp -a /opt/graphviz-patched/lib/libgvc.so* AppDir/usr/lib/x86_64-linux-gnu/ || true
+  - cp -a /opt/graphviz-patched/lib/libcgraph.so* AppDir/usr/lib/x86_64-linux-gnu/ || true
+  - cp -a /opt/graphviz-patched/lib/libpathplan.so* AppDir/usr/lib/x86_64-linux-gnu/ || true
+  - cp -a /opt/graphviz-patched/lib/libcdt.so* AppDir/usr/lib/x86_64-linux-gnu/ || true
+  - mkdir -p AppDir/usr/lib/graphviz
+  - cp -a /opt/graphviz-patched/lib/graphviz/. AppDir/usr/lib/graphviz/ || true
+  # Some renderers spawn the dot/neato binaries (not just libgvc) — bundle them.
+  - cp -a /opt/graphviz-patched/bin/. AppDir/usr/bin/ || true
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: org.gnome.gDiagram
+    name: gDiagram
+    icon: org.gnome.gDiagram
+    version: 0.1.0
+    exec: usr/bin/gdiagram
+    exec_args: $@
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C'
+      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse'
+
+    include:
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libgtksourceview-5-0
+      - libgee-0.8-2
+      - librsvg2-2
+      - libcairo2
+      - libsoup-3.0-0
+      - libjson-glib-1.0-0
+      - libsecret-1-0
+
+    exclude:
+      - humanity-icon-theme
+      - adwaita-icon-theme-full
+
+  files:
+    include:
+      - usr/share/icons/hicolor/scalable/apps/org.gnome.gDiagram.svg
+
+  runtime:
+    env:
+      APPDIR_LIBRARY_PATH: $APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/usr/lib
+      GVCPLUGINPATH: $APPDIR/usr/lib/graphviz
+
+  test:
+    fedora-30:
+      image: appimagecrafters/tests-env:fedora-30
+      command: ./AppRun --help
+    debian-stable:
+      image: appimagecrafters/tests-env:debian-stable
+      command: ./AppRun --help
+    ubuntu-xenial:
+      image: appimagecrafters/tests-env:ubuntu-xenial
+      command: ./AppRun --help
+
+AppImage:
+  arch: x86_64
+  update-information: gh-releases-zsync|packerlschupfer|gDiagram|latest|gDiagram-*x86_64.AppImage.zsync

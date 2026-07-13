@@ -1,0 +1,13 @@
+namespace GDiagram {
+    public const string APP_ID = @APP_ID@;
+    public const string APP_NAME = @APP_NAME@;
+    public const string VERSION = @VERSION@;
+    // The release version is pinned at 0.1.0 and the .deb's file mtimes are pinned by
+    // SOURCE_DATE_EPOCH, so neither distinguishes a July build from an October one.
+    // These come from the commit, so they change whenever it is amended.
+    public const string BUILD_ID = @BUILD_ID@;
+    public const string BUILD_DATE = @BUILD_DATE@;
+    public const string GETTEXT_PACKAGE = @GETTEXT_PACKAGE@;
+    public const string LOCALEDIR = @LOCALEDIR@;
+    public const string DATADIR = @DATADIR@;
+}

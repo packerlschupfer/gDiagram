@@ -1,0 +1,482 @@
+{
+  "scopeName": "source.plantuml",
+  "name": "PlantUML",
+  "fileTypes": [
+    "puml",
+    "plantuml",
+    "pu",
+    "iuml"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#preprocessor"
+    },
+    {
+      "include": "#startenduml"
+    },
+    {
+      "include": "#diagram-types"
+    },
+    {
+      "include": "#c4"
+    },
+    {
+      "include": "#timing"
+    },
+    {
+      "include": "#gantt"
+    },
+    {
+      "include": "#sequence-extras"
+    },
+    {
+      "include": "#state-extras"
+    },
+    {
+      "include": "#class-extras"
+    },
+    {
+      "include": "#component-extras"
+    },
+    {
+      "include": "#nwdiag"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#skinparam"
+    },
+    {
+      "include": "#notes"
+    },
+    {
+      "include": "#arrows"
+    },
+    {
+      "include": "#colors"
+    },
+    {
+      "include": "#stereotypes"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.plantuml",
+          "begin": "/'",
+          "end": "'/",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.plantuml"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.plantuml"
+            }
+          }
+        },
+        {
+          "name": "comment.line.plantuml",
+          "match": "^\\s*'.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.plantuml",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.plantuml",
+              "match": "\\\\[\"\\\\nt]"
+            }
+          ]
+        }
+      ]
+    },
+    "preprocessor": {
+      "patterns": [
+        {
+          "name": "meta.preprocessor.plantuml",
+          "match": "^\\s*(!(include|define|undef|ifdef|ifndef|else|endif|if|elseif|endsub|return|startsub|function|endfunction|procedure|endprocedure|unquoted|import|theme|pragma))\\b.*$",
+          "captures": {
+            "1": {
+              "name": "keyword.control.preprocessor.plantuml"
+            }
+          }
+        },
+        {
+          "name": "variable.other.preprocessor.plantuml",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*"
+        }
+      ]
+    },
+    "startenduml": {
+      "patterns": [
+        {
+          "name": "keyword.control.startuml.plantuml",
+          "match": "@start(uml|mindmap|wbs|gantt|salt|json|yaml|ditaa|dot|math|latex|chen|ebnf|regex|board|nwdiag|packetdiag|chronology|creole|tree|files|wire|ancestry)\\b"
+        },
+        {
+          "name": "keyword.control.enduml.plantuml",
+          "match": "@end(uml|mindmap|wbs|gantt|salt|json|yaml|ditaa|dot|math|latex|chen|ebnf|regex|board|nwdiag|packetdiag|chronology|creole|tree|files|wire|ancestry)\\b"
+        }
+      ]
+    },
+    "diagram-types": {
+      "patterns": [
+        {
+          "name": "keyword.control.diagram-type.plantuml",
+          "match": "\\b(digraph|graph|subgraph|nwdiag|packetdiag|rackdiag|saltdiag)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.plantuml",
+          "match": "\\b(participant|actor|boundary|control|entity|database|collections|queue)\\b"
+        },
+        {
+          "name": "keyword.declaration.class.plantuml",
+          "match": "\\b(class|interface|abstract|enum|annotation|struct|exception|metaclass|protocol|stereotype|diamond)\\b"
+        },
+        {
+          "name": "keyword.declaration.structural.plantuml",
+          "match": "\\b(package|namespace|component|node|artifact|folder|frame|cloud|rectangle|hexagon|card|file|storage|agent|stack|usecase|label|map)\\b"
+        },
+        {
+          "name": "keyword.control.flow.plantuml",
+          "match": "\\b(if|then|else|elseif|endif|while|endwhile|repeat|backward|is|fork|end fork|again|kill|detach|stop|start|end)\\b"
+        },
+        {
+          "name": "keyword.control.sequence.plantuml",
+          "match": "\\b(activate|deactivate|destroy|create|return|ref over|loop|alt|opt|break|par|critical|group|end|autonumber|autoactivate|newpage|box|end box)\\b"
+        },
+        {
+          "name": "keyword.control.state.plantuml",
+          "match": "\\b(state|\\[\\*\\])\\b"
+        },
+        {
+          "name": "keyword.other.plantuml",
+          "match": "\\b(as|is|of|on|or|and|not|note|end note|title|end title|header|end header|footer|end footer|legend|end legend|caption|newpage|page|scale|hide|show|remove|skinparam|left to right direction|top to bottom direction|allow_mixing|set|together)\\b"
+        },
+        {
+          "name": "keyword.control.gantt.plantuml",
+          "match": "\\b(Project starts|lasts|days|starts at|ends at|is colored in|happens|after|before|on|are colored in|printscale|daily|weekly|monthly|yearly|saturday|sunday|closed)\\b"
+        },
+        {
+          "name": "keyword.other.direction.plantuml",
+          "match": "\\b(up|down|left|right|direction)\\b"
+        },
+        {
+          "name": "keyword.other.visibility.plantuml",
+          "match": "^\\s*[-+#~](?=\\s*\\w)"
+        },
+        {
+          "name": "keyword.declaration.er.plantuml",
+          "match": "\\b(entity|relationship)\\b"
+        },
+        {
+          "name": "keyword.other.concise.plantuml",
+          "match": "\\b(concise|robust|binary|clock|analog)\\b"
+        },
+        {
+          "name": "storage.type.plantuml",
+          "match": "<<\\s*(PK|FK|abstract|interface|enum|static|final|override)\\s*>>"
+        }
+      ]
+    },
+    "skinparam": {
+      "patterns": [
+        {
+          "name": "meta.skinparam.plantuml",
+          "begin": "\\b(skinparam)\\b",
+          "end": "(?=\\n)|(?=\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.skinparam.plantuml"
+            }
+          },
+          "patterns": [
+            {
+              "name": "variable.parameter.skinparam.plantuml",
+              "match": "[A-Za-z]+"
+            },
+            {
+              "include": "#colors"
+            }
+          ]
+        },
+        {
+          "name": "meta.skinparam.block.plantuml",
+          "begin": "\\b(skinparam)\\s+(\\w+)\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.skinparam.plantuml"
+            },
+            "2": {
+              "name": "entity.name.type.skinparam.plantuml"
+            }
+          },
+          "patterns": [
+            {
+              "name": "variable.parameter.skinparam.plantuml",
+              "match": "\\b[A-Za-z]+(?=\\s)"
+            },
+            {
+              "include": "#colors"
+            },
+            {
+              "include": "#strings"
+            },
+            {
+              "include": "#numbers"
+            }
+          ]
+        }
+      ]
+    },
+    "notes": {
+      "patterns": [
+        {
+          "name": "meta.note.plantuml",
+          "begin": "\\b(note|rnote|hnote)\\s+(left|right|top|bottom|over|left of|right of|top of|bottom of)\\b",
+          "end": "\\b(end\\s*note)\\b",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.note.plantuml"
+            },
+            "2": {
+              "name": "keyword.other.note.position.plantuml"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.note.end.plantuml"
+            }
+          },
+          "contentName": "string.unquoted.note.plantuml"
+        },
+        {
+          "name": "keyword.other.note.inline.plantuml",
+          "match": "\\b(note|rnote|hnote)\\s+(left|right|top|bottom|over|left of|right of|top of|bottom of)\\b"
+        }
+      ]
+    },
+    "arrows": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arrow.plantuml",
+          "match": "(<|<\\||\\.\\.|--|-|~|\\*|o|#|x|\\}|\\+|\\^)?(-+|={2,}|\\.{2,}|~{2,})(-?->|->|>|\\|>|\\*|o|#|x|\\{|\\+|\\^)?"
+        },
+        {
+          "name": "keyword.operator.arrow.left.plantuml",
+          "match": "(<|<\\|)(-+|\\.{2,})"
+        }
+      ]
+    },
+    "colors": {
+      "patterns": [
+        {
+          "name": "constant.other.color.hex.plantuml",
+          "match": "#[0-9A-Fa-f]{6}\\b"
+        },
+        {
+          "name": "constant.other.color.hex.short.plantuml",
+          "match": "#[0-9A-Fa-f]{3}\\b"
+        },
+        {
+          "name": "support.constant.color.named.plantuml",
+          "match": "#(AliceBlue|AntiqueWhite|Aqua|Aquamarine|Azure|Beige|Bisque|Black|BlanchedAlmond|Blue|BlueViolet|Brown|BurlyWood|CadetBlue|Chartreuse|Chocolate|Coral|CornflowerBlue|Cornsilk|Crimson|Cyan|DarkBlue|DarkCyan|DarkGoldenRod|DarkGray|DarkGreen|DarkKhaki|DarkMagenta|DarkOliveGreen|DarkOrange|DarkOrchid|DarkRed|DarkSalmon|DarkSeaGreen|DarkSlateBlue|DarkSlateGray|DarkTurquoise|DarkViolet|DeepPink|DeepSkyBlue|DimGray|DodgerBlue|FireBrick|FloralWhite|ForestGreen|Fuchsia|Gainsboro|GhostWhite|Gold|GoldenRod|Gray|Green|GreenYellow|HoneyDew|HotPink|IndianRed|Indigo|Ivory|Khaki|Lavender|LavenderBlush|LawnGreen|LemonChiffon|LightBlue|LightCoral|LightCyan|LightGoldenRodYellow|LightGray|LightGreen|LightPink|LightSalmon|LightSeaGreen|LightSkyBlue|LightSlateGray|LightSteelBlue|LightYellow|Lime|LimeGreen|Linen|Magenta|Maroon|MediumAquaMarine|MediumBlue|MediumOrchid|MediumPurple|MediumSeaGreen|MediumSlateBlue|MediumSpringGreen|MediumTurquoise|MediumVioletRed|MidnightBlue|MintCream|MistyRose|Moccasin|NavajoWhite|Navy|OldLace|Olive|OliveDrab|Orange|OrangeRed|Orchid|PaleGoldenRod|PaleGreen|PaleTurquoise|PaleVioletRed|PapayaWhip|PeachPuff|Peru|Pink|Plum|PowderBlue|Purple|Red|RosyBrown|RoyalBlue|SaddleBrown|Salmon|SandyBrown|SeaGreen|SeaShell|Sienna|Silver|SkyBlue|SlateBlue|SlateGray|Snow|SpringGreen|SteelBlue|Tan|Teal|Thistle|Tomato|Turquoise|Violet|Wheat|White|WhiteSmoke|Yellow|YellowGreen)\\b"
+        }
+      ]
+    },
+    "stereotypes": {
+      "patterns": [
+        {
+          "name": "entity.name.tag.stereotype.plantuml",
+          "match": "<<[^>]+>>"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.plantuml",
+          "match": "\\.\\.|::|--|\\|\\||\\*\\*|\\+\\+|\\{\\s*(static|abstract|field|method)\\s*\\}"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.plantuml",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "c4": {
+      "patterns": [
+        {
+          "name": "string.unquoted.include.plantuml",
+          "match": "<[A-Za-z0-9_]+/[A-Za-z0-9_/.-]+>"
+        },
+        {
+          "name": "entity.name.function.macro.c4.plantuml",
+          "match": "\\b((Person|System|SystemDb|SystemQueue|Container|ContainerDb|ContainerQueue|Component|ComponentDb|ComponentQueue)(_Ext)?|Boundary|Enterprise_Boundary|System_Boundary|Container_Boundary|Deployment_Node(_L|_R)?|Node(_L|_R)?|Rel(_[A-Za-z]+)?|BiRel(_[A-Za-z]+)?|RelIndex(_[A-Za-z]+)?|Lay_(U|D|L|R|Distance)|SHOW_(LEGEND|FLOATING_LEGEND|PERSON_OUTLINE|PERSON_PORTRAIT|PERSON_SPRITE)|HIDE_(STEREOTYPE|PERSON_SPRITE)|LAYOUT_[A-Z_]+|Add(Element|Rel|Boundary|Person|System|Container|Component|Node)Tag|Update(Element|Rel|Boundary|Container|System|Component|Node)(Style|BoundaryStyle)|UpdateLayoutConfig|AddProperty|SetPropertyHeader|WithoutPropertyHeader|(Business|Application|Technology|Motivation|Physical|Implementation|Strategy|Other)_[A-Za-z_]+)(?=\\s*\\()"
+        }
+      ]
+    },
+    "timing": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.timing.plantuml",
+          "match": "^\\s*(compact\\s+)?(robust|concise|binary|clock|analog)\\b"
+        },
+        {
+          "name": "constant.other.time.plantuml",
+          "match": "^\\s*@(?!start|end)([+-]?[0-9][0-9.:/]*|:[A-Za-z_][A-Za-z0-9_.]*([+-][0-9.]+)?|[A-Za-z_][A-Za-z0-9_.]*(\\*[0-9]+)?)(?=\\s*(as\\b|$))"
+        },
+        {
+          "name": "constant.other.anchor.plantuml",
+          "match": "(?<=@|as )(:[A-Za-z_][A-Za-z0-9_.]*)"
+        },
+        {
+          "match": "^\\s*(?!today\\b)([+-]?[A-Za-z0-9_.:@]+)\\s+(is|has)\\b(?!\\s+(colou?red|closed|open|[0-9]+\\s*%))",
+          "captures": {
+            "2": {
+              "name": "keyword.other.timing.plantuml"
+            }
+          }
+        },
+        {
+          "name": "keyword.other.timing.plantuml",
+          "match": "\\bwith\\s+period\\b|\\b(pulse|offset)\\b(?=\\s+[0-9])|\\bbetween\\b(?=\\s+-?[0-9.]+\\s+and\\b)|\\bticks\\s+(num\\s+on\\s+multiple|every)\\b|^\\s*(hide|manual)\\s+time.?axis\\b|^\\s*mode\\s+compact\\b|^\\s*highlight\\b|\\bpixels?(\\s+height)?\\b|^\\s*use\\s+date\\s+format\\b"
+        }
+      ]
+    },
+    "gantt": {
+      "patterns": [
+        {
+          "name": "entity.name.type.task.plantuml",
+          "match": "\\[[^\\]\\n]+\\](?=(\\s+as\\s+\\[[^\\]\\n]+\\])?\\s+(lasts|requires|starts|ends|happens|is|on|and|pauses|displays|links|occurs|as)\\b|'s\\s+(start|end)\\b)|(?<=then )\\[[^\\]\\n]+\\]"
+        },
+        {
+          "name": "keyword.control.gantt.plantuml",
+          "match": "^\\s*[Pp]roject\\s+starts\\b|\\b(lasts|requires)\\b(?=\\s+[0-9])|\\b(starts|ends)\\b(?=\\s+(at|on|after|before|with|[0-9]|D\\+|\\[))|\\bhappens\\b(?=\\s+(at|on|after|before|[0-9]|D\\+|\\[))|\\boccurs\\s+from\\b|\\bis\\s+[0-9]+\\s*%\\s+complete(d)?\\b|\\bis\\s+colou?red\\s+in\\b|\\b(is|are)\\s+(closed|open)\\b|^\\s*today\\s+is\\b|^\\s*(printscale|projectscale|ganttscale)\\b|\\bzoom\\b(?=\\s+[0-9])|^\\s*language\\b|^\\s*hide\\s+(ressources|resources)\\s+(names|footbox)\\b|^\\s*then\\b(?=\\s*\\[)|'s\\s+(start|end)\\b|^\\s*print\\s+between\\b"
+        },
+        {
+          "name": "variable.other.resource.plantuml",
+          "match": "(?<=on )(\\{[^{}\\n]+\\}\\s*)+"
+        },
+        {
+          "name": "markup.heading.separator.plantuml",
+          "match": "^\\s*--\\s*[^-\\n][^\\n]*[^-\\n]\\s*--\\s*$"
+        }
+      ]
+    },
+    "sequence-extras": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arrow.border.plantuml",
+          "match": "\\[[ox]?(<?-+>?>?|<?\\.+>?)|(<?-+>?>?|<?\\.+>?)[ox]?\\]|\\?(<?-+>?>?)|(<?-+>>?)\\?"
+        },
+        {
+          "name": "keyword.control.sequence.plantuml",
+          "match": "^\\s*\\{[A-Za-z_][A-Za-z0-9_]*\\}(?=\\s*[^\\s:]+\\s*[-<])|\\border\\b(?=\\s+-?[0-9])|^\\s*ignore\\s+newpage\\b|^\\s*autonumber\\s+(stop|resume|inc)\\b|^\\s*autoactivate\\s+(on|off)\\b|^\\s*end\\s*(hnote|rnote)\\b"
+        }
+      ]
+    },
+    "state-extras": {
+      "patterns": [
+        {
+          "name": "keyword.other.region.plantuml",
+          "match": "^\\s*(--|\\|\\|)\\s*$"
+        },
+        {
+          "name": "constant.language.pseudostate.plantuml",
+          "match": "\\[\\*\\]|\\[H\\*?\\]"
+        },
+        {
+          "name": "storage.type.pseudostate.plantuml",
+          "match": "<<\\s*(start|end|choice|fork|join|history\\*?|sdlreceive|inputPin|outputPin|expansionInput|expansionOutput|entryPoint|exitPoint)\\s*>>"
+        },
+        {
+          "name": "keyword.other.note.plantuml",
+          "match": "^\\s*note\\s+on\\s+link\\b"
+        }
+      ]
+    },
+    "class-extras": {
+      "patterns": [
+        {
+          "name": "storage.modifier.member.plantuml",
+          "match": "\\{(field|method|static|abstract|classifier)\\}"
+        },
+        {
+          "name": "keyword.other.visibility-control.plantuml",
+          "match": "^\\s*(hide|show|remove|restore)\\s+(([A-Za-z0-9_.$\"<>*]+|@unlinked)\\s+)?(empty\\s+)?(members|fields|methods|attributes|circles?|stereotypes?|unlinked|@unlinked|private|protected|public|package)\\b|^\\s*set\\s+(separator|namespaceSeparator)\\b"
+        },
+        {
+          "name": "keyword.declaration.class.plantuml",
+          "match": "^\\s*(dataclass|record|circle|diamond|json)\\b(?=\\s+[A-Za-z_\"])"
+        },
+        {
+          "name": "keyword.operator.lollipop.plantuml",
+          "match": "\\(\\)-+|-+\\(\\)"
+        },
+        {
+          "name": "constant.other.color.inline.plantuml",
+          "match": "#(back|line|text)[:.][A-Za-z0-9#]+(;(back|line|text|line\\.(bold|dashed|dotted))[:.]?[A-Za-z0-9#]*)*"
+        }
+      ]
+    },
+    "component-extras": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.structural.plantuml",
+          "match": "^\\s*(actor|usecase)/|\\b(port|portin|portout|person|boundary|control|collections|queue|archimate)\\b(?=\\s)"
+        },
+        {
+          "name": "keyword.operator.arrow.chen.plantuml",
+          "match": "(?<=\\s)[-=]([0-9NnMm]|\\([0-9Nn],\\s*[0-9NnMm]\\))[-=](?=\\s)"
+        }
+      ]
+    },
+    "nwdiag": {
+      "patterns": [
+        {
+          "name": "keyword.other.nwdiag.plantuml",
+          "match": "^\\s*(network|group|inet)\\b(?=\\s*([A-Za-z0-9_\"]|\\{))|\\b(address|description|shape|color|width|colwidth|node_height|node_width|default_fontsize|scale_interval|scale_direction|same_height|rotate|len|height)\\b(?=\\s*=)"
+        },
+        {
+          "name": "constant.numeric.range.plantuml",
+          "match": "^\\s*[0-9]+(-[0-9]+)?(?=\\s*:)"
+        },
+        {
+          "name": "punctuation.definition.card.plantuml",
+          "match": "^\\s*\\++(?=\\s)"
+        }
+      ]
+    }
+  }
+}

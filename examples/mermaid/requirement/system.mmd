@@ -1,0 +1,67 @@
+requirementDiagram
+
+    requirement system_req {
+        id: 1
+        text: The system shall meet all regulatory requirements.
+        risk: high
+        verifymethod: test
+    }
+
+    functionalRequirement data_req {
+        id: 1.1
+        text: The system shall store user data securely.
+        risk: high
+        verifymethod: inspection
+    }
+
+    performanceRequirement throughput_req {
+        id: 1.2
+        text: The system shall handle 1000 requests per second.
+        risk: medium
+        verifymethod: demonstration
+    }
+
+    interfaceRequirement api_req {
+        id: 1.3
+        text: The system shall expose a REST API.
+        risk: low
+        verifymethod: analysis
+    }
+
+    physicalRequirement hardware_req {
+        id: 1.4
+        text: The system shall operate on standard server hardware.
+        risk: low
+        verifymethod: analysis
+    }
+
+    designConstraint compliance_req {
+        id: 1.5
+        text: The system shall comply with GDPR.
+        risk: high
+        verifymethod: analysis
+    }
+
+    element backend_service {
+        type: microservice
+        docref: SDD/backend_service
+    }
+
+    element database_layer {
+        type: postgresql
+        docref: SDD/database_layer
+    }
+
+    element api_gateway {
+        type: nginx
+        docref: SDD/api_gateway
+    }
+
+    backend_service - satisfies -> data_req
+    backend_service - satisfies -> throughput_req
+    backend_service - traces -> system_req
+    api_gateway - satisfies -> api_req
+    api_gateway - contains -> backend_service
+    database_layer - satisfies -> hardware_req
+    data_req - refines -> compliance_req
+    system_req - derives -> data_req

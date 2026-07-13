@@ -1,0 +1,19 @@
+@startjson
+#highlight "database" / "host"
+#highlight "features"
+{
+  "application": "MyApp",
+  "version": "2.1.0",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "myapp_db",
+    "pool": {
+      "min": 2,
+      "max": 10
+    }
+  },
+  "features": ["auth", "logging", "cache"],
+  "debug": false
+}
+@endjson

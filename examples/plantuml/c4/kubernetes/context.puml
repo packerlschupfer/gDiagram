@@ -1,0 +1,34 @@
+@startuml
+' Kubernetes learning mindmap — Level 1: System Context
+'
+' This is the entry point. Double-click `cluster` to descend into the
+' Kubernetes architecture (cluster.puml). External systems show how K8s
+' integrates with the outside world.
+
+title Kubernetes — System Context
+
+rectangle "Developer\nWrites & deploys apps"          <<person>> as dev
+rectangle "Cluster Admin\nOperates the cluster"       <<person>> as admin
+rectangle "End User\nConsumes services"               <<external_person>> as user
+
+rectangle "Kubernetes Platform" <<system_boundary>> as platform {
+    rectangle "Kubernetes Cluster\nControl plane + worker nodes" <<container>> as cluster
+}
+
+rectangle "Container Registry\nDocker Hub / Harbor / ECR"  <<external_system>> as registry
+rectangle "Git Repository\nSource of truth (GitOps)"        <<external_system>> as git
+rectangle "Identity Provider\nOIDC / LDAP / cert-based"     <<external_system>> as idp
+rectangle "Cloud Provider API\nLoadBalancers, volumes, DNS" <<external_system>> as cloud
+rectangle "Observability Stack\nMetrics, logs, traces"      <<external_system>> as obs
+
+dev    --> git     : "git push"
+admin  --> cluster : "kubectl / kubeadm"
+user   --> cluster : "HTTPS"
+
+git    --> cluster : "ArgoCD / Flux sync"
+cluster --> registry : "Pulls images"
+cluster --> idp      : "Authenticates users"
+cluster --> cloud    : "Provisions LBs, PVs"
+cluster --> obs      : "Pushes metrics, logs"
+
+@enduml

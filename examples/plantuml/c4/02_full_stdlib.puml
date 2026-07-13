@@ -1,0 +1,20 @@
+@startuml
+' Real C4-PlantUML stdlib usage. gDiagram bundles the C4-PlantUML
+' standard library (MIT, see data/stdlib/C4/LICENSE), so the <C4/...>
+' include below works offline, like it does in PlantUML itself.
+
+!include <C4/C4_Container>
+
+Person(customer, "Customer", "A user of the system")
+
+System_Boundary(c1, "Online Store") {
+    Container(web, "Web App",  "React",      "User interface")
+    Container(api, "API",      "Go",         "Business logic")
+    ContainerDb(db, "Database","PostgreSQL")
+}
+
+Rel(customer, web, "Uses",  "HTTPS")
+Rel(web,      api, "Calls", "JSON")
+Rel(api,      db,  "Reads/Writes", "SQL")
+
+@enduml

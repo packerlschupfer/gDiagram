@@ -1,0 +1,267 @@
+:root {
+    --bg: var(--vscode-editor-background, #1e1e1e);
+    --fg: var(--vscode-editor-foreground, #cccccc);
+    --border: var(--vscode-panel-border, #444444);
+    --accent: var(--vscode-focusBorder, #007acc);
+    --error-bg: var(--vscode-inputValidation-errorBackground, #5a1d1d);
+    --error-fg: var(--vscode-errorForeground, #f48771);
+    --badge-bg: var(--vscode-badge-background, #4d4d4d);
+    --badge-fg: var(--vscode-badge-foreground, #ffffff);
+    --scrollbar: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
+    --scrollbar-hover: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, 0.7));
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: var(--vscode-font-size, 13px);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+}
+
+/* Toolbar */
+.toolbar {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 100;
+    display: flex;
+    gap: 2px;
+    background: var(--badge-bg);
+    border-radius: 6px;
+    padding: 3px;
+    opacity: 0.65;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar:hover {
+    opacity: 1;
+}
+
+.toolbar button {
+    background: transparent;
+    border: none;
+    color: var(--badge-fg);
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1;
+    transition: background-color 0.15s;
+}
+
+.toolbar button:hover {
+    background: var(--accent);
+}
+
+.toolbar button:active {
+    opacity: 0.8;
+}
+
+.toolbar .zoom-label {
+    color: var(--badge-fg);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: center;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Viewport */
+.viewport {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: grab;
+    position: relative;
+}
+
+.viewport.dragging {
+    cursor: grabbing;
+}
+
+/* SVG Container */
+.svg-container {
+    transform-origin: 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: none;
+}
+
+.svg-container svg {
+    display: block;
+}
+
+.svg-container svg .node,
+.svg-container svg .cluster,
+.svg-container svg .edge {
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.svg-container svg .node:hover,
+.svg-container svg .cluster:hover {
+    filter: brightness(1.15) drop-shadow(0 0 3px var(--accent));
+}
+
+/* Loading spinner */
+.loading {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 50;
+}
+
+.loading.visible {
+    display: block;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error banner */
+.error-banner {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--error-bg);
+    color: var(--error-fg);
+    padding: 10px 16px;
+    font-size: 12px;
+    z-index: 200;
+    max-height: 140px;
+    overflow-y: auto;
+    border-top: 2px solid var(--error-fg);
+    font-family: var(--vscode-editor-font-family, monospace);
+}
+
+.error-banner.visible {
+    display: block;
+}
+
+.error-banner .close-btn {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--error-fg);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 6px;
+    opacity: 0.7;
+}
+
+.error-banner .close-btn:hover {
+    opacity: 1;
+}
+
+/* Minimap */
+.minimap {
+    display: none;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 160px;
+    height: 110px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    opacity: 0.75;
+    z-index: 90;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: opacity 0.2s;
+}
+
+.minimap:hover {
+    opacity: 1;
+}
+
+.minimap.visible {
+    display: block;
+}
+
+.minimap svg {
+    width: 100%;
+    height: 100%;
+}
+
+.minimap-viewport {
+    position: absolute;
+    border: 1.5px solid var(--accent);
+    background: rgba(0, 122, 204, 0.08);
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+/* Empty state */
+.empty-state {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--fg);
+    opacity: 0.4;
+}
+
+.empty-state.visible {
+    display: block;
+}
+
+.empty-state .icon {
+    font-size: 52px;
+    margin-bottom: 14px;
+    opacity: 0.6;
+}
+
+.empty-state .label {
+    font-size: 14px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover);
+}

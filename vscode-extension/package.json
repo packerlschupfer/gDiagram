@@ -1,0 +1,151 @@
+{
+  "name": "gdiagram",
+  "displayName": "gDiagram - PlantUML & Mermaid",
+  "description": "Native PlantUML and Mermaid diagram editor with live preview. No Java, no Node.js — 50 diagram types.",
+  "version": "0.1.0",
+  "publisher": "packerlschupfer",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "activationEvents": [
+    "onLanguage:plantuml",
+    "onLanguage:mermaid"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "plantuml",
+        "aliases": [
+          "PlantUML"
+        ],
+        "extensions": [
+          ".puml",
+          ".plantuml",
+          ".pu",
+          ".iuml"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "mermaid",
+        "aliases": [
+          "Mermaid"
+        ],
+        "extensions": [
+          ".mmd",
+          ".mermaid"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "plantuml",
+        "scopeName": "source.plantuml",
+        "path": "./syntaxes/plantuml.tmLanguage.json"
+      },
+      {
+        "language": "mermaid",
+        "scopeName": "source.mermaid",
+        "path": "./syntaxes/mermaid.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "gdiagram.showPreview",
+        "title": "gDiagram: Show Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "gdiagram.exportPng",
+        "title": "gDiagram: Export as PNG"
+      },
+      {
+        "command": "gdiagram.exportSvg",
+        "title": "gDiagram: Export as SVG"
+      },
+      {
+        "command": "gdiagram.exportPdf",
+        "title": "gDiagram: Export as PDF"
+      },
+      {
+        "command": "gdiagram.newFromTemplate",
+        "title": "gDiagram: New Diagram from Template"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "gdiagram.showPreview",
+          "when": "resourceLangId == plantuml || resourceLangId == mermaid",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "gdiagram.showPreview",
+        "key": "ctrl+shift+v",
+        "when": "resourceLangId == plantuml || resourceLangId == mermaid"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "plantuml",
+        "path": "./snippets/plantuml.json"
+      },
+      {
+        "language": "mermaid",
+        "path": "./snippets/mermaid.json"
+      }
+    ],
+    "configuration": {
+      "title": "gDiagram",
+      "properties": {
+        "gdiagram.lspPath": {
+          "type": "string",
+          "default": "gdiagram-lsp",
+          "description": "Path to the gdiagram-lsp binary"
+        },
+        "gdiagram.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "default-light",
+            "default-dark",
+            "solarized-light",
+            "solarized-dark",
+            "dracula",
+            "nord-light",
+            "nord-dark"
+          ],
+          "default": "auto",
+          "description": "Color theme for diagram rendering"
+        },
+        "gdiagram.autoPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show preview when opening diagram files"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

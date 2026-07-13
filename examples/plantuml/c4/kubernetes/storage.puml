@@ -1,0 +1,43 @@
+@startuml
+' Drilled from cluster.puml — Storage stack.
+'
+' PVC is the user's request, PV is the actual volume, StorageClass
+' enables dynamic provisioning. CSI is the standard interface for
+' storage drivers. Pods mount PVCs via volumes.
+
+title Storage — PV / PVC / StorageClass / CSI
+
+rectangle "Developer\nWrites Pod spec" <<person>> as dev
+rectangle "Cluster Admin\nCreates StorageClass" <<person>> as admin
+
+rectangle "Storage Resources" <<container_boundary>> as resources {
+    rectangle "StorageClass\nProvisioner + parameters"          <<component>> as sc
+    rectangle "PersistentVolumeClaim\nUser request: size + mode" <<component>> as pvc
+    database  "PersistentVolume\nActual volume\n(static or dynamic)" <<container>> as pv
+}
+
+rectangle "Pod" <<container_boundary>> as pod {
+    rectangle "volumes:\n persistentVolumeClaim" <<component>> as volref
+    rectangle "volumeMounts:\n /data"            <<component>> as mount
+}
+
+rectangle "CSI Driver" <<container_boundary>> as csi {
+    rectangle "Controller Plugin\nProvision / Attach"   <<component>> as ctrlplug
+    rectangle "Node Plugin\nMount / Format"             <<component>> as nodeplug
+}
+
+rectangle "Storage Backend\nNFS / Ceph / EBS / GCE-PD" <<external_system>> as backend
+
+admin --> sc       : "Creates"
+dev   --> pvc      : "Requests storage"
+pvc   --> sc       : "References"
+sc    --> ctrlplug : "Triggers provision"
+ctrlplug --> backend : "Create volume"
+backend --> pv     : "Becomes"
+pvc     --> pv     : "Binds to"
+pod     --> volref : "Mounts"
+volref  --> pvc    : "Claim ref"
+nodeplug --> mount : "Mounts on node"
+volref  --> mount  : "Exposed at path"
+
+@enduml

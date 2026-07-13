@@ -1,0 +1,29 @@
+@startnwdiag
+nwdiag {
+  network internet {
+    address = "x.x.x.x/0"
+    firewall [address = "x.x.x.1", shape = "server"]
+  }
+
+  network dmz {
+    address = "192.168.1.x/24"
+    firewall [address = "192.168.1.1"]
+    web01 [address = "192.168.1.10"]
+    web02 [address = "192.168.1.11"]
+  }
+
+  network internal {
+    address = "10.0.0.x/24"
+    web01 [address = "10.0.0.10"]
+    web02 [address = "10.0.0.11"]
+    db01 [address = "10.0.0.100", shape = "database"]
+    db02 [address = "10.0.0.101", shape = "database"]
+  }
+
+  group webservers {
+    color = "#FFaaaa"
+    web01
+    web02
+  }
+}
+@endnwdiag
