@@ -80,6 +80,17 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.1" date="2026-10-28">
+      <description>
+        <p>Two requests from the first outside issues:</p>
+        <ul>
+          <li>Sequence diagram notes honour the &lt;right&gt;, &lt;center&gt; and
+              &lt;left&gt; line directives</li>
+          <li>The export colour scheme can be chosen independently of the app
+              theme, in the dialog and with --theme on the command line</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.0" date="2024-12-25">
       <description>
         <p>Initial release with core functionality:</p>

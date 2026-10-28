@@ -1,3 +1,14 @@
+gdiagram (0.1.1-1) unstable; urgency=medium
+
+  * Sequence notes honour PlantUML's <right>, <center> and <left> line
+    directives, and swallow a matching closing tag (Closes: #2)
+  * Export colour scheme can be chosen in the export dialog and with
+    --theme auto|light|dark on the command line, so a dark UI can still
+    produce a light diagram and a scripted export is reproducible
+    (Closes: #3)
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Wed, 28 Oct 2026 22:05:28 +0100
+
 gdiagram (0.1.0-1) unstable; urgency=medium
 
   * Initial release of gDiagram (formerly gPlantUML)
