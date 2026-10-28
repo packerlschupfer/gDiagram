@@ -374,6 +374,38 @@ namespace GDiagram.Tests {
 
         // ---- 4 ----
 
+        /**
+         * Issue #2: PlantUML's <right>/<center>/<left> inside a note are LINE directives.
+         * Measured against PlantUML 1.2026.9: the opening tag aligns that line, and a closing
+         * tag is drawn as literal text there. We align the same way and additionally swallow a
+         * matching closing tag, so the <right>..</right> form the reporter wrote renders clean.
+         */
+        public static void test_note_line_alignment() {
+            string body = "A -> B : hello\n" +
+                          "note right of B\n" +
+                          "<right>right aligned</right>\n" +
+                          "<center>centered</center>\n" +
+                          "left aligned and long enough to set the width\n" +
+                          "end note";
+            string svg = svg_of(body);
+
+            // No stray closing tag is drawn.
+            if (svg.contains("&lt;/right&gt;") || svg.contains("&lt;/center&gt;")) {
+                printerr("a closing alignment tag leaked into the drawing:\n%s\n", svg);
+                assert_not_reached();
+            }
+            // ... nor an unconsumed opening one.
+            assert(!svg.contains("&lt;right&gt;"));
+
+            double right_x = text_x(svg, "right aligned");
+            double centre_x = text_x(svg, "centered");
+            double left_x = text_x(svg, "left aligned and long enough to set the width");
+
+            // The long line sets the width; right sits furthest right, centre between them.
+            assert(right_x > centre_x);
+            assert(centre_x > left_x);
+        }
+
         public static void test_notes_beside_lifelines() {
             string body = "participant A\nparticipant B\nparticipant C\nA -> B : hello\n" +
                           "note left of A : left note\nnote right of A : right note\n" +
@@ -917,6 +949,7 @@ namespace GDiagram.Tests {
             Test.add_func("/sequence-layout/fidelity/13-skinparams-escapes", test_skinparams_and_escapes);
             Test.add_func("/sequence-layout/fidelity/14-footer-single-page", test_footer_single_page);
             Test.add_func("/sequence-layout/fidelity/15-note-text-centred", test_note_text_centred);
+            Test.add_func("/sequence-layout/note-line-alignment", test_note_line_alignment);
             Test.add_func("/sequence-layout/fidelity/click-regions", test_click_regions);
             Test.add_func("/sequence-layout/fidelity/label-images", test_label_images);
             Test.add_func("/sequence-layout/fidelity/lifeline-colour", test_lifeline_colour_both_themes);

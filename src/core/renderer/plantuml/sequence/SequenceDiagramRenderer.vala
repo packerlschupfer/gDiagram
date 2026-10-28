@@ -174,7 +174,9 @@ namespace GDiagram {
                 }
                 // Creole text; the lines left-aligned with each other, the block centred in the
                 // note as PlantUML draws it (the markers used to be stripped and "" kept)
-                string note_text = text_block(creole_html(note.text, true));
+                string note_balign = "LEFT";
+                string note_html = aligned_html(note.text, out note_balign, true);
+                string note_text = text_block(note_html, note_balign);
                 note_attrs[ni] = "shape=%s, style=filled, fillcolor=\"%s\", fontcolor=\"%s\", label=<%s>, color=\"%s\", fontsize=11, margin=\"0.1,0.04\"".printf(
                     note_shape, note_fill, note_font, note_text, seq_arrow);
                 want("note%d".printf(ni), note_attrs[ni]);
@@ -1671,6 +1673,7 @@ namespace GDiagram {
         }
 
         private static Regex? tag_regex = null;
+        private static Regex? align_open_regex = null;
         private static Regex? font_attr_regex = null;
 
         // The two-character Creole marker at `i`, or null
@@ -2127,9 +2130,98 @@ namespace GDiagram {
         }
 
         // Text lines left-aligned with each other, the block centred in its node
-        private string text_block(string html) {
+        private string text_block(string html, string balign = "LEFT") {
             return "<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\"><TR>%s</TR></TABLE>".printf(
-                html_cells(html));
+                html_cells(html, balign));
+        }
+
+        /**
+         * PlantUML's <right>, <center> and <left> are LINE directives, not wrapping tags: the
+         * opening tag switches that line's alignment, and PlantUML draws a stray closing tag
+         * as literal text (measured against 1.2026.9). We honour the directive the same way,
+         * and additionally swallow a matching closing tag so `<right>text</right>` - the form
+         * a user naturally writes, and the one reported in issue #2 - renders clean here.
+         *
+         * Graphviz carries per-line alignment on the <BR> that FOLLOWS a line, so the k-th
+         * break takes line k's alignment and the last line's goes to the cell's BALIGN.
+         */
+        private string aligned_html(string? raw, out string balign, bool allow_images = false) {
+            balign = "LEFT";
+            if (raw == null || raw.length == 0) {
+                return "";
+            }
+            try {
+                if (align_open_regex == null) {
+                    align_open_regex = new Regex("^\\s*<(right|center|centre|left)\\s*>",
+                                                 RegexCompileFlags.CASELESS);
+                }
+            } catch (RegexError e) {
+                return creole_html(raw, allow_images);
+            }
+
+            string[] lines = raw.split("\n");
+            string[] aligns = new string[lines.length];
+            var cleaned = new StringBuilder();
+            for (int i = 0; i < lines.length; i++) {
+                string line = lines[i];
+                string a = "LEFT";
+                try {
+                    MatchInfo mi;
+                    if (align_open_regex.match(line, 0, out mi)) {
+                        string tag = mi.fetch(1).down();
+                        a = (tag == "right") ? "RIGHT"
+                                             : ((tag == "left") ? "LEFT" : "CENTER");
+                        int start, end;
+                        mi.fetch_pos(0, out start, out end);
+                        line = line.substring(end);
+                        // ... and the closing tag PlantUML would have drawn as text
+                        string close = "</%s>".printf(tag);
+                        string tail = line.chomp();
+                        if (tail.down().has_suffix(close)) {
+                            line = tail.substring(0, tail.length - close.length);
+                        }
+                    }
+                } catch (RegexError e) {
+                    // leave the line as written
+                }
+                aligns[i] = a;
+                cleaned.append(line);
+                if (i < lines.length - 1) {
+                    cleaned.append("\n");
+                }
+            }
+
+            string html = creole_html(cleaned.str, allow_images);
+
+            // No directive used: emit exactly what we always did. Tagging every break with
+            // ALIGN="LEFT" would render identically but rewrite the DOT of every multi-line
+            // note in every existing file, which anyone diffing `-f dot` output would see.
+            bool any = false;
+            foreach (string a in aligns) {
+                if (a != "LEFT") {
+                    any = true;
+                }
+            }
+            if (!any) {
+                return html;
+            }
+
+            var sb = new StringBuilder();
+            int li = 0;
+            int idx = 0;
+            while (true) {
+                int br = html.index_of("<BR/>", idx);
+                if (br < 0) {
+                    break;
+                }
+                sb.append(html.substring(idx, br - idx));
+                sb.append("<BR ALIGN=\"%s\"/>".printf(li < aligns.length ? aligns[li] : "LEFT"));
+                idx = br + 5;
+                li++;
+            }
+            sb.append(html.substring(idx));
+            balign = aligns.length > 0 ? aligns[aligns.length - 1] : "LEFT";
+            return sb.str;
         }
 
         // Text that needs no HTML label: no markup, no escapes, one line
