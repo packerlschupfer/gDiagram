@@ -175,13 +175,30 @@ rejected by mermaid and still rendered here, pinned by `review_mermaid_flowchart
 When using `mmdc` as an oracle, note it **exits 0 while writing an error SVG** — check for
 `aria-roledescription="error"`, not the exit code or the file's existence.
 
-### CLI export format
+### CLI export format and colours
 
 With no `-f/--format`, the format comes from the OUTPUT file's extension (`.png`, `.svg`,
 `.pdf`, `.dot`); `-f` is an override and wins, with a warning when it disagrees with the
-extension. Before this, `-e out.svg` silently wrote PNG bytes into a file named `.svg`.
-`tests/cli_args_test.vala` asserts on the file's **magic bytes**, not the printed line — a test
-on the message would have passed throughout that bug.
+extension. `--theme auto|light|dark` pins the exported colours (issue #3): `auto` keeps the
+GSettings-resolved palette, which a headless export resolves from the LIGHT slot because it
+cannot ask libadwaita for the system theme — and that slot may itself hold a dark preset, so an
+unpinned scripted export is not reproducible across machines. The export dialog has the same
+choice, and it composes with the transparent-background switch.
+
+Before the extension rule, `-e out.svg` silently wrote PNG bytes into a file named `.svg`.
+`tests/cli_args_test.vala` asserts on the file's **magic bytes** and on the exported colours,
+not on the printed line — a message-only test would have passed throughout both bugs.
+
+### Note line alignment
+
+PlantUML's `<right>`/`<center>`/`<left>` inside a note are LINE directives, not wrapping tags —
+the opening tag aligns that line, and PlantUML itself draws a closing tag as literal text
+(measured against 1.2026.9). `aligned_html()` in `SequenceDiagramRenderer` honours the directive
+the same way and additionally swallows a matching closing tag, so the `<right>…</right>` form a
+user naturally writes renders clean here (issue #2). Graphviz carries per-line alignment on the
+`<BR>` that *follows* a line, so the k-th break takes line k's alignment and the last line's
+goes to the cell's `BALIGN`. The function returns the plain creole output unless a directive was
+actually used, which keeps the DOT of every existing note byte-identical.
 
 ### Locale
 
@@ -261,4 +278,13 @@ The release version is pinned at `0.1.0` and the .deb's file mtimes are pinned t
 
 - Work on `main` branch
 - Commit message prefixes: `Fix:`, `Refactor:`, `Add:`
-- Force push is allowed (personal project)
+- **Never force-push, never amend a published commit, never move an existing tag.** This
+  changed on 2026-10-28, when the project got its first outside user and its first filed
+  issues. Until then the whole repo was one squashed release commit that every round amended
+  and force-pushed, with `v0.1.0` retagged onto it — fine for a repo nobody had cloned, and
+  actively harmful now: a force-push rewrites history under anyone who cloned or forked, moving
+  a published tag makes their "v0.1.0" silently different code from ours, and an issue that
+  cites a commit hash stops resolving.
+- A release is an ordinary commit plus a **new** annotated tag (`v0.1.1`, `v0.2.0`, …). The
+  release workflow fires on `v*`, so the new tag is also what builds and publishes it. History
+  through `34294b9` is the old single amended commit; everything after it is ordinary commits.
