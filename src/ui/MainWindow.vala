@@ -639,7 +639,7 @@ namespace GDiagram {
             var surface = view.get_preview_surface();
             var dialog = new ExportDialog(surface, view.document.title);
 
-            dialog.export_requested.connect((format, scale, filename, transparent) => {
+            dialog.export_requested.connect((format, scale, filename, transparent, scheme) => {
                 // Transparent-background export: swap the active palette for
                 // a clone with background="transparent" during the export,
                 // then restore. Renderers read background on each render, so
@@ -654,10 +654,18 @@ namespace GDiagram {
                 EngineLock.acquire();
                 try {
                     Palette? saved_palette = null;
-                    if (transparent) {
+                    // An explicit export colour scheme (issue #3) is the same swap-and-restore
+                    // as the transparent background, so the two compose: pick the base palette
+                    // first, then clone it for transparency.
+                    if (scheme != "auto" || transparent) {
                         saved_palette = ThemeManager.get_active_palette();
-                        var temp = saved_palette.clone();
-                        temp.background = "transparent";
+                        Palette temp = scheme == "auto"
+                            ? saved_palette.clone()
+                            : ThemeManager.get_preset(scheme == "dark" ? "default-dark"
+                                                                      : "default-light").clone();
+                        if (transparent) {
+                            temp.background = "transparent";
+                        }
                         ThemeManager.set_active_palette(temp);
                         // export_to_png_scaled operates on the current preview
                         // surface, so we need to re-render the preview with the

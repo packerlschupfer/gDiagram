@@ -8,12 +8,14 @@ namespace GDiagram {
         private Gtk.Button export_button;
         private Gtk.Button copy_button;
         private Adw.SwitchRow transparent_row;
+        private Adw.ComboRow scheme_row;
 
         private Cairo.ImageSurface? source_surface;
         private string document_title;
         private bool updating_from_preset = false;
 
-        public signal void export_requested(string format, double scale, string filename, bool transparent);
+        public signal void export_requested(string format, double scale, string filename,
+                                            bool transparent, string scheme);
 
         public ExportDialog(Cairo.ImageSurface? surface, string title) {
             this.source_surface = surface;
@@ -130,6 +132,16 @@ namespace GDiagram {
             // Transparent background toggle — applies to all formats.
             // Temporarily overrides the active palette's background slot
             // during export, then restores it.
+            // Issue #3: a dark UI and a light diagram for a document are different things.
+            // "Follow app" keeps the old behaviour; light/dark pin the export regardless of
+            // the app's colour scheme and of the GSettings a headless export would read.
+            scheme_row = new Adw.ComboRow();
+            scheme_row.title = "Color scheme";
+            scheme_row.subtitle = "Colors of the exported file";
+            scheme_row.model = new Gtk.StringList({ "Follow app", "Light", "Dark" });
+            scheme_row.selected = 0;
+            prefs_group.add(scheme_row);
+
             transparent_row = new Adw.SwitchRow();
             transparent_row.title = "Transparent background";
             transparent_row.subtitle = "Export without the current theme's canvas color";
@@ -261,7 +273,10 @@ namespace GDiagram {
                     var file = chooser.save.end(res);
                     if (file != null) {
                         string path = file.get_path();
-                        export_requested(format, scale_spin.value, path, transparent_row.active);
+                        string scheme = scheme_row.selected == 1 ? "light"
+                                      : (scheme_row.selected == 2 ? "dark" : "auto");
+                        export_requested(format, scale_spin.value, path,
+                                         transparent_row.active, scheme);
                         this.close();
                     }
                 } catch (Error e) {

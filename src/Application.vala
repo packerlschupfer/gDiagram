@@ -80,6 +80,7 @@ namespace GDiagram {
             print("  -e, --export OUTPUT      Export to file (headless)\n");
             print("  -f, --format FORMAT      Export format: png, svg, pdf, dot\n");
             print("                           (default: the OUTPUT extension, else png)\n");
+            print("  --theme SCHEME           Export colors: auto (default), light or dark\n");
             print("  --scale                  Scale output 71.5%% to match PlantUML dimensions\n");
             print("  -h, --help               Show this help\n");
             print("  --version                Show version information\n");
@@ -181,11 +182,13 @@ namespace GDiagram {
         // Entry point for main.vala's pre-registration export dispatch —
         // runs without a display (no GApplication registration involved).
         public int run_headless_export(string input_path, string output_path,
-                                       string format, bool scale_output) {
-            return handle_export(input_path, output_path, format, scale_output);
+                                       string format, bool scale_output,
+                                       string theme = "auto") {
+            return handle_export(input_path, output_path, format, scale_output, theme);
         }
 
-        private int handle_export(string input_path, string output_path, string format, bool scale_output = false) {
+        private int handle_export(string input_path, string output_path, string format,
+                                  bool scale_output = false, string theme = "auto") {
             try {
                 // Resolve the active color palette before any renderer runs.
                 // GUI mode does this in activate(); CLI export mode skips
@@ -198,6 +201,15 @@ namespace GDiagram {
                 var schema_src = GLib.SettingsSchemaSource.get_default();
                 if (schema_src != null && schema_src.lookup(APP_ID, true) != null) {
                     ThemeManager.refresh_from_settings(new GLib.Settings(APP_ID));
+                }
+                // --theme pins the export's colours AFTER the settings pass, so a scripted
+                // export does not depend on the desktop it runs on (issue #3). Without it a
+                // headless export cannot ask libadwaita for the system theme and resolves the
+                // LIGHT slot from GSettings - which may itself hold a dark preset.
+                if (theme == "light" || theme == "dark") {
+                    ThemeManager.set_active_palette(
+                        ThemeManager.get_preset(theme == "dark" ? "default-dark"
+                                                                : "default-light"));
                 }
 
                 print("Exporting %s → %s (%s)\n", input_path, output_path, format);

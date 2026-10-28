@@ -328,6 +328,44 @@ namespace GDiagram.Tests {
          * request and the bytes. Every extension we accept for -f is checked, upper case
          * included, and the announced format has to agree with what landed on disk.
          */
+        /**
+         * Issue #3: --theme pins the export's colours so a scripted export does not depend on
+         * the desktop it runs on. Without it a headless export resolves the palette from
+         * GSettings, whose LIGHT slot may itself hold a dark preset — which is exactly how a
+         * user ends up with a dark PNG they did not ask for.
+         *
+         * Asserts the rendered background, not the printed line: a message-only check would
+         * have passed throughout the bug this fixes.
+         */
+        public static void test_theme_pins_export_colors() {
+            string src = source_file();
+
+            string light = out_path("light.svg");
+            string err;
+            assert(run_cli({ src, "-e", light, "-f", "svg", "--theme", "light" }, out err) == 0);
+            string light_svg;
+            FileUtils.get_contents(light, out light_svg);
+
+            string dark = out_path("dark.svg");
+            assert(run_cli({ src, "-e", dark, "-f", "svg", "--theme", "dark" }, out err) == 0);
+            string dark_svg;
+            FileUtils.get_contents(dark, out dark_svg);
+
+            // The two must actually differ, and light must be the pale one.
+            assert(light_svg != dark_svg);
+            assert(light_svg.contains("#fafafa"));
+            assert(dark_svg.contains("#1e1e1e"));
+            assert(!light_svg.contains("#1e1e1e"));
+
+            // Bad input is reported rather than silently ignored.
+            assert(run_cli({ src, "-e", out_path("x.svg"), "--theme" }, out err) == 2);
+            assert(err.contains("needs a scheme"));
+            assert(run_cli({ src, "-e", out_path("x.svg"), "--theme", "sepia" }, out err) == 2);
+            assert(err.contains("unknown theme"));
+            assert(run_cli({ src, "--theme", "light" }, out err) == 2);
+            assert(err.contains("only applies to an export"));
+        }
+
         public static void test_format_follows_output_extension() {
             string src = source_file();
             string[] names = { "byname.svg", "byname.pdf", "byname.PNG", "byname.dot" };
@@ -856,6 +894,8 @@ namespace GDiagram.Tests {
                       CliArgsTests.test_dump_preprocessed_contract);
         Test.add_func("/cli-args/png_write_failure_reason",
                       CliArgsTests.test_png_write_failure_reports_the_reason);
+        Test.add_func("/cli-args/theme_pins_export_colors",
+                      CliArgsTests.test_theme_pins_export_colors);
         Test.add_func("/cli-args/format_follows_output_extension",
                       CliArgsTests.test_format_follows_output_extension);
         Test.add_func("/cli-args/explicit_format_overrides_extension",

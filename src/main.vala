@@ -2,13 +2,19 @@
 // error: "-f SVG", "-f jpeg" and "-f ''" all used to fall through to a silent PNG.
 const string[] CLI_EXPORT_FORMATS = { "png", "svg", "pdf", "dot" };
 
+// Export colour schemes (issue #3). "auto" is the old behaviour: resolve the palette from
+// GSettings, which on a desktop whose light slot holds a dark preset produces a dark export
+// of a file that has nothing to do with the desktop. light/dark pin it instead, so a scripted
+// export is reproducible on any machine.
+const string[] CLI_EXPORT_THEMES = { "auto", "light", "dark" };
+
 // Every option this binary understands itself. An argument starting with "-" that is
 // not one of these is a typo: "--scal" (for --scale) used to export happily, unscaled
 // and unmentioned, and "--bogus" was ignored outright. Only the headless paths below
 // reject them -- GUI mode still forwards its arguments to GApplication, which has its
 // own (--gapplication-service, --display, ...).
 const string[] CLI_KNOWN_FLAGS = {
-    "-e", "--export", "-f", "--format", "--scale",
+    "-e", "--export", "-f", "--format", "--scale", "--theme",
     "-d", "--debug", "-h", "--help", "--version", "--dump-preprocessed"
 };
 
@@ -96,6 +102,8 @@ int main(string[] args) {
     // to be dropped in silence -- a second input file, a repeated -e, an unknown flag --
     // is collected here so it can be reported instead.
     string? export_output = null;
+    string export_theme = "auto";
+    bool theme_requested = false;
     string export_format = "png";
     bool export_scale = false;
     bool export_requested = false;
@@ -125,6 +133,13 @@ int main(string[] args) {
             format_requested = true;
             format_count++;
             export_format = args[++i];
+        } else if (args[i] == "--theme") {
+            if (i + 1 >= args.length || args[i + 1].has_prefix("-")) {
+                cli_export_usage_error("--theme needs a scheme (auto, light or dark)");
+                return 2;
+            }
+            theme_requested = true;
+            export_theme = args[++i].down();
         } else if (args[i] == "--scale") {
             export_scale = true;
         } else if (args[i] == "--dump-preprocessed") {
@@ -180,6 +195,21 @@ int main(string[] args) {
         } catch (Error e) {
             stderr.printf("Error: %s\n", e.message);
             return 1;
+        }
+    }
+
+    if (theme_requested) {
+        bool known = false;
+        foreach (string t in CLI_EXPORT_THEMES) {
+            if (export_theme == t) known = true;
+        }
+        if (!known) {
+            cli_export_usage_error("unknown theme '%s' (auto, light or dark)".printf(export_theme));
+            return 2;
+        }
+        if (!export_requested) {
+            cli_export_usage_error("--theme only applies to an export; add -e OUTPUT");
+            return 2;
         }
     }
 
@@ -263,7 +293,7 @@ int main(string[] args) {
 
         var export_app = new GDiagram.Application();
         return export_app.run_headless_export(export_input, export_output,
-                                              export_format, export_scale);
+                                              export_format, export_scale, export_theme);
     }
 
     var app = new GDiagram.Application();
