@@ -23,7 +23,7 @@ AppDir:
     id: org.gnome.gDiagram
     name: gDiagram
     icon: org.gnome.gDiagram
-    version: 0.1.3
+    version: 0.1.4
     exec: usr/bin/gdiagram
     exec_args: $@
 

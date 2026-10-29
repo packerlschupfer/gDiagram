@@ -202,6 +202,21 @@ ast_fuzz_test = executable('ast_fuzz_test',
 test('AST fuzz tests', ast_fuzz_test)
 
 # ── Examples health test ──────────────────────────────────────
+# ── Icon assets ───────────────────────────────────────────────
+# GdkPixbuf, not librsvg: flatpak validates exported icons with the former, and
+# an icon that renders locally can still fail `flatpak build-export`.
+gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0')
+icon_assets_test = executable('icon_assets_test',
+  ['icon_assets_test.vala'],
+  dependencies: core_test_deps + [gdiagram_core_dep, gdk_pixbuf_dep],
+  vala_args: core_test_vargs + ['--pkg=gdk-pixbuf-2.0'],
+  c_args: core_test_cargs,
+)
+test('Icon asset tests', icon_assets_test,
+  env: ['GDIAGRAM_ICONS_ROOT=' + meson.project_source_root() / 'data' / 'icons'],
+  timeout: 60,
+)
+
 examples_health_test = executable('examples_health_test',
   ['examples_health_test.vala'],
   dependencies: core_test_deps + [gdiagram_core_dep],

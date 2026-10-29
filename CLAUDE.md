@@ -292,6 +292,20 @@ Build it as Release (`-DCMAKE_BUILD_TYPE=Release`, set by the script): a CMake b
 
 The release version is pinned at `0.1.0` and the .deb's file mtimes are pinned to the changelog date by `SOURCE_DATE_EPOCH`, so neither tells a July build from an October one — a user on another host concluded from `ls -l /usr/bin/gdiagram` that a fresh install was three months old. `meson.build` therefore feeds `git describe --always --dirty --abbrev=12` and the commit's **committer** date (the author date is pinned by the amend flow) into `config.vala` as `BUILD_ID`/`BUILD_DATE`; `gdiagram --version`, `--debug`, the About dialog and the LSP's `serverInfo.version` all print them. `tests/cli_args_test.vala` asserts `--version` carries a build id that is not the release version.
 
+### Icons
+
+`data/icons/` ships the app icon and its symbolic variant, both installed by
+`data/meson.build`. **An icon must load with GdkPixbuf, not merely render with librsvg** — the
+two disagree, and flatpak validates exported icons with GdkPixbuf, so an icon that looks right
+locally can fail `flatpak build-export` with "not a valid icon: Format not recognized" and take
+the release with it. That is how v0.1.3 was tagged but never published: a multi-line comment
+before `<svg>` pushed the signature out of the window GdkPixbuf sniffs. Keep explanatory
+comments INSIDE the `<svg>` element. `tests/icon_assets_test.vala` walks the icon tree and
+loads every file through GdkPixbuf, so this cannot reach a release again.
+
+A symbolic is recoloured by GTK and must stay single-colour: no gradients, no brand blue. The
+test asserts that too.
+
 ## Git Workflow
 
 - Work on `main` branch

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- gDiagram symbolic icon: the same idea as the app icon, drawn on the 16 px
-     grid where the full icon turns to mush - a split window, text on the left,
-     two linked nodes on the right. Single colour, as symbolics must be. -->
 <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- gDiagram symbolic icon: the same idea as the app icon, drawn on the
+       16 px grid where the full icon turns to mush - a split window, text on
+       the left, two linked nodes on the right. Single colour, as symbolics
+       must be.
+
+       This comment lives INSIDE <svg> deliberately. GdkPixbuf sniffs the file
+       head for the "<svg" signature, and a multi-line comment before the
+       element pushes it out of that window: librsvg still renders the file,
+       but GdkPixbuf reports "Format not recognized" - and that is what
+       flatpak validates exported icons with, so the v0.1.3 release failed to
+       export. -->
   <g fill="#222222">
     <!-- window outline -->
     <path d="M 2 2.5 A 1.5 1.5 0 0 1 3.5 1 h 9 A 1.5 1.5 0 0 1 14 2.5 v 11
