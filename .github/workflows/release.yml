@@ -71,11 +71,28 @@ jobs:
     - name: Build and install Graphviz 14.1.3
       if: steps.cache-graphviz.outputs.cache-hit != 'true'
       run: |
-        git clone https://gitlab.com/graphviz/graphviz.git /tmp/graphviz
-        cd /tmp/graphviz && git checkout ${{ env.GV_COMMIT }}
-        cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
-        make -C build -j$(nproc)
-        sudo make -C build install
+        # Shallow clone of the tag, not a full clone then checkout: the full
+        # history took ~35 minutes and a mid-fetch disconnect ("early EOF")
+        # failed the v0.1.2 release. Retried, because one network blip should
+        # not cost a whole pipeline.
+        for attempt in 1 2 3; do
+          rm -rf /tmp/graphviz
+          git clone --depth 1 --branch 14.1.3 \
+            https://gitlab.com/graphviz/graphviz.git /tmp/graphviz && break
+          echo "clone attempt $attempt failed; retrying"
+          sleep 15
+        done
+        # The tag must still be the commit the cache key names, or the key would
+        # promise a build it did not produce.
+        got=$(git -C /tmp/graphviz rev-parse HEAD)
+        if [ "$got" != "${{ env.GV_COMMIT }}" ]; then
+          echo "tag 14.1.3 is $got, expected ${{ env.GV_COMMIT }}" >&2
+          exit 1
+        fi
+        cmake -B /tmp/graphviz/build -S /tmp/graphviz \
+          -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
+        make -C /tmp/graphviz/build -j$(nproc)
+        sudo make -C /tmp/graphviz/build install
 
     - name: Configure Graphviz environment
       run: |
@@ -156,11 +173,28 @@ jobs:
     - name: Build and install Graphviz 14.1.3
       if: steps.cache-graphviz.outputs.cache-hit != 'true'
       run: |
-        git clone https://gitlab.com/graphviz/graphviz.git /tmp/graphviz
-        cd /tmp/graphviz && git checkout ${{ env.GV_COMMIT }}
-        cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
-        make -C build -j$(nproc)
-        sudo make -C build install
+        # Shallow clone of the tag, not a full clone then checkout: the full
+        # history took ~35 minutes and a mid-fetch disconnect ("early EOF")
+        # failed the v0.1.2 release. Retried, because one network blip should
+        # not cost a whole pipeline.
+        for attempt in 1 2 3; do
+          rm -rf /tmp/graphviz
+          git clone --depth 1 --branch 14.1.3 \
+            https://gitlab.com/graphviz/graphviz.git /tmp/graphviz && break
+          echo "clone attempt $attempt failed; retrying"
+          sleep 15
+        done
+        # The tag must still be the commit the cache key names, or the key would
+        # promise a build it did not produce.
+        got=$(git -C /tmp/graphviz rev-parse HEAD)
+        if [ "$got" != "${{ env.GV_COMMIT }}" ]; then
+          echo "tag 14.1.3 is $got, expected ${{ env.GV_COMMIT }}" >&2
+          exit 1
+        fi
+        cmake -B /tmp/graphviz/build -S /tmp/graphviz \
+          -DCMAKE_INSTALL_PREFIX=/opt/graphviz-patched
+        make -C /tmp/graphviz/build -j$(nproc)
+        sudo make -C /tmp/graphviz/build install
 
     - name: Configure Graphviz environment
       run: |
