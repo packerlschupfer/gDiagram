@@ -80,6 +80,17 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.2" date="2026-10-29">
+      <description>
+        <p>Follow-ups from the first issue reporter trying 0.1.1:</p>
+        <ul>
+          <li>Alignment directives work in sequence message labels, not only
+              in notes</li>
+          <li>A grayscale export option that desaturates the rendered output,
+              including colours written into the diagram itself</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-10-28">
       <description>
         <p>Two requests from the first outside issues:</p>

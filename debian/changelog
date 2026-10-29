@@ -1,3 +1,15 @@
+gdiagram (0.1.2-1) unstable; urgency=medium
+
+  * Sequence MESSAGE labels honour the <right>/<center>/<left> line
+    directives too, not just notes, composed with skinparam
+    sequenceMessageAlign (Closes: #2)
+  * --theme grayscale, and a Grayscale entry in the export dialog: the
+    rendered output is desaturated, so colours the theme does not own -
+    the C4 stdlib's own values, a diagram's own #RRGGBB - are grey as
+    well (Closes: #3)
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Thu, 29 Oct 2026 18:02:50 +0100
+
 gdiagram (0.1.1-1) unstable; urgency=medium
 
   * Sequence notes honour PlantUML's <right>, <center> and <left> line
