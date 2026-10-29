@@ -84,6 +84,80 @@ namespace GDiagram {
             p.success          = success;
             return p;
         }
+
+        /**
+         * A desaturated copy: every slot becomes its own luminance as a grey
+         * (Rec. 709: 0.2126 R + 0.7152 G + 0.0722 B), so contrast relationships
+         * survive and a black-and-white print or photocopy stays readable.
+         *
+         * Derived rather than hand-authored as a 26th preset, so it cannot
+         * drift from the palette it is made from. "transparent" and anything
+         * that is not a #RRGGBB / #RGB hex value is passed through untouched —
+         * a named colour reaching here would be a renderer convention
+         * (CLAUDE.md "Color Handling"), not something to recolour blindly.
+         */
+        public Palette to_grayscale() {
+            var p = clone();
+            p.background       = grey(p.background);
+            p.grid             = grey(p.grid);
+            p.node_fill        = grey(p.node_fill);
+            p.node_border      = grey(p.node_border);
+            p.node_text        = grey(p.node_text);
+            p.person_fill      = grey(p.person_fill);
+            p.person_border    = grey(p.person_border);
+            p.system_fill      = grey(p.system_fill);
+            p.system_border    = grey(p.system_border);
+            p.container_fill   = grey(p.container_fill);
+            p.container_border = grey(p.container_border);
+            p.component_fill   = grey(p.component_fill);
+            p.component_border = grey(p.component_border);
+            p.database_fill    = grey(p.database_fill);
+            p.database_border  = grey(p.database_border);
+            p.external_fill    = grey(p.external_fill);
+            p.external_border  = grey(p.external_border);
+            p.boundary_stroke  = grey(p.boundary_stroke);
+            p.on_colored_text  = grey(p.on_colored_text);
+            p.edge_color       = grey(p.edge_color);
+            p.edge_text        = grey(p.edge_text);
+            p.accent_primary   = grey(p.accent_primary);
+            p.accent_secondary = grey(p.accent_secondary);
+            p.warning          = grey(p.warning);
+            p.success          = grey(p.success);
+            return p;
+        }
+
+        /** One colour to its luminance grey; non-hex values pass through. */
+        public static string grey(string? color) {
+            if (color == null) {
+                return "";
+            }
+            string c = color.strip();
+            if (!c.has_prefix("#")) {
+                return color;
+            }
+            string hex = c.substring(1);
+            if (hex.length == 3) {
+                hex = "%c%c%c%c%c%c".printf(hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]);
+            }
+            if (hex.length != 6) {
+                return color;
+            }
+            int r = 0;
+            int g = 0;
+            int b = 0;
+            if (!int.try_parse(hex.substring(0, 2), out r, null, 16)) {
+                return color;
+            }
+            if (!int.try_parse(hex.substring(2, 2), out g, null, 16)) {
+                return color;
+            }
+            if (!int.try_parse(hex.substring(4, 2), out b, null, 16)) {
+                return color;
+            }
+            int y = (int) Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+            y = int.max(0, int.min(255, y));
+            return "#%02X%02X%02X".printf(y, y, y);
+        }
     }
 
     public class ThemeManager : Object {

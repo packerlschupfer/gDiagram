@@ -6,7 +6,12 @@ const string[] CLI_EXPORT_FORMATS = { "png", "svg", "pdf", "dot" };
 // GSettings, which on a desktop whose light slot holds a dark preset produces a dark export
 // of a file that has nothing to do with the desktop. light/dark pin it instead, so a scripted
 // export is reproducible on any machine.
-const string[] CLI_EXPORT_THEMES = { "auto", "light", "dark" };
+const string[] CLI_EXPORT_THEMES = {
+    "auto", "light", "dark",
+    // Grayscale is derived from the light palette by luminance, for a print or a
+    // photocopy. Both spellings, because the request came in as "grayscale".
+    "gray", "grey", "grayscale", "greyscale"
+};
 
 // Every option this binary understands itself. An argument starting with "-" that is
 // not one of these is a typo: "--scal" (for --scale) used to export happily, unscaled
@@ -135,7 +140,7 @@ int main(string[] args) {
             export_format = args[++i];
         } else if (args[i] == "--theme") {
             if (i + 1 >= args.length || args[i + 1].has_prefix("-")) {
-                cli_export_usage_error("--theme needs a scheme (auto, light or dark)");
+                cli_export_usage_error("--theme needs a scheme (auto, light, dark or grayscale)");
                 return 2;
             }
             theme_requested = true;
@@ -204,7 +209,8 @@ int main(string[] args) {
             if (export_theme == t) known = true;
         }
         if (!known) {
-            cli_export_usage_error("unknown theme '%s' (auto, light or dark)".printf(export_theme));
+            cli_export_usage_error(
+                "unknown theme '%s' (auto, light, dark or grayscale)".printf(export_theme));
             return 2;
         }
         if (!export_requested) {

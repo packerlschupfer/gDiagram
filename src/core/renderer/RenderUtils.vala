@@ -63,7 +63,62 @@ namespace GDiagram {
          * point) stays transparent and showed as a light line on dark diagrams. A rect in
          * the background colour over the whole canvas, drawn first, closes it.
          */
+        /**
+         * Export-only: desaturate every colour in the rendered SVG.
+         *
+         * Palette-level greying is not enough for "grayscale export" (issue #3 follow-up):
+         * it only reaches colours the THEME owns. A C4 diagram takes its blues from the
+         * C4-PlantUML stdlib's own hex literals, and a user can write `#red` directly - both
+         * survive a palette swap and come out coloured on a black-and-white print. Greying
+         * the finished SVG catches every source of colour at once.
+         *
+         * Set around an export and restored afterwards, under EngineLock, exactly like the
+         * transparent-background swap - the preview must not turn grey.
+         */
+        public static bool grayscale_output = false;
+
+        /** Rec. 709 luminance of every #RRGGBB / #RGB in the SVG, in place. */
+        public static string grayscale_svg(string svg) {
+            try {
+                var re = new Regex("#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\\b");
+                return re.replace_eval(svg, -1, 0, 0, (mi, result) => {
+                    string hex = mi.fetch(1);
+                    if (hex.length == 3) {
+                        hex = "%c%c%c%c%c%c".printf(hex[0], hex[0], hex[1], hex[1],
+                                                    hex[2], hex[2]);
+                    }
+                    int r = 0;
+                    int g = 0;
+                    int b = 0;
+                    if (int.try_parse(hex.substring(0, 2), out r, null, 16)
+                        && int.try_parse(hex.substring(2, 2), out g, null, 16)
+                        && int.try_parse(hex.substring(4, 2), out b, null, 16)) {
+                        int y = (int) Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+                        y = int.max(0, int.min(255, y));
+                        result.append_printf("#%02X%02X%02X", y, y, y);
+                    } else {
+                        result.append(mi.fetch(0));
+                    }
+                    return false;
+                });
+            } catch (RegexError e) {
+                return svg;
+            }
+        }
+
         public static uint8[] fill_svg_background(uint8[] svg_data) {
+            uint8[] filled = fill_svg_background_inner(svg_data);
+            if (!grayscale_output) {
+                return filled;
+            }
+            // Applied here rather than on one return path: the inner function bails out
+            // early for a transparent or missing background, and those exports must grey too.
+            var text = new StringBuilder.sized(filled.length + 1);
+            text.append_len((string) filled, filled.length);
+            return grayscale_svg(text.str).data;
+        }
+
+        private static uint8[] fill_svg_background_inner(uint8[] svg_data) {
             var text = new StringBuilder.sized(svg_data.length + 1);
             text.append_len((string) svg_data, svg_data.length);
             string svg = text.str;

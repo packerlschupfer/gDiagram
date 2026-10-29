@@ -2135,6 +2135,21 @@ namespace GDiagram {
                 html_cells(html, balign));
         }
 
+        /** True when any line opens with an alignment directive. */
+        private bool has_align_directive(string? text) {
+            if (text == null || !text.contains("<")) {
+                return false;
+            }
+            foreach (string line in text.split("\n")) {
+                string t = line.strip().down();
+                if (t.has_prefix("<right>") || t.has_prefix("<center>")
+                    || t.has_prefix("<centre>") || t.has_prefix("<left>")) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /**
          * PlantUML's <right>, <center> and <left> are LINE directives, not wrapping tags: the
          * opening tag switches that line's alignment, and PlantUML draws a stray closing tag
@@ -2145,8 +2160,9 @@ namespace GDiagram {
          * Graphviz carries per-line alignment on the <BR> that FOLLOWS a line, so the k-th
          * break takes line k's alignment and the last line's goes to the cell's BALIGN.
          */
-        private string aligned_html(string? raw, out string balign, bool allow_images = false) {
-            balign = "LEFT";
+        private string aligned_html(string? raw, out string balign, bool allow_images = false,
+                                    string default_align = "LEFT") {
+            balign = default_align;
             if (raw == null || raw.length == 0) {
                 return "";
             }
@@ -2164,7 +2180,7 @@ namespace GDiagram {
             var cleaned = new StringBuilder();
             for (int i = 0; i < lines.length; i++) {
                 string line = lines[i];
-                string a = "LEFT";
+                string a = default_align;
                 try {
                     MatchInfo mi;
                     if (align_open_regex.match(line, 0, out mi)) {
@@ -2198,7 +2214,7 @@ namespace GDiagram {
             // note in every existing file, which anyone diffing `-f dot` output would see.
             bool any = false;
             foreach (string a in aligns) {
-                if (a != "LEFT") {
+                if (a != default_align) {
                     any = true;
                 }
             }
@@ -2220,7 +2236,7 @@ namespace GDiagram {
                 li++;
             }
             sb.append(html.substring(idx));
-            balign = aligns.length > 0 ? aligns[aligns.length - 1] : "LEFT";
+            balign = aligns.length > 0 ? aligns[aligns.length - 1] : default_align;
             return sb.str;
         }
 
@@ -2298,7 +2314,9 @@ namespace GDiagram {
             if (!numbered && text.strip().length == 0) {
                 return null;
             }
-            if (!numbered && is_plain_text(text)) {
+            // A directive must not take the plain-text fast path: it would render
+            // "<right>" as literal text and never reach the formatter.
+            if (!numbered && is_plain_text(text) && !has_align_directive(text)) {
                 return text_attrs(pad_label(text), 11, font_color, true);
             }
             var cells = new StringBuilder("<TD WIDTH=\"6\"></TD>");
@@ -2317,7 +2335,11 @@ namespace GDiagram {
                 } else if (align != null && align.strip().down() == "center") {
                     balign = "CENTER";
                 }
-                cells.append(html_cells(creole_html(text, true), balign));
+                // The directive wins per line; lines without one keep the skinparam's
+                // alignment, so the two compose instead of fighting.
+                string line_balign = balign;
+                string msg_html = aligned_html(text, out line_balign, true, balign);
+                cells.append(html_cells(msg_html, line_balign));
             }
             cells.append("<TD WIDTH=\"6\"></TD>");
             return html_text_attrs("<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\"><TR>%s</TR></TABLE>".printf(cells.str),

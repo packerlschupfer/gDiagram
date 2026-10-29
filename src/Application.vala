@@ -80,7 +80,8 @@ namespace GDiagram {
             print("  -e, --export OUTPUT      Export to file (headless)\n");
             print("  -f, --format FORMAT      Export format: png, svg, pdf, dot\n");
             print("                           (default: the OUTPUT extension, else png)\n");
-            print("  --theme SCHEME           Export colors: auto (default), light or dark\n");
+            print("  --theme SCHEME           Export colors: auto (default), light, dark\n");
+            print("                           or grayscale\n");
             print("  --scale                  Scale output 71.5%% to match PlantUML dimensions\n");
             print("  -h, --help               Show this help\n");
             print("  --version                Show version information\n");
@@ -210,6 +211,13 @@ namespace GDiagram {
                     ThemeManager.set_active_palette(
                         ThemeManager.get_preset(theme == "dark" ? "default-dark"
                                                                 : "default-light"));
+                } else if (theme.has_prefix("gray") || theme.has_prefix("grey")) {
+                    // Both halves: the palette so themed elements are grey by construction,
+                    // and the SVG pass so colours the theme does not own - the C4 stdlib's
+                    // own hex values, a user's `#red` - are greyed as well.
+                    ThemeManager.set_active_palette(
+                        ThemeManager.get_preset("default-light").to_grayscale());
+                    RenderUtils.grayscale_output = true;
                 }
 
                 print("Exporting %s → %s (%s)\n", input_path, output_path, format);

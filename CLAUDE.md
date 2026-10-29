@@ -179,11 +179,21 @@ When using `mmdc` as an oracle, note it **exits 0 while writing an error SVG** �
 
 With no `-f/--format`, the format comes from the OUTPUT file's extension (`.png`, `.svg`,
 `.pdf`, `.dot`); `-f` is an override and wins, with a warning when it disagrees with the
-extension. `--theme auto|light|dark` pins the exported colours (issue #3): `auto` keeps the
+extension. `--theme auto|light|dark|grayscale` pins the exported colours (issue #3): `auto` keeps the
 GSettings-resolved palette, which a headless export resolves from the LIGHT slot because it
 cannot ask libadwaita for the system theme — and that slot may itself hold a dark preset, so an
 unpinned scripted export is not reproducible across machines. The export dialog has the same
 choice, and it composes with the transparent-background switch.
+
+**Grayscale is two things, and needs both.** `Palette.to_grayscale()` greys every theme slot by
+Rec. 709 luminance, and `RenderUtils.grayscale_output` greys the finished SVG. The palette half
+alone is not "grayscale export": a C4 diagram takes its blues from the C4-PlantUML stdlib's own
+hex literals and a user can write `#FF0000` directly, and neither belongs to the theme — both
+came out coloured on a black-and-white print. The SVG pass runs inside `fill_svg_background()`
+rather than on one of its return paths, because that function bails out early for a transparent
+or missing background and those exports must grey too. PNG and PDF derive from the same SVG, so
+they follow. The flag is set and cleared around an export under `EngineLock`, like the
+transparent swap — if it leaked, the preview would turn grey.
 
 Before the extension rule, `-e out.svg` silently wrote PNG bytes into a file named `.svg`.
 `tests/cli_args_test.vala` asserts on the file's **magic bytes** and on the exported colours,
@@ -191,7 +201,8 @@ not on the printed line — a message-only test would have passed throughout bot
 
 ### Note line alignment
 
-PlantUML's `<right>`/`<center>`/`<left>` inside a note are LINE directives, not wrapping tags —
+PlantUML's `<right>`/`<center>`/`<left>` inside a note **or a message label** are LINE
+directives, not wrapping tags —
 the opening tag aligns that line, and PlantUML itself draws a closing tag as literal text
 (measured against 1.2026.9). `aligned_html()` in `SequenceDiagramRenderer` honours the directive
 the same way and additionally swallows a matching closing tag, so the `<right>…</right>` form a
@@ -199,6 +210,13 @@ user naturally writes renders clean here (issue #2). Graphviz carries per-line a
 `<BR>` that *follows* a line, so the k-th break takes line k's alignment and the last line's
 goes to the cell's `BALIGN`. The function returns the plain creole output unless a directive was
 actually used, which keeps the DOT of every existing note byte-identical.
+
+Message labels take it too, composed with `skinparam sequenceMessageAlign` (the skinparam sets
+the default, a directive overrides its own line). A directive must also defeat the
+`is_plain_text()` fast path in `message_label_attrs()`, which renders the raw string and would
+draw `<right>` literally — `has_align_directive()` guards that. A test for this needs a
+single-line message: anything containing `\n` is already disqualified from the fast path, so a
+multi-line case cannot catch a regression there.
 
 ### Locale
 

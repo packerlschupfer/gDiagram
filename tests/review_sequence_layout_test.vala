@@ -380,6 +380,28 @@ namespace GDiagram.Tests {
          * tag is drawn as literal text there. We align the same way and additionally swallow a
          * matching closing tag, so the <right>..</right> form the reporter wrote renders clean.
          */
+        /**
+         * Issue #2 follow-up: the reporter's real case was a MESSAGE label, not a note —
+         * `A --> B : <right> ...\\n...`. PlantUML aligns those too (measured: its own output
+         * puts the directive's line further right than the following one), and the first fix
+         * only covered notes. A directive must also defeat the plain-text fast path, which
+         * would otherwise draw "<right>" literally.
+         */
+        public static void test_message_label_alignment() {
+            string svg = svg_of("A -> B : <right>hi\\nlonger second line here");
+            assert(!svg.contains("&lt;right&gt;"));
+            double first = text_x(svg, "hi");
+            double second = text_x(svg, "longer second line here");
+            assert(first > second);
+
+            // A single-line message has no markup and no "\\n", so it takes the plain-text
+            // fast path — which renders the raw string. Without the directive guard there,
+            // "<right>" is drawn literally. The multi-line case above cannot catch that,
+            // because its "\\n" already disqualifies it from the fast path.
+            string one = svg_of("A -> B : <right>hi");
+            assert(!one.contains("&lt;right&gt;"));
+        }
+
         public static void test_note_line_alignment() {
             string body = "A -> B : hello\n" +
                           "note right of B\n" +
@@ -950,6 +972,8 @@ namespace GDiagram.Tests {
             Test.add_func("/sequence-layout/fidelity/14-footer-single-page", test_footer_single_page);
             Test.add_func("/sequence-layout/fidelity/15-note-text-centred", test_note_text_centred);
             Test.add_func("/sequence-layout/note-line-alignment", test_note_line_alignment);
+            Test.add_func("/sequence-layout/message-label-alignment",
+                          test_message_label_alignment);
             Test.add_func("/sequence-layout/fidelity/click-regions", test_click_regions);
             Test.add_func("/sequence-layout/fidelity/label-images", test_label_images);
             Test.add_func("/sequence-layout/fidelity/lifeline-colour", test_lifeline_colour_both_themes);

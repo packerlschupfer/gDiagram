@@ -659,10 +659,16 @@ namespace GDiagram {
                     // first, then clone it for transparency.
                     if (scheme != "auto" || transparent) {
                         saved_palette = ThemeManager.get_active_palette();
-                        Palette temp = scheme == "auto"
-                            ? saved_palette.clone()
-                            : ThemeManager.get_preset(scheme == "dark" ? "default-dark"
-                                                                      : "default-light").clone();
+                        Palette temp;
+                        if (scheme == "auto") {
+                            temp = saved_palette.clone();
+                        } else if (scheme == "grayscale") {
+                            temp = ThemeManager.get_preset("default-light").to_grayscale();
+                            RenderUtils.grayscale_output = true;
+                        } else {
+                            temp = ThemeManager.get_preset(
+                                scheme == "dark" ? "default-dark" : "default-light").clone();
+                        }
                         if (transparent) {
                             temp.background = "transparent";
                         }
@@ -685,6 +691,7 @@ namespace GDiagram {
                             break;
                     }
 
+                    RenderUtils.grayscale_output = false;
                     if (saved_palette != null) {
                         ThemeManager.set_active_palette(saved_palette);
                         view.render_preview_now();

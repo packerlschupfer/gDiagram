@@ -337,6 +337,70 @@ namespace GDiagram.Tests {
          * Asserts the rendered background, not the printed line: a message-only check would
          * have passed throughout the bug this fixes.
          */
+        /**
+         * Issue #3 follow-up: "grayscale only" has to mean the OUTPUT, not the theme. A
+         * palette-level grey leaves anything the theme does not own — the C4 stdlib's own hex
+         * values, a user's `#red` — in colour on a black-and-white print, so the finished SVG
+         * is desaturated too. Also checks the flag does not leak into an ordinary export.
+         */
+        public static void test_grayscale_export() {
+            // A colour written INTO the diagram, which no palette owns — this is what
+            // separates "grey theme" from "grey output". With a palette-only grey this
+            // #FF0000 survives into the export, which is exactly the print the reporter
+            // did not want. (The first version of this test used the plain shared source,
+            // whose every colour comes from the palette, so it passed with the SVG pass
+            // disabled and proved nothing.)
+            string src = Path.build_filename(tmp_root(), "coloured.puml");
+            try {
+                FileUtils.set_contents(src,
+                    "@startuml\nAlice -[#FF0000]> Bob : hi\nnote right of Bob #FF0000 : red\n@enduml\n");
+            } catch (FileError e) {
+                error("write: %s", e.message);
+            }
+            string err;
+
+            string grey = out_path("grey.svg");
+            assert(run_cli({ src, "-e", grey, "-f", "svg", "--theme", "grayscale" }, out err) == 0);
+            string grey_svg;
+            FileUtils.get_contents(grey, out grey_svg);
+            assert(count_non_grey(grey_svg) == 0);
+
+            // "gray" spells the same thing.
+            string grey2 = out_path("grey2.svg");
+            assert(run_cli({ src, "-e", grey2, "-f", "svg", "--theme", "gray" }, out err) == 0);
+            string grey2_svg;
+            FileUtils.get_contents(grey2, out grey2_svg);
+            assert(count_non_grey(grey2_svg) == 0);
+
+            // A normal export in the same binary must still have colour.
+            string colour = out_path("colour.svg");
+            assert(run_cli({ src, "-e", colour, "-f", "svg", "--theme", "light" }, out err) == 0);
+            string colour_svg;
+            FileUtils.get_contents(colour, out colour_svg);
+            assert(count_non_grey(colour_svg) > 0);
+        }
+
+        /** How many #RRGGBB in the SVG are not a neutral grey. */
+        private static int count_non_grey(string svg) {
+            int n = 0;
+            try {
+                var re = new Regex("#([0-9a-fA-F]{6})\\b");
+                MatchInfo mi;
+                if (re.match(svg, 0, out mi)) {
+                    do {
+                        string h = mi.fetch(1).up();
+                        if (h.substring(0, 2) != h.substring(2, 2)
+                            || h.substring(2, 2) != h.substring(4, 2)) {
+                            n++;
+                        }
+                    } while (mi.next());
+                }
+            } catch (RegexError e) {
+                return -1;
+            }
+            return n;
+        }
+
         public static void test_theme_pins_export_colors() {
             string src = source_file();
 
@@ -894,6 +958,7 @@ namespace GDiagram.Tests {
                       CliArgsTests.test_dump_preprocessed_contract);
         Test.add_func("/cli-args/png_write_failure_reason",
                       CliArgsTests.test_png_write_failure_reports_the_reason);
+        Test.add_func("/cli-args/grayscale_export", CliArgsTests.test_grayscale_export);
         Test.add_func("/cli-args/theme_pins_export_colors",
                       CliArgsTests.test_theme_pins_export_colors);
         Test.add_func("/cli-args/format_follows_output_extension",

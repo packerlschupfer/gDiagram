@@ -138,7 +138,8 @@ namespace GDiagram {
             scheme_row = new Adw.ComboRow();
             scheme_row.title = "Color scheme";
             scheme_row.subtitle = "Colors of the exported file";
-            scheme_row.model = new Gtk.StringList({ "Follow app", "Light", "Dark" });
+            scheme_row.model = new Gtk.StringList({ "Follow app", "Light", "Dark",
+                                                    "Grayscale" });
             scheme_row.selected = 0;
             prefs_group.add(scheme_row);
 
@@ -273,8 +274,14 @@ namespace GDiagram {
                     var file = chooser.save.end(res);
                     if (file != null) {
                         string path = file.get_path();
-                        string scheme = scheme_row.selected == 1 ? "light"
-                                      : (scheme_row.selected == 2 ? "dark" : "auto");
+                        string scheme = "auto";
+                        if (scheme_row.selected == 1) {
+                            scheme = "light";
+                        } else if (scheme_row.selected == 2) {
+                            scheme = "dark";
+                        } else if (scheme_row.selected == 3) {
+                            scheme = "grayscale";
+                        }
                         export_requested(format, scale_spin.value, path,
                                          transparent_row.active, scheme);
                         this.close();
