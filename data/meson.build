@@ -26,6 +26,14 @@ install_data(
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps'),
 )
 
+# The symbolic variant is what the shell uses where the full icon is a smear -
+# 16 px lists, notifications, the dash under some themes. GTK recolours it, so
+# it must stay single-colour.
+install_data(
+  'icons/hicolor/symbolic/apps/org.gnome.gDiagram-symbolic.svg',
+  install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'symbolic', 'apps'),
+)
+
 # GtkSourceView language specs
 install_data(
   'lang/plantuml.lang',
