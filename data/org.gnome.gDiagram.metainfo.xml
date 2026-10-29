@@ -80,6 +80,17 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.3" date="2026-10-29">
+      <description>
+        <p>A new application icon, from a design proposed by a user:</p>
+        <ul>
+          <li>A split window - source on the left, rendered diagram on the
+              right - replacing an icon that still showed a plant from the
+              gPlantUML days</li>
+          <li>A symbolic icon variant for small sizes</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.2" date="2026-10-29">
       <description>
         <p>Follow-ups from the first issue reporter trying 0.1.1:</p>
