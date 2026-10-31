@@ -80,6 +80,17 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.5" date="2026-10-31">
+      <description>
+        <p>Two fixes from the issue reporter testing 0.1.4:</p>
+        <ul>
+          <li>Text alignment directives work after escaped newlines in a
+              message</li>
+          <li>A line ending in a backslash continues onto the next one, as
+              PlantUML does</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.4" date="2026-10-29">
       <description>
         <p>A new application icon, from a design proposed by a user:</p>

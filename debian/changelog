@@ -1,3 +1,15 @@
+gdiagram (0.1.5-1) unstable; urgency=medium
+
+  * Alignment directives work after escaped newlines: a message carries its
+    breaks as "\n" escapes, so "\n\n<right>text" lost the alignment and drew
+    the directive as text (Closes: #2)
+  * A line ending in a single backslash continues onto the next one, as
+    PlantUML does, for messages and note bodies. Line numbers are preserved,
+    and literal-body types (gitlog, ditaa, salt, dot, math) are left alone
+    (Closes: #5)
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Sat, 31 Oct 2026 13:28:48 +0100
+
 gdiagram (0.1.4-1) unstable; urgency=medium
 
   * New application icon, from the design proposed in #4: a split window
