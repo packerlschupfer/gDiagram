@@ -168,7 +168,101 @@ namespace GDiagram {
                     included_files.add(main_document);
                 }
             }
-            return process_internal(source, normalize_base_path(base_path), 0);
+            return process_internal(join_continuations(source),
+                                    normalize_base_path(base_path), 0);
+        }
+
+        /**
+         * PlantUML continues a line that ends in a single backslash onto the next one
+         * (issue #5): the backslash and the newline disappear and the two become one
+         * line. Works for messages, note bodies, anything.
+         *
+         * The joined-away line is replaced with an EMPTY line rather than removed, so
+         * every later line keeps its original number. Dropping it would shift them all,
+         * and line numbers are load-bearing here: click-to-source regions, LSP
+         * diagnostics and parse errors all point at them.
+         *
+         * A line ending in TWO backslashes is left alone. That is an escaped backslash
+         * in PlantUML's creole, and PlantUML itself answers the continuation reading of
+         * it with a syntax error - leaving it untouched is the forgiving divergence.
+         */
+        public static string join_continuations(string source) {
+            if (!source.contains("\\") || has_literal_body(source)) {
+                return source;
+            }
+            string[] lines = source.split("\n");
+            var result = new Gee.ArrayList<string>();
+            int i = 0;
+            while (i < lines.length) {
+                var current = new StringBuilder(lines[i]);
+                int consumed = 0;
+                // A run: the joined line may itself end in a backslash. Consuming
+                // forward rather than re-reading the line just blanked - the first
+                // version did that and swallowed the second continuation into the
+                // blank it had written, so "a \\ b \\ c" came out as "a b ".
+                while (ends_with_continuation(current.str)
+                       && i + consumed + 1 < lines.length) {
+                    current.truncate(current.str.length - 1);
+                    consumed++;
+                    current.append(lines[i + consumed]);
+                }
+                result.add(current.str);
+                for (int k = 0; k < consumed; k++) {
+                    result.add("");      // keep every later line on its own number
+                }
+                i += consumed + 1;
+            }
+            var out_lines = new string[result.size];
+            for (int k = 0; k < result.size; k++) {
+                out_lines[k] = result.get(k);
+            }
+            return string.joinv("\n", out_lines);
+        }
+
+        /**
+         * Diagram types whose body is literal art or another language, where a trailing
+         * backslash means something of its own and joining lines destroys it.
+         *
+         * `@startgitlog` is the one that caught this: its body is `git log --graph`
+         * output, where a line ending in "|\\" is a merge edge. Joining turned the graph
+         * into one line and the renderer drew five edges instead of... fewer. ditaa is
+         * ASCII art with diagonals, salt is wireframe art, dot is raw Graphviz, and
+         * math/latex is TeX, where backslashes are the syntax.
+         */
+        private static bool has_literal_body(string source) {
+            foreach (string line in source.split("\n")) {
+                string t = line.strip().down();
+                if (!t.has_prefix("@start")) {
+                    continue;
+                }
+                string tag = t.substring(6);
+                int space = tag.index_of(" ");
+                if (space >= 0) {
+                    tag = tag.substring(0, space);
+                }
+                switch (tag) {
+                    case "git": case "gitlog": case "ditaa": case "salt":
+                    case "dot": case "math": case "latex": case "regex":
+                        return true;
+                    default:
+                        return false;   // the first @start decides
+                }
+            }
+            return false;
+        }
+
+        /** A single trailing backslash continues; an escaped "\\\\" does not. */
+        private static bool ends_with_continuation(string line) {
+            if (!line.has_suffix("\\")) {
+                return false;
+            }
+            int run = 0;
+            int k = line.length - 1;
+            while (k >= 0 && line[k] == '\\') {
+                run++;
+                k--;
+            }
+            return run % 2 == 1;
         }
 
         /**

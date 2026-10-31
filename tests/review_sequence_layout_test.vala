@@ -402,6 +402,50 @@ namespace GDiagram.Tests {
             assert(!one.contains("&lt;right&gt;"));
         }
 
+        /**
+         * Issue #2, second report: a message carries its line breaks as "\n" ESCAPES, not
+         * as real newlines, so `A -> B : \n\n<right>text` is one string to anything that
+         * splits on '\n'. The first fix did exactly that and only worked when the directive
+         * happened to be the first thing in the message; leading blank lines dropped the
+         * alignment and drew "<right>" as text.
+         *
+         * The long first line is deliberate: it sets the cell width, so right/centre/left
+         * land at visibly different x. With lines of similar length the three are a couple
+         * of pixels apart and the assertion proves nothing.
+         */
+        public static void test_message_alignment_with_escaped_newlines() {
+            string svg = svg_of("A -> B : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                "\\n<right>short\\n<center>mid\\nleft");
+            assert(!svg.contains("&lt;right&gt;"));
+            assert(!svg.contains("&lt;center&gt;"));
+
+            double wide = text_x(svg, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            double right = text_x(svg, "short");
+            double centre = text_x(svg, "mid");
+            double left = text_x(svg, "left");
+
+            assert(left == wide);               // untouched lines stay put
+            assert(right > centre);             // right of centre
+            assert(centre > left);              // centre of left
+            assert(right - wide > 100.0);       // and genuinely far right, not a rounding
+        }
+
+        /**
+         * Leading blank lines before the directive, exactly as reported.
+         *
+         * The directive's line is the SHORT one on purpose: right-aligning the longest
+         * line moves it nowhere, so a test written the other way round passes whatever
+         * the code does. (Mine did, first time.)
+         */
+        public static void test_message_alignment_after_blank_lines() {
+            string svg = svg_of("A -> B : \\n\\n<right>short" +
+                                "\\nthis second line is clearly the longest one");
+            assert(!svg.contains("&lt;right&gt;"));
+            double aligned = text_x(svg, "short");
+            double longest = text_x(svg, "this second line is clearly the longest one");
+            assert(aligned - longest > 100.0);
+        }
+
         public static void test_note_line_alignment() {
             string body = "A -> B : hello\n" +
                           "note right of B\n" +
@@ -972,6 +1016,10 @@ namespace GDiagram.Tests {
             Test.add_func("/sequence-layout/fidelity/14-footer-single-page", test_footer_single_page);
             Test.add_func("/sequence-layout/fidelity/15-note-text-centred", test_note_text_centred);
             Test.add_func("/sequence-layout/note-line-alignment", test_note_line_alignment);
+            Test.add_func("/sequence-layout/message-alignment-escaped-newlines",
+                          test_message_alignment_with_escaped_newlines);
+            Test.add_func("/sequence-layout/message-alignment-after-blank-lines",
+                          test_message_alignment_after_blank_lines);
             Test.add_func("/sequence-layout/message-label-alignment",
                           test_message_label_alignment);
             Test.add_func("/sequence-layout/fidelity/click-regions", test_click_regions);

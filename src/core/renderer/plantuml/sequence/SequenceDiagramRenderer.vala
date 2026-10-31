@@ -2135,12 +2135,48 @@ namespace GDiagram {
                 html_cells(html, balign));
         }
 
+        /**
+         * Split text into the lines creole_html() will draw, by ITS rule: a real
+         * newline or the two-character "\n" escape both break a line, and "\\" is an
+         * escaped backslash that does not.
+         *
+         * Splitting on real newlines alone was wrong and only looked right: a message
+         * carries its breaks as "\n" escapes, so `A -> B : \n\n<right>text` was one
+         * line that did not start with the directive, and the alignment was dropped
+         * while "<right>" was drawn as text (issue #2, second report). The first
+         * example worked only because its directive happened to be first.
+         */
+        private static string[] split_display_lines(string text) {
+            var lines = new Gee.ArrayList<string>();
+            var cur = new StringBuilder();
+            int n = text.length;
+            int i = 0;
+            while (i < n) {
+                char c = text[i];
+                if (c == '\\' && i + 1 < n && text[i + 1] == '\\') {
+                    cur.append("\\\\");       // an escaped backslash, not a break
+                    i += 2;
+                    continue;
+                }
+                if (c == '\n' || (c == '\\' && i + 1 < n && text[i + 1] == 'n')) {
+                    lines.add(cur.str);
+                    cur.truncate(0);
+                    i += (c == '\n') ? 1 : 2;
+                    continue;
+                }
+                cur.append_c(c);
+                i++;
+            }
+            lines.add(cur.str);
+            return lines.to_array();
+        }
+
         /** True when any line opens with an alignment directive. */
         private bool has_align_directive(string? text) {
             if (text == null || !text.contains("<")) {
                 return false;
             }
-            foreach (string line in text.split("\n")) {
+            foreach (string line in split_display_lines(text)) {
                 string t = line.strip().down();
                 if (t.has_prefix("<right>") || t.has_prefix("<center>")
                     || t.has_prefix("<centre>") || t.has_prefix("<left>")) {
@@ -2175,7 +2211,7 @@ namespace GDiagram {
                 return creole_html(raw, allow_images);
             }
 
-            string[] lines = raw.split("\n");
+            string[] lines = split_display_lines(raw);
             string[] aligns = new string[lines.length];
             var cleaned = new StringBuilder();
             for (int i = 0; i < lines.length; i++) {

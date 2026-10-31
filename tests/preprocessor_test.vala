@@ -984,6 +984,65 @@ Rel(api,      db,  "Reads/Writes", "SQL")
                 "class Marker");
         }
 
+        /**
+         * Issue #5: PlantUML continues a line ending in a single backslash onto the next
+         * one. Verified against 1.2026.9 — it joins for messages and note bodies alike, and
+         * answers a DOUBLE trailing backslash with a syntax error, so that form is left
+         * alone here rather than guessed at.
+         */
+        public static void test_backslash_continuation_joins_lines() {
+            string joined = Preprocessor.join_continuations(
+                "@startuml\nAlice -> Bob : first part \\\ncontinued here\n@enduml\n");
+            assert(joined.contains("Alice -> Bob : first part continued here"));
+            assert(!joined.contains("first part \\"));
+
+            // Two backslashes are an escaped backslash in creole, not a continuation.
+            string left = Preprocessor.join_continuations(
+                "@startuml\nAlice -> Bob : one \\\\\ntwo\n@enduml\n");
+            assert(left.contains("one \\\\"));
+            assert(!left.contains("one two"));
+
+            // A joined line that itself ends in a backslash keeps going.
+            string chain = Preprocessor.join_continuations("a \\\nb \\\nc\n");
+            assert(chain.has_prefix("a b c"));
+        }
+
+        /**
+         * And the join must not move anything: the consumed line becomes empty rather than
+         * disappearing. Click-to-source regions, LSP diagnostics and parse errors all point
+         * at source line numbers, so a shift here is a wrong-line jump everywhere.
+         */
+        public static void test_continuation_keeps_line_numbers() {
+            string src = "@startuml\nAlice -> Bob : first part \\\ncontinued here\n" +
+                         "Bob -> Carol : a later message\n@enduml\n";
+            string joined = Preprocessor.join_continuations(src);
+
+            assert(src.split("\n").length == joined.split("\n").length);
+
+            string[] lines = joined.split("\n");
+            assert(lines[1] == "Alice -> Bob : first part continued here");
+            assert(lines[2] == "");                                   // the consumed line
+            assert(lines[3] == "Bob -> Carol : a later message");     // still line 4
+        }
+
+        /**
+         * The join must not touch diagram types whose body is literal art or another
+         * language. @startgitlog caught this in the suite: its body is `git log --graph`
+         * output, where a line ending in "|\" is a merge edge, and joining flattened the
+         * graph. ditaa, salt, dot and math/latex have the same problem.
+         */
+        public static void test_continuation_skips_literal_bodies() {
+            string art = "@startgitlog\n* 3a1f2b4 merge\n|\\\n| * 9c2d1e0 work\n@endgitlog\n";
+            assert(Preprocessor.join_continuations(art) == art);
+
+            string ditaa = "@startditaa\n+---+\n|   \\\n+---+\n@endditaa\n";
+            assert(Preprocessor.join_continuations(ditaa) == ditaa);
+
+            // ... while an ordinary UML body still joins.
+            string uml = "@startuml\nA -> B : one \\\ntwo\n@enduml\n";
+            assert(Preprocessor.join_continuations(uml).contains("one two"));
+        }
+
         public static void test_else_branch_keeps_line_numbers() {
             // The !else body follows a skipped !if branch
             assert_marker_keeps_line(
@@ -1159,6 +1218,10 @@ class WeirdNumber
             Test.add_func("/preprocessor/include-cache-still-pays-off", test_include_cache_still_pays_off);
             Test.add_func("/preprocessor/style-translation-keeps-line-numbers", test_style_translation_keeps_line_numbers);
             Test.add_func("/preprocessor/lines/inactive-if", test_inactive_if_keeps_line_numbers);
+            Test.add_func("/preprocessor/continuation/joins", test_backslash_continuation_joins_lines);
+            Test.add_func("/preprocessor/continuation/skips-literal-bodies",
+                          test_continuation_skips_literal_bodies);
+            Test.add_func("/preprocessor/lines/continuation", test_continuation_keeps_line_numbers);
             Test.add_func("/preprocessor/lines/else-branch", test_else_branch_keeps_line_numbers);
             Test.add_func("/preprocessor/lines/skipped-elseif-else", test_skipped_elseif_else_keep_line_numbers);
             Test.add_func("/preprocessor/lines/nested-if",test_nested_if_keeps_line_numbers);

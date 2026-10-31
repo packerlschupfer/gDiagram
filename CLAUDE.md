@@ -211,12 +211,40 @@ user naturally writes renders clean here (issue #2). Graphviz carries per-line a
 goes to the cell's `BALIGN`. The function returns the plain creole output unless a directive was
 actually used, which keeps the DOT of every existing note byte-identical.
 
+**Split lines the way `creole_html()` does**, with `split_display_lines()`: a real newline AND
+the two-character `\n` escape both break a line, and `\\` is an escaped backslash that does not.
+A message carries its breaks as `\n` escapes, so splitting on real newlines alone made
+`A -> B : \n\n<right>text` a single line that did not start with the directive — the alignment
+was dropped and `<right>` drawn as text. The first version did exactly that and passed its test,
+because the test put the directive first, which is the one case where it works by accident.
+
 Message labels take it too, composed with `skinparam sequenceMessageAlign` (the skinparam sets
 the default, a directive overrides its own line). A directive must also defeat the
 `is_plain_text()` fast path in `message_label_attrs()`, which renders the raw string and would
 draw `<right>` literally — `has_align_directive()` guards that. A test for this needs a
 single-line message: anything containing `\n` is already disqualified from the fast path, so a
 multi-line case cannot catch a regression there.
+
+### Backslash line continuation
+
+A source line ending in a single backslash continues onto the next one, as PlantUML 1.2026.9
+does (issue #5) — for messages, note bodies, anything. `Preprocessor.join_continuations()`
+handles it before anything parses.
+
+Two properties it must keep:
+
+- **Line numbers do not move.** The consumed line is replaced with an EMPTY line rather than
+  removed. Click-to-source regions, LSP diagnostics and parse errors all point at source line
+  numbers, so a shift is a wrong-line jump everywhere. `tests/preprocessor_test.vala` has a
+  whole `/preprocessor/lines/...` family guarding this; the continuation case joined it.
+- **Literal-body diagram types are skipped** — `@startgit`/`@startgitlog`, `@startditaa`,
+  `@startsalt`, `@startdot`, `@startmath`/`@startlatex`, `@startregex`. Their bodies are art or
+  another language where a trailing backslash means something: gitlog is `git log --graph`
+  output, where a line ending in `|\` is a merge edge, and joining flattened the graph. The
+  suite caught that, not review.
+
+A line ending in TWO backslashes is left alone: that is an escaped backslash in creole, and
+PlantUML answers the continuation reading of it with a syntax error.
 
 ### Locale
 
