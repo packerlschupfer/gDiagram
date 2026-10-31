@@ -334,6 +334,37 @@ loads every file through GdkPixbuf, so this cannot reach a release again.
 A symbolic is recoloured by GTK and must stay single-colour: no gradients, no brand blue. The
 test asserts that too.
 
+## Flatpak packaging
+
+`org.gnome.gDiagram.json` pins a GNOME runtime, and GNOME runtimes go end-of-life about a
+year after release — 46 was already EOL (April 2025) before we ever shipped it, and so is 48,
+the version of the *desktop* this is developed on. The host's GNOME version is irrelevant: the
+bundle carries its own GTK/libadwaita. **Keep `runtime-version` on a supported branch, and
+keep the container image tag in step with it in all three places** — the manifest,
+`build-flatpak` in `release.yml`, and `.github/workflows/flatpak.yml`.
+
+- **The CI image lives on ghcr now.** `bilelmoussaoui/flatpak-github-actions` stops at
+  `gnome-47`; the images continue as `ghcr.io/flathub-infra/flatpak-github-actions:gnome-NN`.
+- **Don't build libgee or gtksourceview from source** — the SDK ships both, `.pc` and `.vapi`
+  included (SDK 51: libgee 0.20.8, gtksourceview 5.22, GTK 4.24, libadwaita 1.10). They were
+  carried over from a GNOME 46-era template. Worse than redundant: libgee 0.20.6's
+  pre-generated C does not compile with GCC 14+, where an incompatible pointer type is an error
+  rather than a warning, and SDK 51 has GCC 16. That module, not anything of ours, is what
+  failed the first bump.
+- **The `gdiagram` module is a `git` source, not `dir`.** A `dir` source copies the tree
+  without `.git`, so meson's `git describe` finds nothing and `BUILD_ID`/`BUILD_DATE` fall back
+  to `unknown` — every flatpak we shipped printed `0.1.5 (unknown, unknown)` while the deb
+  printed the commit. Pin `"branch": "HEAD"`: flatpak-builder defaults a git source to
+  `master`, which does not exist here (exit 128), and HEAD also survives CI's detached checkout
+  at a tag.
+- **Only a tag used to build the flatpak**, which is exactly how an EOL runtime sat unnoticed
+  for 18 months. `.github/workflows/flatpak.yml` builds it whenever the manifest changes and on
+  `workflow_dispatch`, so a runtime bump is proven before a release depends on it.
+- **Verify a bump by running it**, not by a green build: `flatpak run org.flatpak.Builder`
+  locally, then the bundle in a `wlcontrol vd` session. The 51 bump was checked that way —
+  render, click-to-source, tab open/close (the libadwaita-version-sensitive path) and a CLI
+  export, with no criticals in the log.
+
 ## Git Workflow
 
 - Work on `main` branch

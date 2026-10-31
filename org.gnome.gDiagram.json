@@ -1,7 +1,7 @@
 {
     "app-id": "org.gnome.gDiagram",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "46",
+    "runtime-version": "51",
     "sdk": "org.gnome.Sdk",
     "command": "gdiagram",
     "finish-args": [
@@ -50,34 +50,13 @@
             ]
         },
         {
-            "name": "libgee",
-            "buildsystem": "autotools",
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://download.gnome.org/sources/libgee/0.20/libgee-0.20.6.tar.xz",
-                    "sha256": "1bf834f5e10d60cc6124d74ed3c1dd38da646787fbf7872220b8b4068e476d4d"
-                }
-            ]
-        },
-        {
-            "name": "gtksourceview",
-            "buildsystem": "meson",
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/5.12/gtksourceview-5.12.0.tar.xz",
-                    "sha256": "daf32ff5d3150d6385917d3503a85b9e047ba158b2b03079314c9c00813fa01f"
-                }
-            ]
-        },
-        {
             "name": "gdiagram",
             "buildsystem": "meson",
             "sources": [
                 {
-                    "type": "dir",
-                    "path": "."
+                    "type": "git",
+                    "path": ".",
+                    "branch": "HEAD"
                 }
             ]
         }

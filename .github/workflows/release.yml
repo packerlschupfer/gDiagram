@@ -224,7 +224,10 @@ jobs:
   build-flatpak:
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-46
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      # The old bilelmoussaoui/flatpak-github-actions images stop at
+      # gnome-47; flathub-infra on ghcr.io is where they continue. Keep
+      # the tag in step with "runtime-version" in org.gnome.gDiagram.json.
       options: --privileged
     steps:
     - uses: actions/checkout@v5

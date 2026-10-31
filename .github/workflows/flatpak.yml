@@ -1,0 +1,37 @@
+# The flatpak used to be built only by a tag, which is how its GNOME runtime
+# reached end-of-life unnoticed: nothing on main ever touched the manifest's
+# build. This workflow builds it whenever the manifest (or this file) changes,
+# and on demand — so a runtime bump is proven before a release depends on it.
+name: Flatpak
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'org.gnome.gDiagram.json'
+      - '.github/workflows/flatpak.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'org.gnome.gDiagram.json'
+      - '.github/workflows/flatpak.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      # Keep this tag in step with "runtime-version" in org.gnome.gDiagram.json
+      # and with the build-flatpak job in release.yml.
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v5
+
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: gdiagram.flatpak
+        manifest-path: org.gnome.gDiagram.json
+        # Keyed on the manifest, not the commit: a rerun that did not touch the
+        # manifest reuses the Graphviz build instead of spending 20 minutes on it.
+        cache-key: flatpak-${{ hashFiles('org.gnome.gDiagram.json') }}
