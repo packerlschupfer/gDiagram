@@ -80,6 +80,15 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.6" date="2026-11-01">
+      <description>
+        <p>A follow-up fix from the issue reporter testing 0.1.5:</p>
+        <ul>
+          <li>A text alignment directive now applies to the lines that
+              follow it, as PlantUML does, instead of only its own line</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.5" date="2026-10-31">
       <description>
         <p>Two fixes from the issue reporter testing 0.1.4:</p>

@@ -1,3 +1,14 @@
+gdiagram (0.1.6-1) unstable; urgency=medium
+
+  * A text alignment directive (<right>, <center>, <left>) applies to its own
+    line AND the lines after it, until another directive changes it, as
+    PlantUML does. It previously aligned only its own line, so a multi-line
+    message with a leading <right> right-aligned just its first line.
+  * A closing tag stays cosmetic: PlantUML draws it as literal text, so it
+    does not end the alignment either. We still swallow it so it is not drawn.
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Sun, 01 Nov 2026 10:48:00 +0100
+
 gdiagram (0.1.5-1) unstable; urgency=medium
 
   * Alignment directives work after escaped newlines: a message carries its
