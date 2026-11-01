@@ -2187,11 +2187,18 @@ namespace GDiagram {
         }
 
         /**
-         * PlantUML's <right>, <center> and <left> are LINE directives, not wrapping tags: the
-         * opening tag switches that line's alignment, and PlantUML draws a stray closing tag
-         * as literal text (measured against 1.2026.9). We honour the directive the same way,
-         * and additionally swallow a matching closing tag so `<right>text</right>` - the form
-         * a user naturally writes, and the one reported in issue #2 - renders clean here.
+         * PlantUML's <right>, <center> and <left> are MODE switches, not line directives and
+         * not wrapping tags: the tag changes alignment from its own line onwards, and the
+         * lines after it stay that way until another directive changes it again. Measured
+         * against 1.2026.9 - `<right>` on line 2 of 4 right-aligns lines 2, 3 and 4, and a
+         * later `<left>` switches back from its line on; notes and message labels behave
+         * identically. Treating it as a per-line directive was the second half of issue #2:
+         * the reporter's three-line message aligned only its first line.
+         *
+         * PlantUML draws a stray closing tag as literal text; we swallow a matching one so
+         * the `<right>text</right>` form a user naturally writes renders clean. That stays
+         * cosmetic: a closing tag does NOT end the alignment, because PlantUML never treated
+         * it as a tag - measured, the line after `<right>mid</right>` is still right-aligned.
          *
          * Graphviz carries per-line alignment on the <BR> that FOLLOWS a line, so the k-th
          * break takes line k's alignment and the last line's goes to the cell's BALIGN.
@@ -2214,19 +2221,26 @@ namespace GDiagram {
             string[] lines = split_display_lines(raw);
             string[] aligns = new string[lines.length];
             var cleaned = new StringBuilder();
+            // The alignment in force. A directive changes it for its own line AND the lines
+            // that follow, which is what PlantUML does; a closed pair restores what was in
+            // force before it.
+            string mode = default_align;
             for (int i = 0; i < lines.length; i++) {
                 string line = lines[i];
-                string a = default_align;
+                string a = mode;
                 try {
                     MatchInfo mi;
                     if (align_open_regex.match(line, 0, out mi)) {
                         string tag = mi.fetch(1).down();
                         a = (tag == "right") ? "RIGHT"
                                              : ((tag == "left") ? "LEFT" : "CENTER");
+                        mode = a;
                         int start, end;
                         mi.fetch_pos(0, out start, out end);
                         line = line.substring(end);
-                        // ... and the closing tag PlantUML would have drawn as text
+                        // ... and the closing tag PlantUML would have drawn as text.
+                        // Swallowing it is cosmetic only: it does NOT end the alignment,
+                        // because to PlantUML it was never a tag in the first place.
                         string close = "</%s>".printf(tag);
                         string tail = line.chomp();
                         if (tail.down().has_suffix(close)) {

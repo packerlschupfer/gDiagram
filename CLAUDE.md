@@ -201,12 +201,25 @@ not on the printed line — a message-only test would have passed throughout bot
 
 ### Note line alignment
 
-PlantUML's `<right>`/`<center>`/`<left>` inside a note **or a message label** are LINE
-directives, not wrapping tags —
-the opening tag aligns that line, and PlantUML itself draws a closing tag as literal text
-(measured against 1.2026.9). `aligned_html()` in `SequenceDiagramRenderer` honours the directive
-the same way and additionally swallows a matching closing tag, so the `<right>…</right>` form a
-user naturally writes renders clean here (issue #2). Graphviz carries per-line alignment on the
+PlantUML's `<right>`/`<center>`/`<left>` inside a note **or a message label** are MODE
+switches — neither wrapping tags nor per-line directives. The tag aligns its own line **and
+every line after it**, until another directive changes it. Measured against 1.2026.9 by
+diffing each line's x against the same text with the tags stripped: `<right>` on line 2 of 4
+shifts lines 2, 3 and 4 (233.48 / 250.06 / 259.73 — they differ only by line width), and
+adding `<left>` to line 4 drops that line's shift back to 0. Notes and message labels behave
+identically. Reading it as a per-line directive was the third round of issue #2: the
+reporter's three-line HTTP response right-aligned only its status line.
+
+PlantUML draws a closing tag as literal text, so it cannot end anything — measured, the line
+after `<right>mid</right>` is still right-aligned. `aligned_html()` in
+`SequenceDiagramRenderer` swallows a matching closing tag so the `<right>…</right>` form a
+user naturally writes renders clean here, but that stays **cosmetic**: it must not restore the
+previous alignment. (A draft of the fix did exactly that — it reads plausibly, matches what
+the closed pair looks like it means, and is not PlantUML's behaviour.) The one case where the
+difference is invisible is a closing tag on the widest line, which is what the original note
+test used — centre, right and left all put the widest line at the same x.
+
+Graphviz carries per-line alignment on the
 `<BR>` that *follows* a line, so the k-th break takes line k's alignment and the last line's
 goes to the cell's `BALIGN`. The function returns the plain creole output unless a directive was
 actually used, which keeps the DOT of every existing note byte-identical.

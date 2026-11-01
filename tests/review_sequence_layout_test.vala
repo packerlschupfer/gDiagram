@@ -422,12 +422,67 @@ namespace GDiagram.Tests {
             double wide = text_x(svg, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             double right = text_x(svg, "short");
             double centre = text_x(svg, "mid");
-            double left = text_x(svg, "left");
+            double trailing = text_x(svg, "left");
 
-            assert(left == wide);               // untouched lines stay put
+            assert(wide < right);               // the untagged first line sets the width
             assert(right > centre);             // right of centre
-            assert(centre > left);              // centre of left
             assert(right - wide > 100.0);       // and genuinely far right, not a rounding
+            // The last line carries no directive and inherits the <center> above it - the
+            // directives are modes, not per-line switches. Measured in PlantUML 1.2026.9
+            // this line shifts 114.68 against the <center> line's 112.85, the small
+            // difference being their widths; under the old per-line reading it did not
+            // move at all.
+            assert(trailing > wide);
+            assert(trailing < right);
+        }
+
+        /**
+         * Issue #2, third report: `<right>` followed by two more lines aligned only its
+         * own line, so a three-line HTTP response came out with just the status right.
+         *
+         * Measured against PlantUML 1.2026.9 (shifts against the same text with the tags
+         * removed): with `<right>` on line 2 of 4, lines 2, 3 and 4 shift by 233.48,
+         * 250.06 and 259.73 - all of them right-aligned, the differences being their
+         * widths - and adding `<left>` to line 4 drops its shift back to 0.
+         */
+        public static void test_message_alignment_is_sticky() {
+            string svg = svg_of("A -> B : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                "\\n<right>one\\ntwo\\n<left>three");
+            assert(!svg.contains("&lt;right&gt;"));
+            assert(!svg.contains("&lt;left&gt;"));
+
+            double wide = text_x(svg, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            double one = text_x(svg, "one");
+            double two = text_x(svg, "two");
+            double three = text_x(svg, "three");
+
+            assert(one - wide > 100.0);     // the directive's own line
+            assert(two - wide > 100.0);     // the UNTAGGED line after it - the bug
+            assert(three == wide);          // until <left> switches back
+        }
+
+        /**
+         * And a closing tag does not end it. PlantUML draws `</right>` as literal text, so
+         * it cannot be a terminator there; measured, the line after `<right>mid</right>`
+         * still shifts the full 259.73. We swallow the tag so it is not drawn, which must
+         * stay cosmetic - an earlier draft of this fix let it restore the previous
+         * alignment, which reads plausibly and is not what PlantUML does.
+         */
+        public static void test_closing_tag_does_not_end_alignment() {
+            string body = "A -> B : hello\n" +
+                          "note right of B\n" +
+                          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n" +
+                          "<right>mid</right>\n" +
+                          "tiny\n" +
+                          "end note";
+            string svg = svg_of(body);
+            assert(!svg.contains("&lt;/right&gt;"));
+
+            double wide = text_x(svg, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            double mid = text_x(svg, "mid");
+            double tiny = text_x(svg, "tiny");
+            assert(mid - wide > 100.0);
+            assert(tiny - wide > 100.0);
         }
 
         /**
@@ -1016,6 +1071,10 @@ namespace GDiagram.Tests {
             Test.add_func("/sequence-layout/fidelity/14-footer-single-page", test_footer_single_page);
             Test.add_func("/sequence-layout/fidelity/15-note-text-centred", test_note_text_centred);
             Test.add_func("/sequence-layout/note-line-alignment", test_note_line_alignment);
+            Test.add_func("/sequence-layout/message-alignment-sticky",
+                          test_message_alignment_is_sticky);
+            Test.add_func("/sequence-layout/closing-tag-does-not-end-alignment",
+                          test_closing_tag_does_not_end_alignment);
             Test.add_func("/sequence-layout/message-alignment-escaped-newlines",
                           test_message_alignment_with_escaped_newlines);
             Test.add_func("/sequence-layout/message-alignment-after-blank-lines",
