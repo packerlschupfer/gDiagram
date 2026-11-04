@@ -1,3 +1,17 @@
+gdiagram (0.1.7-1) unstable; urgency=medium
+
+  * PlantUML's `scale` directive is honoured: a factor, a ratio, scale-to-width,
+    fit-in-box, and `max` which only ever shrinks. It was ignored entirely, and
+    it is the directive that stops PlantUML silently cropping a drawing at
+    4096 px - so a file could preview perfectly here and arrive truncated.
+  * The `<U+XXXX>` escape renders, in plain and HTML labels alike. It is the
+    only way to put a literal quote inside a quoted name; the `\"` spelling is
+    rejected by PlantUML, which fails the whole file.
+  * The LSP warns when `\"` appears inside a quoted name, naming `<U+0022>` as
+    the portable form. A warning, not an error: it still renders here.
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Wed, 04 Nov 2026 19:30:00 +0100
+
 gdiagram (0.1.6-1) unstable; urgency=medium
 
   * A text alignment directive (<right>, <center>, <left>) applies to its own
