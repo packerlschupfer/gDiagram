@@ -36,11 +36,34 @@ namespace GDiagram {
          * and the same in a note body, because nothing is quoted there - so a check that
          * just grepped for the two characters would cry wolf on perfectly portable files.
          */
-        public static Gee.ArrayList<int> escaped_quote_lines(string source) {
+        public static Gee.ArrayList<int> escaped_quote_lines(string source, DiagramType type) {
             var lines = new Gee.ArrayList<int>();
+            // Types whose body is DATA or another language, where a backslash-quote is an
+            // ordinary escape and PlantUML is perfectly happy with it. Measured against
+            // 1.2026.9: `{"msg": "he said \\"hi\\""}` in @startjson and the YAML equivalent
+            // both render, so warning about them was telling the author their valid file was
+            // broken.
+            switch (type) {
+                case DiagramType.JSON_DIAGRAM:
+                case DiagramType.YAML_DIAGRAM:
+                case DiagramType.DITAA:
+                case DiagramType.SALT:
+                case DiagramType.DOT_DIAGRAM:
+                case DiagramType.REGEX_DIAGRAM:
+                case DiagramType.EBNF:
+                case DiagramType.GITLOG:
+                    return lines;
+                default:
+                    break;
+            }
             string[] rows = source.split("\n");
             for (int n = 0; n < rows.length; n++) {
                 string row = rows[n];
+                // A creole comment is not code; PlantUML accepts a backslash-quote there too.
+                string trimmed = row.chug();
+                if (trimmed.has_prefix("'") || trimmed.has_prefix("/'")) {
+                    continue;
+                }
                 bool in_quote = false;
                 int i = 0;
                 while (i < row.length) {

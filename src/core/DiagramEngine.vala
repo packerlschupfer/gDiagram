@@ -301,6 +301,24 @@ namespace GDiagram {
         // Single generic entry point. `type` is the already-detected diagram
         // type, `format` distinguishes the two switch tables, `source` is the
         // (already preprocessed, for PlantUML) source text.
+        /**
+         * The process-wide flags a PlantUML render needs, set and cleared together.
+         *
+         * Both are PlantUML-only and both default to off, so a path that forgets them simply
+         * does not get the feature rather than leaking it into the next diagram - or, worse,
+         * into a Mermaid one. `<U+XXXX>` is PlantUML's escape and mermaid does not decode it,
+         * so leaving it on for Mermaid broke CLAUDE.md's "Mermaid matches mermaid" rule.
+         */
+        private void begin_plantuml_render(string processed) {
+            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed);
+            RenderUtils.unicode_escapes_enabled = true;
+        }
+
+        private void end_plantuml_render() {
+            RenderUtils.scale_spec = null;
+            RenderUtils.unicode_escapes_enabled = false;
+        }
+
         public RenderResult render(DiagramType type, DiagramFormat format, string source) {
             // Every renderer that maps click regions rebuilds this list, but the
             // ones that map none (archimate, chronology, nwdiag, the SVG-writing
@@ -315,9 +333,9 @@ namespace GDiagram {
             // PlantUML's `scale`, applied to the finished SVG by RenderUtils. Set and cleared
             // around the render: the flag is process-wide, so leaving it set would draw the
             // next document at this one's scale. Mermaid has no such directive.
-            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(source);
+            begin_plantuml_render(source);
             RenderResult result = render_plantuml(type, source);
-            RenderUtils.scale_spec = null;
+            end_plantuml_render();
             return result;
         }
 
@@ -1732,9 +1750,9 @@ namespace GDiagram {
          * command line while working everywhere else.
          */
         private bool export_plantuml_to_png(string processed_source, DiagramType diagram_type, string filename) {
-            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            begin_plantuml_render(processed_source);
             bool ok = export_plantuml_to_png_inner(processed_source, diagram_type, filename);
-            RenderUtils.scale_spec = null;
+            end_plantuml_render();
             return ok;
         }
 
@@ -1846,9 +1864,9 @@ namespace GDiagram {
          * command line while working everywhere else.
          */
         private bool export_plantuml_to_svg(string processed_source, DiagramType diagram_type, string filename) {
-            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            begin_plantuml_render(processed_source);
             bool ok = export_plantuml_to_svg_inner(processed_source, diagram_type, filename);
-            RenderUtils.scale_spec = null;
+            end_plantuml_render();
             return ok;
         }
 
@@ -1960,9 +1978,9 @@ namespace GDiagram {
          * command line while working everywhere else.
          */
         private bool export_plantuml_to_pdf(string processed_source, DiagramType diagram_type, string filename) {
-            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            begin_plantuml_render(processed_source);
             bool ok = export_plantuml_to_pdf_inner(processed_source, diagram_type, filename);
-            RenderUtils.scale_spec = null;
+            end_plantuml_render();
             return ok;
         }
 
@@ -2675,7 +2693,19 @@ namespace GDiagram {
             return generate_plantuml_svg(processed, type);
         }
 
+        /**
+         * Used by the LSP preview and its render command, so it needs the same flags as the
+         * export funnels - without them a `scale` previewed unscaled in VS Code while an
+         * export from the same server honoured it.
+         */
         private uint8[]? generate_plantuml_svg(string processed, DiagramType type) {
+            begin_plantuml_render(processed);
+            uint8[]? svg = generate_plantuml_svg_inner(processed, type);
+            end_plantuml_render();
+            return svg;
+        }
+
+        private uint8[]? generate_plantuml_svg_inner(string processed, DiagramType type) {
             var lexer = new Lexer(processed);
             var tokens = lexer.scan_all();
 

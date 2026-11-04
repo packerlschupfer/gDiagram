@@ -71,7 +71,10 @@ public class GanttDiagramRenderer : Object {
         string svg = layout.build();
         last_regions.clear();
         foreach (var r in layout.regions) last_regions.add(r);
-        return svg.data;
+        // This renderer writes its SVG itself and never passes through
+        // RenderUtils.fill_svg_background(), which is where `scale` is applied for
+        // everything else - without this the directive was silently a no-op here.
+        return RenderUtils.apply_scale(svg.data);
     }
 
     public Cairo.ImageSurface? render_to_surface(PumlGanttDiagram diagram) {

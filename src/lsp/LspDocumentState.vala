@@ -87,7 +87,7 @@ namespace GDiagram {
             // PlantUML, so the author would only find out after the file leaves. A warning
             // rather than an error, because nothing about it is wrong for gDiagram itself.
             if (format != DiagramFormat.MERMAID) {
-                foreach (int line in DiagramLinter.escaped_quote_lines(content)) {
+                foreach (int line in DiagramLinter.escaped_quote_lines(content, diagram_type)) {
                     diagnostics.add(line_diagnostic(line, 2,
                         "An escaped quote inside a quoted name renders here but is a syntax " +
                         "error in PlantUML, which rejects the whole file. Write <U+0022> " +

@@ -164,7 +164,9 @@ public class TimingDiagramRenderer : Object {
 
     public uint8[]? render_to_svg(TimingDiagram diagram) {
         string svg = build_svg(diagram);
-        uint8[] data = svg.data;
+        // Written directly, so it never reaches RenderUtils.fill_svg_background() where
+        // `scale` is applied for the Graphviz-based renderers.
+        uint8[] data = RenderUtils.apply_scale(svg.data);
         return data;
     }
 

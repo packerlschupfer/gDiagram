@@ -325,6 +325,21 @@ void test_scale_max_only_shrinks() {
     assert((uncapped - plain).abs() < 0.01);
 }
 
+void test_scale_inside_a_note_is_text() {
+    // A note body is drawn, not executed. Measured: PlantUML leaves this diagram at its
+    // original size; we doubled it. Found by review, not by me.
+    string plain = exported_svg("@startuml\nnote left of A\nhello\nend note\nA -> B : x\n@enduml\n");
+    string noted = exported_svg("@startuml\nnote left of A\nscale 2\nend note\nA -> B : x\n@enduml\n");
+    assert(svg_width_px(noted) == svg_width_px(plain));
+
+    // ... while the same line at top level still scales, which is the half a fix for the
+    // above can silently break - an earlier attempt disabled the directive outright and
+    // only test_scale_forms caught it.
+    double top = svg_width_px(exported_svg("@startuml\nscale 2\nA -> B : x\n@enduml\n"));
+    double unscaled = svg_width_px(exported_svg("@startuml\nA -> B : x\n@enduml\n"));
+    assert((top / unscaled - 2.0).abs() < 0.02);
+}
+
 void test_scale_directive_parsing() {
     var f = RenderUtils.parse_scale_directive("@startuml\nscale 2\n@enduml\n");
     assert(f != null && f.kind == RenderUtils.ScaleSpec.Kind.FACTOR && !f.is_max);
@@ -395,27 +410,53 @@ void test_unicode_escape_keeps_message_fast_path() {
 }
 
 void test_unicode_escape_invalid_left_alone() {
+    // Called directly rather than through the engine, so the PlantUML-only flag has to be
+    // set by hand: it defaults OFF so a Mermaid render cannot pick up a PlantUML escape.
+    RenderUtils.unicode_escapes_enabled = true;
     // Past U+10FFFF is not a code point, so it was never an escape: it is text.
     assert(RenderUtils.decode_unicode_escapes("a <U+110000> b") == "a <U+110000> b");
     assert(RenderUtils.decode_unicode_escapes("a <U+D800> b") == "a <U+D800> b");
     assert(RenderUtils.decode_unicode_escapes("nothing here") == "nothing here");
     assert(RenderUtils.decode_unicode_escapes("<u+0041>") == "A");
+
+    // PlantUML decodes 4- and 5-digit forms only (measured): these stay literal.
+    assert(RenderUtils.decode_unicode_escapes("<U+41>") == "<U+41>");
+    assert(RenderUtils.decode_unicode_escapes("<U+01F600>") == "<U+01F600>");
+
+    // And nothing is decoded for a Mermaid render.
+    RenderUtils.unicode_escapes_enabled = false;
+    assert(RenderUtils.decode_unicode_escapes("<U+2192>") == "<U+2192>");
 }
 
 void test_escaped_quote_detection() {
     // PlantUML rejects the WHOLE file for this one ...
     var bad = DiagramLinter.escaped_quote_lines(
-        "@startuml\nparticipant \"NVS \\\"boot\\\"\" as P\n@enduml\n");
+        "@startuml\nparticipant \"NVS \\\"boot\\\"\" as P\n@enduml\n", DiagramType.SEQUENCE);
     assert(bad.size == 1);
     assert(bad.get(0) == 2);
 
     // ... and accepts these, measured: nothing is quoted, so the backslash-quote is just
     // text. A check that grepped for the two characters would flag both and cry wolf.
-    var msg = DiagramLinter.escaped_quote_lines("@startuml\nA -> B : he said \\\"hi\\\"\n@enduml\n");
+    var msg = DiagramLinter.escaped_quote_lines("@startuml\nA -> B : he said \\\"hi\\\"\n@enduml\n",
+                                                DiagramType.SEQUENCE);
     assert(msg.size == 0);
     var note = DiagramLinter.escaped_quote_lines(
-        "@startuml\nnote over A\nhe said \\\"hi\\\"\nend note\n@enduml\n");
+        "@startuml\nnote over A\nhe said \\\"hi\\\"\nend note\n@enduml\n", DiagramType.SEQUENCE);
     assert(note.size == 0);
+
+    // Data types are not code: PlantUML renders both of these, so warning about them told
+    // the author a valid file was broken. Measured against 1.2026.9.
+    var json = DiagramLinter.escaped_quote_lines(
+        "@startjson\n{\"msg\": \"he said \\\"hi\\\"\"}\n@endjson\n", DiagramType.JSON_DIAGRAM);
+    assert(json.size == 0);
+    var yaml = DiagramLinter.escaped_quote_lines(
+        "@startyaml\nmsg: \"he said \\\"hi\\\"\"\n@endyaml\n", DiagramType.YAML_DIAGRAM);
+    assert(yaml.size == 0);
+
+    // Nor is a comment.
+    var comment = DiagramLinter.escaped_quote_lines(
+        "@startuml\n' a comment with \"quoted \\\" x\"\nA -> B : ok\n@enduml\n", DiagramType.SEQUENCE);
+    assert(comment.size == 0);
 }
 
 void main(string[] args) {
@@ -432,6 +473,7 @@ void main(string[] args) {
     Test.add_func("/renderutils/sanitize_id/keywords", test_sanitize_id_keywords_collision_free);
     Test.add_func("/renderutils/scale/forms", test_scale_forms);
     Test.add_func("/renderutils/scale/max_only_shrinks", test_scale_max_only_shrinks);
+    Test.add_func("/renderutils/scale/note_body_is_text", test_scale_inside_a_note_is_text);
     Test.add_func("/renderutils/scale/parsing", test_scale_directive_parsing);
     Test.add_func("/renderutils/unicode/dot_labels", test_unicode_escape_dot_labels);
     Test.add_func("/renderutils/unicode/html_labels", test_unicode_escape_html_labels);

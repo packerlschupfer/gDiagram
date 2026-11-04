@@ -184,8 +184,43 @@ namespace GDiagram {
                     "(?:[ \\t]*([/*])[ \\t]*([0-9]*\\.?[0-9]+))?" +
                     "(?:[ \\t]+(width|height))?[ \\t]*$",
                     RegexCompileFlags.CASELESS | RegexCompileFlags.MULTILINE);
+                // Line by line, skipping multi-line note and legend bodies: their text is
+                // drawn, not executed. Measured - PlantUML leaves a diagram with `scale 2`
+                // inside a note at its original size, while we doubled it. A single-line
+                // `note right of A : scale 2` opens no block, so it is skipped by the `:`.
+                // Blank out multi-line note and legend bodies first, then match once over
+                // the result. Their text is drawn, not executed: measured, PlantUML leaves a
+                // diagram with `scale 2` inside a note at its original size while we doubled
+                // it. Blanking rather than removing keeps it a plain whole-source match - an
+                // earlier version looped and matched per line, and the MatchInfo outlived the
+                // temporary it referenced, so the directive silently parsed as nothing. A
+                // single-line `note right of A : scale 2` opens no block (the `:` gives it
+                // away) and needs no skipping.
+                var filtered = new StringBuilder();
+                bool in_block = false;
+                string[] rows = source.split("\n");
+                for (int i = 0; i < rows.length; i++) {
+                    string t = rows[i].strip().down();
+                    bool keep = !in_block;
+                    if (in_block) {
+                        if (t.has_prefix("end note") || t == "endnote"
+                            || t.has_prefix("end legend") || t == "endlegend") {
+                            in_block = false;
+                        }
+                    } else if ((t.has_prefix("note") || t.has_prefix("hnote")
+                                || t.has_prefix("rnote") || t.has_prefix("legend"))
+                               && !t.contains(":")) {
+                        in_block = true;
+                        keep = false;
+                    }
+                    if (keep) {
+                        filtered.append(rows[i]);
+                    }
+                    filtered.append_c('\n');
+                }
+
                 MatchInfo mi;
-                if (!re.match(source, 0, out mi)) {
+                if (!re.match(filtered.str, 0, out mi)) {
                     return null;
                 }
                 var spec = new ScaleSpec();
@@ -1183,12 +1218,26 @@ namespace GDiagram {
          * Invalid code points (past U+10FFFF, or a surrogate) are left as written rather than
          * turned into a replacement character: the text was not an escape, so it is text.
          */
+        /**
+         * False for a Mermaid render. `<U+XXXX>` is PlantUML's escape, not mermaid's -
+         * mermaid 12.2.0 does not decode it - and CLAUDE.md's rule is that Mermaid matches
+         * mermaid deliberately. Set around a render by DiagramEngine like scale_spec.
+         */
+        public static bool unicode_escapes_enabled = false;
+
         public static string decode_unicode_escapes(string text) {
+            if (!unicode_escapes_enabled) {
+                return text;
+            }
             if (!text.down().contains("<u+")) {
                 return text;
             }
             try {
-                var re = new Regex("<U\\+([0-9A-Fa-f]{1,6})>", RegexCompileFlags.CASELESS);
+                // 4 or 5 hex digits, which is what PlantUML decodes. Measured against
+                // 1.2026.9: `two<U+41>d <U+2192> six<U+01F600>x` renders as
+                // `two<U+41>d → six<U+01F600>x` - the 2- and 6-digit forms stay literal.
+                // Accepting 1-6 made us decode text PlantUML draws as written.
+                var re = new Regex("<U\\+([0-9A-Fa-f]{4,5})>", RegexCompileFlags.CASELESS);
                 return re.replace_eval(text, -1, 0, 0, (mi, result) => {
                     int64 cp = 0;
                     bool parsed = int64.try_parse(mi.fetch(1), out cp, null, 16);

@@ -268,8 +268,22 @@ ever shrinks; the plain forms always scale.
   at the public `export_to_*`. The CLI preprocesses up front and calls `export_preprocessed()`,
   a fifth entry point: wiring the public ones left the directive silently doing nothing from
   the command line while working everywhere else.
-- `scale_spec` is process-wide, set and cleared around each render like `grayscale_output` —
-  if it leaked, the next diagram would be drawn at this one's scale.
+- **Both PlantUML-only render flags go through `begin_plantuml_render()` /
+  `end_plantuml_render()` in `DiagramEngine`, and both default to OFF** (`scale_spec` and
+  `unicode_escapes_enabled`). Off by default is the safe direction: a path that forgets them
+  loses the feature rather than leaking it into the next diagram — or into a Mermaid one.
+  `generate_plantuml_svg()` (the LSP preview and its render command) is a sixth funnel that
+  had neither, so a `scale` previewed unscaled in VS Code while an export from the same
+  server honoured it.
+- **The two renderers that write SVG directly need `apply_scale()` of their own** — timing and
+  gantt never pass through `fill_svg_background()`, so the directive was silently a no-op for
+  exactly the two types whose layout is ported from PlantUML's.
+- **A `scale` line inside a note or legend body is TEXT.** Those bodies are blanked before the
+  match (measured: PlantUML leaves such a diagram at its original size). Blank them and match
+  the whole source once — a version that looped and matched per line let the `MatchInfo`
+  outlive the temporary array from `source.split()`, so every `fetch()` read freed memory and
+  the directive silently parsed as nothing, with `scale 2` and no directive giving identical
+  output.
 
 ### `<U+XXXX>`, and the escaped quote that is not an escape
 
