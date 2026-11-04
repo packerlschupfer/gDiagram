@@ -106,8 +106,198 @@ namespace GDiagram {
             }
         }
 
+        /**
+         * PlantUML's `scale` directive, which gDiagram ignored entirely until 2026-11-04.
+         *
+         * That mattered more than "a directive we do not support": PlantUML (BOTH 1.2020.02
+         * and 1.2026.9, measured) silently crops a drawing at 4096 px, exits 0 and writes the
+         * truncated image. `scale max N width` is the one directive that prevents it. gDiagram
+         * renders at any size and so never needs it - which meant the preview, the one place
+         * an author would notice, was also the one place that could not show them whether the
+         * line they just added did anything. A file could look perfect here and arrive
+         * cropped everywhere else.
+         *
+         * Semantics measured against 1.2026.9 (a drawing of 358x137):
+         *   scale 2            716x275   uniform factor
+         *   scale 2/3          238x91    ratio, also a factor
+         *   scale 800 width    799x307   scale TO that width, aspect kept
+         *   scale 800*600      799x307   fit inside the box
+         *   scale max 300 width  300x115 cap: shrinks
+         *   scale max 300 height 358x137 cap: does nothing, already smaller
+         * So `max` only ever shrinks, and the plain forms always scale.
+         */
+        public class ScaleSpec : GLib.Object {
+            public enum Kind { FACTOR, WIDTH, HEIGHT, BOX }
+            public Kind kind { get; set; default = Kind.FACTOR; }
+            public bool is_max { get; set; default = false; }
+            public double a { get; set; default = 1.0; }
+            public double b { get; set; default = 0.0; }
+
+            /** The factor to apply to a drawing of this pixel size. 1.0 when it is a no-op. */
+            public double factor_for(double width_px, double height_px) {
+                if (!(width_px > 0) || !(height_px > 0)) {
+                    return 1.0;
+                }
+                double f = 1.0;
+                switch (kind) {
+                    case Kind.FACTOR:
+                        f = a;
+                        break;
+                    case Kind.WIDTH:
+                        f = a / width_px;
+                        break;
+                    case Kind.HEIGHT:
+                        f = a / height_px;
+                        break;
+                    case Kind.BOX:
+                        f = double.min(a / width_px, b / height_px);
+                        break;
+                }
+                if (is_max) {
+                    f = double.min(1.0, f);
+                }
+                if (!(f > 0)) {
+                    return 1.0;
+                }
+                return f;
+            }
+        }
+
+        /**
+         * The `scale` of the diagram being rendered, or null. Set and cleared around a render
+         * by DiagramEngine, like grayscale_output is around an export - if it leaked, the next
+         * diagram would be drawn at this one's scale.
+         */
+        public static ScaleSpec? scale_spec = null;
+
+        /**
+         * The `scale` line of a source, or null. Anchored to a whole line so a stray "scale"
+         * inside a label or a ditaa drawing is not mistaken for the directive.
+         */
+        public static ScaleSpec? parse_scale_directive(string source) {
+            if (!source.down().contains("scale")) {
+                return null;
+            }
+            try {
+                var re = new Regex(
+                    "^[ \\t]*scale[ \\t]+(max[ \\t]+)?([0-9]*\\.?[0-9]+)" +
+                    "(?:[ \\t]*([/*])[ \\t]*([0-9]*\\.?[0-9]+))?" +
+                    "(?:[ \\t]+(width|height))?[ \\t]*$",
+                    RegexCompileFlags.CASELESS | RegexCompileFlags.MULTILINE);
+                MatchInfo mi;
+                if (!re.match(source, 0, out mi)) {
+                    return null;
+                }
+                var spec = new ScaleSpec();
+                spec.is_max = mi.fetch(1) != null && mi.fetch(1).length > 0;
+                double n = double.parse(mi.fetch(2));
+                string? op = mi.fetch(3);
+                string? kw_raw = mi.fetch(5);
+                // A single conditional mixing an owned and an unowned branch is safe in
+                // valac 0.56.18; a nested one is not (see CLAUDE.md).
+                string kw = kw_raw == null ? "" : kw_raw.down();
+                if (op == "/") {
+                    double m = double.parse(mi.fetch(4));
+                    if (!(m > 0)) {
+                        return null;
+                    }
+                    spec.kind = ScaleSpec.Kind.FACTOR;
+                    spec.a = n / m;
+                } else if (op == "*") {
+                    spec.kind = ScaleSpec.Kind.BOX;
+                    spec.a = n;
+                    spec.b = double.parse(mi.fetch(4));
+                } else if (kw == "width") {
+                    spec.kind = ScaleSpec.Kind.WIDTH;
+                    spec.a = n;
+                } else if (kw == "height") {
+                    spec.kind = ScaleSpec.Kind.HEIGHT;
+                    spec.a = n;
+                } else {
+                    spec.kind = ScaleSpec.Kind.FACTOR;
+                    spec.a = n;
+                }
+                if (!(spec.a > 0)) {
+                    return null;
+                }
+                return spec;
+            } catch (RegexError e) {
+                return null;
+            }
+        }
+
+        // One dimension of the <svg> tag, multiplied. The number is written C-style:
+        // "%.2f".printf follows LC_NUMERIC and a German desktop would emit width="716,00pt".
+        private static string scale_dimension(string tag, string attr, double factor) {
+            try {
+                var re = new Regex(attr + "=\"([0-9]*\\.?[0-9]+)([a-z%]*)\"",
+                                   RegexCompileFlags.CASELESS);
+                MatchInfo mi;
+                if (!re.match(tag, 0, out mi)) {
+                    return tag;
+                }
+                double value = double.parse(mi.fetch(1));
+                string unit = mi.fetch(2);
+                double scaled = value * factor;
+                char[] buf = new char[double.DTOSTR_BUF_SIZE];
+                string num = scaled.format(buf, "%.2f");
+                int start, end;
+                mi.fetch_pos(0, out start, out end);
+                return tag.substring(0, start) + attr + "=\"" + num + unit + "\"" +
+                       tag.substring(end);
+            } catch (RegexError e) {
+                return tag;
+            }
+        }
+
+        /**
+         * Applies `scale_spec` by rewriting the width and height of the <svg> tag, leaving the
+         * viewBox alone. Everything downstream then follows for free: librsvg reports the new
+         * intrinsic size, svg_page_size() sizes the preview surface and the PNG from it, and
+         * SvgFrame derives its click-region scale as surface_width / viewBox_width - so the
+         * regions keep lining up with the drawing without a second code path.
+         */
+        public static uint8[] apply_scale(uint8[] svg_data) {
+            var spec = scale_spec;
+            if (spec == null) {
+                return svg_data;
+            }
+            double w_px = 0;
+            double h_px = 0;
+            try {
+                var stream = new MemoryInputStream.from_data(svg_data);
+                var handle = new Rsvg.Handle.from_stream_sync(stream, null,
+                                                              Rsvg.HandleFlags.FLAGS_NONE, null);
+                handle.get_intrinsic_size_in_pixels(out w_px, out h_px);
+            } catch (Error e) {
+                return svg_data;
+            }
+            // The factor is computed in PIXELS, not in the SVG's own units: Graphviz writes
+            // the page in points, so a cap of "4000 width" written straight onto a pt value
+            // would come out a third too large.
+            double f = spec.factor_for(w_px, h_px);
+            if (f > 0.9999 && f < 1.0001) {
+                return svg_data;
+            }
+            var text = new StringBuilder.sized(svg_data.length + 1);
+            text.append_len((string) svg_data, svg_data.length);
+            string svg = text.str;
+            int svg_tag = svg.index_of("<svg");
+            if (svg_tag < 0) {
+                return svg_data;
+            }
+            int tag_end = svg.index_of(">", svg_tag);
+            if (tag_end < 0) {
+                return svg_data;
+            }
+            string head = svg.substring(svg_tag, tag_end - svg_tag);
+            string scaled_head = scale_dimension(head, "width", f);
+            scaled_head = scale_dimension(scaled_head, "height", f);
+            return (svg.substring(0, svg_tag) + scaled_head + svg.substring(tag_end)).data;
+        }
+
         public static uint8[] fill_svg_background(uint8[] svg_data) {
-            uint8[] filled = fill_svg_background_inner(svg_data);
+            uint8[] filled = apply_scale(fill_svg_background_inner(svg_data));
             if (!grayscale_output) {
                 return filled;
             }

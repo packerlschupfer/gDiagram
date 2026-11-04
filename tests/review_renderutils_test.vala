@@ -258,6 +258,103 @@ void test_cluster_titles_sans() {
     assert(uc.contains("font-family=\"Sans\""));
 }
 
+
+// ---- PlantUML `scale` (2026-11-04) ----
+//
+// gDiagram ignored `scale` entirely, and that is the directive that exists to stop stock
+// PlantUML silently cropping a drawing at 4096 px. Because gDiagram renders at any size, the
+// preview - the only place an author would notice - could not show them whether the line they
+// added did anything. Semantics measured against PlantUML 1.2026.9; see RenderUtils.ScaleSpec.
+
+// The rendered pixel width, which is what `scale ... width` is specified in - NOT the
+// point value on the <svg> tag. A first version of this test converted pt to px at 96/72
+// and failed a correct implementation: librsvg's intrinsic size does not follow that ratio
+// for these pages, and the directive has to be computed in the units it is written in.
+double svg_width_px(string svg) {
+    try {
+        var stream = new MemoryInputStream.from_data(svg.data);
+        var handle = new Rsvg.Handle.from_stream_sync(stream, null, Rsvg.HandleFlags.FLAGS_NONE, null);
+        double w, h;
+        handle.get_intrinsic_size_in_pixels(out w, out h);
+        return w;
+    } catch (Error e) {
+        printerr("could not parse the exported SVG: %s\n", e.message);
+        assert_not_reached();
+    }
+}
+
+const string SCALE_BODY = "participant \"Service Number 01\" as A\n" +
+                          "participant \"Service Number 02\" as B\n" +
+                          "A -> B : hello world this is a message\n";
+
+string scaled_svg(string directive) {
+    string head = directive.length > 0 ? directive + "\n" : "";
+    return exported_svg("@startuml\n" + head + SCALE_BODY + "@enduml\n");
+}
+
+void test_scale_forms() {
+    double plain = svg_width_px(scaled_svg(""));
+    assert(plain > 0);
+
+    // A uniform factor, including the ratio spelling.
+    double twice = svg_width_px(scaled_svg("scale 2"));
+    double half  = svg_width_px(scaled_svg("scale 0.5"));
+    double ratio = svg_width_px(scaled_svg("scale 2/3"));
+    assert((twice / plain - 2.0).abs() < 0.02);
+    assert((half / plain - 0.5).abs() < 0.02);
+    assert((ratio / plain - 2.0 / 3.0).abs() < 0.02);
+
+    // Scale TO a width, and fit inside a box (width-limited here).
+    assert((svg_width_px(scaled_svg("scale 800 width")) - 800.0).abs() < 2.0);
+    assert((svg_width_px(scaled_svg("scale 800*600")) - 800.0).abs() < 2.0);
+}
+
+void test_scale_max_only_shrinks() {
+    double plain = svg_width_px(scaled_svg(""));
+
+    // `max` caps a drawing that is too wide ...
+    double capped = svg_width_px(scaled_svg("scale max 300 width"));
+    assert((capped - 300.0).abs() < 2.0);
+    assert(capped < plain);
+
+    // ... and does NOTHING when the drawing already fits. This is the half that
+    // distinguishes `max` from a plain `scale N width`, and the one a test that only
+    // checked shrinking would miss: measured in PlantUML 1.2026.9, a 358x137 drawing is
+    // unchanged by `scale max 300 height`.
+    double uncapped = svg_width_px(scaled_svg("scale max 300 height"));
+    assert((uncapped - plain).abs() < 0.01);
+}
+
+void test_scale_directive_parsing() {
+    var f = RenderUtils.parse_scale_directive("@startuml\nscale 2\n@enduml\n");
+    assert(f != null && f.kind == RenderUtils.ScaleSpec.Kind.FACTOR && !f.is_max);
+    assert((f.a - 2.0).abs() < 1e-9);
+
+    var w = RenderUtils.parse_scale_directive("@startuml\nscale max 4000 width\n@enduml\n");
+    assert(w != null && w.kind == RenderUtils.ScaleSpec.Kind.WIDTH && w.is_max);
+    assert((w.a - 4000.0).abs() < 1e-9);
+
+    var box = RenderUtils.parse_scale_directive("@startuml\nscale 800*600\n@enduml\n");
+    assert(box != null && box.kind == RenderUtils.ScaleSpec.Kind.BOX);
+    assert((box.a - 800.0).abs() < 1e-9 && (box.b - 600.0).abs() < 1e-9);
+
+    // Anchored to a whole line: the word inside a label is not the directive. Without this
+    // a ditaa drawing or any participant called "scale 2" would resize the diagram.
+    assert(RenderUtils.parse_scale_directive("@startuml\nA -> B : scale 2 of them\n@enduml\n") == null);
+    assert(RenderUtils.parse_scale_directive("@startuml\nparticipant \"scale 2\"\n@enduml\n") == null);
+    assert(RenderUtils.parse_scale_directive("@startuml\nA -> B : x\n@enduml\n") == null);
+
+    // `max` only ever shrinks.
+    var cap = new RenderUtils.ScaleSpec();
+    cap.kind = RenderUtils.ScaleSpec.Kind.WIDTH;
+    cap.a = 300;
+    cap.is_max = true;
+    assert((cap.factor_for(600, 200) - 0.5).abs() < 1e-9);   // too wide: shrink
+    assert((cap.factor_for(100, 200) - 1.0).abs() < 1e-9);   // already fits: no-op
+    cap.is_max = false;
+    assert((cap.factor_for(100, 200) - 3.0).abs() < 1e-9);   // plain form: grows
+}
+
 void main(string[] args) {
     Test.init(ref args);
     Test.add_func("/renderutils/markers/plus_both_ends", test_plus_both_ends);
@@ -270,5 +367,8 @@ void main(string[] args) {
     Test.add_func("/renderutils/actor/figure_fills", test_actor_figure_fills);
     Test.add_func("/renderutils/contrast/see_through", test_contrast_text_see_through);
     Test.add_func("/renderutils/sanitize_id/keywords", test_sanitize_id_keywords_collision_free);
+    Test.add_func("/renderutils/scale/forms", test_scale_forms);
+    Test.add_func("/renderutils/scale/max_only_shrinks", test_scale_max_only_shrinks);
+    Test.add_func("/renderutils/scale/parsing", test_scale_directive_parsing);
     Test.run();
 }

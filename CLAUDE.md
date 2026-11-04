@@ -238,6 +238,39 @@ draw `<right>` literally — `has_align_directive()` guards that. A test for thi
 single-line message: anything containing `\n` is already disqualified from the fast path, so a
 multi-line case cannot catch a regression there.
 
+### `scale` and the 4096 px crop
+
+PlantUML — **both** 1.2020.02 and 1.2026.9, measured — silently crops a drawing at 4096 px: it
+exits 0 and writes the truncated image. `scale max N width` is the directive that prevents it,
+and gDiagram ignored `scale` entirely until 2026-11-04. That was worse than an unsupported
+directive: gDiagram renders at any size and so never needs `scale`, which made the preview —
+the one place an author would notice — the one place that could not show them whether the line
+they just added did anything. gDiagram also renders WIDER than PlantUML for the same source
+(7890 px where PlantUML gives 4096), so our users meet the crop more often, not less.
+
+Semantics, measured against 1.2026.9 on a 358x137 drawing: `scale 2` → ×2, `scale 2/3` → ratio
+(also a factor), `scale 800 width` → scale *to* that width, `scale 800*600` → fit inside the
+box, `scale max 300 width` → 300x115, `scale max 300 height` → **unchanged**. So `max` only
+ever shrinks; the plain forms always scale.
+
+- **It is applied to the finished SVG**, in `RenderUtils.apply_scale()` from inside
+  `fill_svg_background()` — the one chokepoint every renderer already passes through. Only the
+  `<svg>` tag's width and height are rewritten; the **viewBox is left alone**. Everything
+  downstream then follows for free: librsvg reports the new intrinsic size, `svg_page_size()`
+  sizes the preview surface and the PNG from it, and `SvgFrame` derives its click-region scale
+  as `surface_width / viewBox_width`. Verified: click-to-source still picks the right
+  participant with a `scale` in force.
+- **The factor is computed in PIXELS**, from librsvg's intrinsic size, not from the SVG's own
+  units. Graphviz writes the page in points, and a cap of "4000 width" applied straight to a pt
+  value comes out a third too large. A test that converts pt→px at 96/72 to check this will
+  fail a correct implementation — librsvg does not use that ratio for these pages.
+- **Wire it at the private funnels** (`export_plantuml_to_png/svg/pdf`, `render_plantuml`), not
+  at the public `export_to_*`. The CLI preprocesses up front and calls `export_preprocessed()`,
+  a fifth entry point: wiring the public ones left the directive silently doing nothing from
+  the command line while working everywhere else.
+- `scale_spec` is process-wide, set and cleared around each render like `grayscale_output` —
+  if it leaked, the next diagram would be drawn at this one's scale.
+
 ### Backslash line continuation
 
 A source line ending in a single backslash continues onto the next one, as PlantUML 1.2026.9

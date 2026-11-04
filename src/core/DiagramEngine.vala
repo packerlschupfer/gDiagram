@@ -312,7 +312,13 @@ namespace GDiagram {
             if (format == DiagramFormat.MERMAID) {
                 return render_mermaid(type, source);
             }
-            return render_plantuml(type, source);
+            // PlantUML's `scale`, applied to the finished SVG by RenderUtils. Set and cleared
+            // around the render: the flag is process-wide, so leaving it set would draw the
+            // next document at this one's scale. Mermaid has no such directive.
+            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(source);
+            RenderResult result = render_plantuml(type, source);
+            RenderUtils.scale_spec = null;
+            return result;
         }
 
         private RenderResult render_mermaid(DiagramType type, string source) {
@@ -1719,7 +1725,20 @@ namespace GDiagram {
             return export_plantuml_to_png(processed_source, detect_plantuml_type(processed_source), filename);
         }
 
+        /**
+         * Every export of PlantUML source funnels through here - export_to_png() AND
+         * export_preprocessed(), which is the one the CLI actually calls. Wiring the public
+         * entry points instead missed that, and the directive silently did nothing from the
+         * command line while working everywhere else.
+         */
         private bool export_plantuml_to_png(string processed_source, DiagramType diagram_type, string filename) {
+            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            bool ok = export_plantuml_to_png_inner(processed_source, diagram_type, filename);
+            RenderUtils.scale_spec = null;
+            return ok;
+        }
+
+        private bool export_plantuml_to_png_inner(string processed_source, DiagramType diagram_type, string filename) {
             var lexer = new Lexer(processed_source);
             var tokens = lexer.scan_all();
 
@@ -1820,7 +1839,20 @@ namespace GDiagram {
             return export_plantuml_to_svg(processed_source, detect_plantuml_type(processed_source), filename);
         }
 
+        /**
+         * Every export of PlantUML source funnels through here - export_to_svg() AND
+         * export_preprocessed(), which is the one the CLI actually calls. Wiring the public
+         * entry points instead missed that, and the directive silently did nothing from the
+         * command line while working everywhere else.
+         */
         private bool export_plantuml_to_svg(string processed_source, DiagramType diagram_type, string filename) {
+            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            bool ok = export_plantuml_to_svg_inner(processed_source, diagram_type, filename);
+            RenderUtils.scale_spec = null;
+            return ok;
+        }
+
+        private bool export_plantuml_to_svg_inner(string processed_source, DiagramType diagram_type, string filename) {
             var lexer = new Lexer(processed_source);
             var tokens = lexer.scan_all();
 
@@ -1921,7 +1953,20 @@ namespace GDiagram {
             return export_plantuml_to_pdf(processed_source, detect_plantuml_type(processed_source), filename);
         }
 
+        /**
+         * Every export of PlantUML source funnels through here - export_to_pdf() AND
+         * export_preprocessed(), which is the one the CLI actually calls. Wiring the public
+         * entry points instead missed that, and the directive silently did nothing from the
+         * command line while working everywhere else.
+         */
         private bool export_plantuml_to_pdf(string processed_source, DiagramType diagram_type, string filename) {
+            RenderUtils.scale_spec = RenderUtils.parse_scale_directive(processed_source);
+            bool ok = export_plantuml_to_pdf_inner(processed_source, diagram_type, filename);
+            RenderUtils.scale_spec = null;
+            return ok;
+        }
+
+        private bool export_plantuml_to_pdf_inner(string processed_source, DiagramType diagram_type, string filename) {
             var lexer = new Lexer(processed_source);
             var tokens = lexer.scan_all();
 
