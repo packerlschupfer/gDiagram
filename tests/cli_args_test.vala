@@ -114,6 +114,173 @@ namespace GDiagram.Tests {
             return proc.get_exit_status();
         }
 
+        /**
+         * Like run_cli(), but captures STDOUT - which is where --check reports, because a
+         * check that succeeds is a result, not an error.
+         */
+        private static int run_cli_stdout(string[] args, out string out_text) {
+            out_text = "";
+            var launcher = new SubprocessLauncher(SubprocessFlags.STDOUT_PIPE |
+                                                  SubprocessFlags.STDERR_SILENCE);
+            launcher.setenv("GSETTINGS_BACKEND", "memory", true);
+            launcher.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent-gdiagram-test", true);
+            launcher.unsetenv("DISPLAY");
+            launcher.unsetenv("WAYLAND_DISPLAY");
+
+            string[] argv = { gdiagram_bin() };
+            foreach (string a in args) argv += a;
+
+            Subprocess proc;
+            try {
+                proc = launcher.spawnv(argv);
+            } catch (Error e) {
+                error("spawn: %s", e.message);
+            }
+            string? captured = null;
+            try {
+                proc.communicate_utf8(null, null, out captured, null);
+            } catch (Error e) {
+                error("communicate: %s", e.message);
+            }
+            if (captured != null) {
+                out_text = captured;
+            }
+            if (!proc.get_if_exited()) return -1;
+            return proc.get_exit_status();
+        }
+
+        private static string write_check_file(string name, string body) {
+            string path = Path.build_filename(tmp_root(), name);
+            try {
+                FileUtils.set_contents(path, body);
+            } catch (FileError e) {
+                error("write: %s", e.message);
+            }
+            return path;
+        }
+
+        /**
+         * --check validates without writing a file. Before it there was no way to ask
+         * "is this valid?" other than exporting an image and reading prose off stderr,
+         * and the warnings gDiagram already computes could not be reached from the CLI.
+         */
+        public static void test_check_reports_ok_and_errors() {
+            string good = write_check_file("chk_good.puml", "@startuml\nAlice -> Bob : hi\n@enduml\n");
+            string text;
+            assert(run_cli_stdout({ "--check", good }, out text) == 0);
+            assert(text.contains("OK"));
+            assert(text.contains("plantuml sequence"));
+
+            string bad = write_check_file("chk_bad.puml", "@startuml\nAlice -> : hi\n@enduml\n");
+            assert(run_cli_stdout({ "--check", bad }, out text) == 1);
+            assert(text.contains("Error"));
+            assert(text.contains("line 2"));
+
+            // Nothing is written, whatever the verdict.
+            assert(!FileUtils.test(Path.build_filename(tmp_root(), "chk_good.png"), FileTest.EXISTS));
+        }
+
+        /** --json must be parseable JSON, not prose that merely looks structured. */
+        public static void test_check_json_is_valid_json() {
+            string good = write_check_file("chk_json.puml", "@startuml\nAlice -> Bob : hi\n@enduml\n");
+            string text;
+            assert(run_cli_stdout({ "--check", "--json", good }, out text) == 0);
+
+            var parser = new Json.Parser();
+            try {
+                parser.load_from_data(text);
+            } catch (Error e) {
+                printerr("--check --json did not emit valid JSON:\n%s\n", text);
+                assert_not_reached();
+            }
+            var root_obj = parser.get_root().get_object();
+            assert(root_obj.get_boolean_member("ok"));
+            assert(root_obj.get_string_member("format") == "plantuml");
+            assert(root_obj.get_string_member("type") == "sequence");
+            assert(root_obj.get_int_member("width") > 0);
+            assert(root_obj.get_array_member("diagnostics").get_length() == 0);
+        }
+
+        /**
+         * A warning is not a failure: the file renders here, it just may not travel.
+         * Both warnings the CLI could not previously reach are asserted on.
+         */
+        public static void test_check_warnings_do_not_fail() {
+            string port = write_check_file("chk_port.puml",
+                "@startuml\nparticipant \"NVS \\\"boot\\\"\" as P\nP -> P : x\n@enduml\n");
+            string text;
+            assert(run_cli_stdout({ "--check", "--json", port }, out text) == 0);
+            var parser = new Json.Parser();
+            try {
+                parser.load_from_data(text);
+            } catch (Error e) {
+                assert_not_reached();
+            }
+            var root_obj = parser.get_root().get_object();
+            assert(root_obj.get_boolean_member("ok"));
+            var diags = root_obj.get_array_member("diagnostics");
+            assert(diags.get_length() == 1);
+            var first = diags.get_object_element(0);
+            assert(first.get_string_member("severity") == "warning");
+            assert(first.get_string_member("code") == "escaped-quote");
+            assert(first.get_int_member("line") == 2);
+        }
+
+        /**
+         * The crop warning: this is the one thing a gDiagram-only author cannot discover
+         * for themselves, because gDiagram renders at any size and PlantUML silently
+         * truncates at 4096 px.
+         */
+        public static void test_check_flags_oversized_diagram() {
+            var sb = new StringBuilder("@startuml\n");
+            for (int i = 0; i < 40; i++) {
+                sb.append_printf("participant \"Service Number %02d\" as S%d\n", i, i);
+            }
+            for (int i = 0; i < 39; i++) {
+                sb.append_printf("S%d -> S%d : call %d\n", i, i + 1, i);
+            }
+            sb.append("@enduml\n");
+            string wide = write_check_file("chk_wide.puml", sb.str);
+
+            string text;
+            assert(run_cli_stdout({ "--check", "--json", wide }, out text) == 0);
+            var parser = new Json.Parser();
+            try {
+                parser.load_from_data(text);
+            } catch (Error e) {
+                assert_not_reached();
+            }
+            var root_obj = parser.get_root().get_object();
+            assert(root_obj.get_int_member("width") > 4096);
+            assert(root_obj.get_boolean_member("exceeds_plantuml_crop"));
+
+            // And taking the advice clears it - the loop the warning exists to close.
+            string capped = write_check_file("chk_capped.puml",
+                "@startuml\nscale max 4000 width\n" + sb.str.substring("@startuml\n".length));
+            assert(run_cli_stdout({ "--check", "--json", capped }, out text) == 0);
+            var p2 = new Json.Parser();
+            try {
+                p2.load_from_data(text);
+            } catch (Error e) {
+                assert_not_reached();
+            }
+            var o2 = p2.get_root().get_object();
+            assert(o2.get_int_member("width") <= 4096);
+            assert(!o2.get_boolean_member("exceeds_plantuml_crop"));
+        }
+
+        /** --json without --check would let a script parse prose believing it was JSON. */
+        public static void test_check_flag_misuse_rejected() {
+            string good = write_check_file("chk_misuse.puml", "@startuml\nA -> B : x\n@enduml\n");
+            string err;
+            assert(run_cli({ "--json", good }, out err) == 2);
+            assert(err.contains("--json only applies to --check"));
+
+            string png = Path.build_filename(tmp_root(), "chk_misuse.png");
+            assert(run_cli({ "--check", "-e", png, good }, out err) == 2);
+            assert(!FileUtils.test(png, FileTest.EXISTS));
+        }
+
         // -e with no output name (alone, or followed by another flag) must not reach
         // GUI mode: "-e -f png" used to write a file literally called "-f".
         public static void test_export_without_output() {
@@ -965,6 +1132,11 @@ namespace GDiagram.Tests {
                       CliArgsTests.test_format_follows_output_extension);
         Test.add_func("/cli-args/explicit_format_overrides_extension",
                       CliArgsTests.test_explicit_format_overrides_extension);
+        Test.add_func("/cli-args/check_reports_ok_and_errors", CliArgsTests.test_check_reports_ok_and_errors);
+        Test.add_func("/cli-args/check_json_is_valid_json", CliArgsTests.test_check_json_is_valid_json);
+        Test.add_func("/cli-args/check_warnings_do_not_fail", CliArgsTests.test_check_warnings_do_not_fail);
+        Test.add_func("/cli-args/check_flags_oversized", CliArgsTests.test_check_flags_oversized_diagram);
+        Test.add_func("/cli-args/check_flag_misuse", CliArgsTests.test_check_flag_misuse_rejected);
         Test.add_func("/cli-args/unreadable_extension_defaults_to_png",
                       CliArgsTests.test_unreadable_extension_defaults_to_png);
         return Test.run();

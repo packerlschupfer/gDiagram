@@ -199,6 +199,30 @@ Before the extension rule, `-e out.svg` silently wrote PNG bytes into a file nam
 `tests/cli_args_test.vala` asserts on the file's **magic bytes** and on the exported colours,
 not on the printed line — a message-only test would have passed throughout both bugs.
 
+### `--check`: the machine-readable contract
+
+`gdiagram FILE --check [--json]` validates without writing anything. It exists because
+gDiagram computed diagnostics it could not tell anyone: parse and preprocessor errors went
+out as prose on stderr only when you asked for an *image*, and the portability warning lived
+only in the LSP, unreachable from a script or an agent.
+
+- **It renders, in memory, writing nothing.** That is the only way to learn the page size,
+  and it also catches a diagram that parses but cannot be drawn. The size is what powers the
+  `exceeds-plantuml-crop` warning — the one thing a gDiagram-only author cannot discover
+  for themselves, since we render at any size and PlantUML truncates at 4096 px.
+- **Warnings do not fail it.** Exit 0 with warnings, 1 only for errors: a file that renders
+  here is not broken, it may just not travel. `--json` without `--check` is an ERROR rather
+  than ignored, because a script that silently got prose would parse it as JSON.
+- **Diagnostic `code`s are the stable part** (`parse`, `include-unresolved`, `escaped-quote`,
+  `exceeds-plantuml-crop`, `type-undetected`, `type-unsupported`, `render-failed`). Messages
+  are prose and may be reworded; codes are the contract.
+- `Application.type_name()` gives `sequence` / `mermaid-flowchart`. Do not print
+  `DiagramType.to_string()` at a user — that is the generated C enum name, and the export
+  path spent months saying `GDIAGRAM_DIAGRAM_TYPE_SEQUENCE`.
+- `tests/cli_args_test.vala` PARSES the JSON with json-glib rather than grepping it, so a
+  malformed document fails instead of passing a substring match — the same reason that file
+  asserts on PNG magic bytes rather than on the printed line.
+
 ### Note line alignment
 
 PlantUML's `<right>`/`<center>`/`<left>` inside a note **or a message label** are MODE

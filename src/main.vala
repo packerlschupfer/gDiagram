@@ -20,7 +20,8 @@ const string[] CLI_EXPORT_THEMES = {
 // own (--gapplication-service, --display, ...).
 const string[] CLI_KNOWN_FLAGS = {
     "-e", "--export", "-f", "--format", "--scale", "--theme",
-    "-d", "--debug", "-h", "--help", "--version", "--dump-preprocessed"
+    "-d", "--debug", "-h", "--help", "--version", "--dump-preprocessed",
+    "--check", "--json"
 };
 
 // The canonical (lower-case) name of `format`, or null when it is not one of ours.
@@ -114,6 +115,8 @@ int main(string[] args) {
     bool export_requested = false;
     bool format_requested = false;
     bool dump_requested = false;
+    bool check_requested = false;
+    bool json_requested = false;
     int export_count = 0;
     int format_count = 0;
     string[] inputs = {};
@@ -149,6 +152,10 @@ int main(string[] args) {
             export_scale = true;
         } else if (args[i] == "--dump-preprocessed") {
             dump_requested = true;
+        } else if (args[i] == "--check") {
+            check_requested = true;
+        } else if (args[i] == "--json") {
+            json_requested = true;
         } else if (args[i].has_prefix("-")) {
             if (!cli_is_known_flag(args[i])) unknown_flags += args[i];
         } else {
@@ -201,6 +208,31 @@ int main(string[] args) {
             stderr.printf("Error: %s\n", e.message);
             return 1;
         }
+    }
+
+    // --check: validate without writing anything. Early, like --dump-preprocessed, so a
+    // check never needs to register as a GApplication.
+    if (check_requested) {
+        if (unknown_flags.length > 0) {
+            stderr.printf("Error: unknown option '%s'\n", unknown_flags[0]);
+            return 2;
+        }
+        if (export_requested || format_requested || theme_requested || dump_requested) {
+            stderr.printf("Error: --check writes nothing, so it cannot be combined with an export\n");
+            return 2;
+        }
+        if (inputs.length != 1) {
+            stderr.printf("Usage: gdiagram --check [--json] FILE\n");
+            return 2;
+        }
+        return GDiagram.Application.handle_check(inputs[0], json_requested);
+    }
+
+    // --json only means something for --check; silently ignoring it would let a script
+    // believe it was getting JSON and parse the prose instead.
+    if (json_requested) {
+        stderr.printf("Error: --json only applies to --check\n");
+        return 2;
     }
 
     if (theme_requested) {

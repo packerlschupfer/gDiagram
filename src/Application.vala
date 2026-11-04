@@ -84,13 +84,18 @@ namespace GDiagram {
             print("                           or grayscale\n");
             print("  --scale                  Scale output 71.5%% to match PlantUML dimensions\n");
             print("  -h, --help               Show this help\n");
-            print("  --version                Show version information\n");
+            print("  --check                  Validate without writing a file; prints errors
+                           AND portability warnings, exit 1 on an error
+  --json                   Machine-readable output for --check
+  --version                Show version information\n");
             print("\n");
             print("Examples:\n");
             print("  gdiagram diagram.puml                    # Open in GUI\n");
             print("  gdiagram diagram.puml -e output.png     # Export to PNG\n");
             print("  gdiagram diagram.puml -e out.svg        # Export to SVG (from the name)\n");
-            print("  gdiagram diagram.puml -e out.txt -f svg # SVG into a name we cannot read\n");
+            print("  gdiagram diagram.puml -e out.txt -f svg # SVG into a name we cannot read
+  gdiagram diagram.puml --check           # Is it valid? Will it travel?
+  gdiagram diagram.puml --check --json    # ... the same, for a script or an agent\n");
         }
 
         public static void print_version() {
@@ -292,6 +297,221 @@ namespace GDiagram {
          * script noticed. LspDocumentState.is_include_error() keeps the same list for the
          * LSP; the two binaries do not share a compilation unit.
          */
+        /**
+         * A diagram type as a stable, lower-case name: "sequence", "mermaid-flowchart".
+         *
+         * `DiagramType.to_string()` gives the generated C enum name, so the export path has
+         * been printing "GDIAGRAM_DIAGRAM_TYPE_SEQUENCE" at people. That is noise for a
+         * human and a brittle thing for a machine to match on.
+         */
+        public static string type_name(DiagramType type) {
+            string raw = type.to_string();
+            int cut = raw.last_index_of("DIAGRAM_TYPE_");
+            if (cut >= 0) {
+                raw = raw.substring(cut + "DIAGRAM_TYPE_".length);
+            }
+            return raw.down().replace("_", "-");
+        }
+
+        private static string format_name(DiagramFormat format) {
+            if (format == DiagramFormat.MERMAID) {
+                return "mermaid";
+            }
+            if (format == DiagramFormat.PLANTUML) {
+                return "plantuml";
+            }
+            return "unknown";
+        }
+
+        private static string json_escape(string s) {
+            var sb = new StringBuilder();
+            for (int i = 0; i < s.length; i++) {
+                char c = s[i];
+                if (c == '"' || c == '\\') {
+                    sb.append_c('\\').append_c(c);
+                } else if (c == '\n') {
+                    sb.append("\\n");
+                } else if (c == '\t') {
+                    sb.append("\\t");
+                } else if (c == '\r') {
+                    sb.append("\\r");
+                } else if (c >= 0 && c < 0x20) {
+                    sb.append_printf("\\u%04x", (int) c);
+                } else {
+                    sb.append_c(c);
+                }
+            }
+            return sb.str;
+        }
+
+        /** One finding: an error stops the file working, a warning stops it travelling. */
+        private class CheckNote : Object {
+            public string severity;
+            public string code;
+            public int line;
+            public string message;
+
+            public CheckNote(string severity, string code, int line, string message) {
+                this.severity = severity;
+                this.code = code;
+                this.line = line;
+                this.message = message;
+            }
+        }
+
+        /**
+         * `--check`: say what is wrong with a file without writing an image.
+         *
+         * Until now the only way to find out whether a diagram was valid was to export one
+         * and read the prose on stderr, and the warnings gDiagram already computes - the
+         * portability one, the size that PlantUML will crop - could not be reached from the
+         * command line at all. This prints errors AND warnings, with `--json` for a machine.
+         *
+         * Exit 0 when there are no errors; warnings do not fail the check, because a file
+         * that renders here is not broken - it just may not travel.
+         */
+        public static int handle_check(string input_path, bool as_json) {
+            string content;
+            try {
+                FileUtils.get_contents(input_path, out content);
+            } catch (FileError e) {
+                if (as_json) {
+                    stdout.printf("{\"file\": \"%s\", \"ok\": false, \"diagnostics\": " +
+                                  "[{\"severity\": \"error\", \"code\": \"unreadable\", " +
+                                  "\"line\": 0, \"message\": \"%s\"}]}\n",
+                                  json_escape(input_path), json_escape(e.message));
+                } else {
+                    stderr.printf("Error: %s\n", e.message);
+                }
+                return 1;
+            }
+
+            var engine = new DiagramEngine("dot");
+            var notes = new Gee.ArrayList<CheckNote>();
+
+            var result = engine.parse(content, input_path, input_path);
+
+            if (result.format != DiagramFormat.MERMAID) {
+                foreach (var err in engine.preprocessor_errors) {
+                    bool fatal = is_include_failure(err.message);
+                    notes.add(new CheckNote(fatal ? "error" : "warning",
+                                            fatal ? "include-unresolved" : "preprocessor",
+                                            err.line, err.message));
+                }
+            }
+            if (result.errors != null) {
+                foreach (var err in result.errors) {
+                    notes.add(new CheckNote("error", "parse", err.line, err.message));
+                }
+            }
+            if (result.diagram_type == DiagramType.UNKNOWN) {
+                notes.add(new CheckNote("error", "type-undetected", 0,
+                                        "Could not detect a diagram type from the content"));
+            } else if (result.unsupported) {
+                notes.add(new CheckNote("error", "type-unsupported", 0,
+                    "Detected %s, which this build cannot parse".printf(
+                        type_name(result.diagram_type))));
+            }
+
+            // Portability: renders here, rejected by PlantUML.
+            if (result.format != DiagramFormat.MERMAID) {
+                foreach (int line in DiagramLinter.escaped_quote_lines(content,
+                                                                       result.diagram_type)) {
+                    notes.add(new CheckNote("warning", "escaped-quote", line,
+                        "An escaped quote inside a quoted name renders here but is a syntax " +
+                        "error in PlantUML, which rejects the whole file. Write <U+0022>."));
+                }
+            }
+
+            // Render it, without writing anything: this is the only way to learn the size,
+            // and it also catches a diagram that parses but cannot be drawn.
+            int width = 0;
+            int height = 0;
+            bool has_errors = false;
+            foreach (var note in notes) {
+                if (note.severity == "error") {
+                    has_errors = true;
+                }
+            }
+            if (!has_errors) {
+                uint8[]? svg = engine.generate_svg(content, input_path, input_path);
+                if (svg == null || svg.length == 0) {
+                    notes.add(new CheckNote("error", "render-failed", 0,
+                                            "The diagram parsed but could not be rendered"));
+                    has_errors = true;
+                } else {
+                    try {
+                        var stream = new MemoryInputStream.from_data(svg);
+                        var handle = new Rsvg.Handle.from_stream_sync(
+                            stream, null, Rsvg.HandleFlags.FLAGS_NONE, null);
+                        double w = 0;
+                        double h = 0;
+                        handle.get_intrinsic_size_in_pixels(out w, out h);
+                        width = (int) w;
+                        height = (int) h;
+                    } catch (Error e) {
+                        notes.add(new CheckNote("warning", "size-unknown", 0,
+                                                "Could not measure the rendered size: " + e.message));
+                    }
+                }
+            }
+
+            // PlantUML crops at 4096 px in both 1.2020.02 and 1.2026.9 - it exits 0 and
+            // writes a truncated image - and gDiagram renders at any size, so this is the
+            // one thing a gDiagram-only author cannot discover for themselves.
+            bool oversized = width > 4096 || height > 4096;
+            if (oversized && result.format != DiagramFormat.MERMAID) {
+                notes.add(new CheckNote("warning", "exceeds-plantuml-crop", 0,
+                    ("Rendered %dx%d px. PlantUML silently crops at 4096 px, so this file " +
+                     "will be truncated there. Add `scale max 4000 width` to cap it.").printf(
+                        width, height)));
+            }
+
+            if (as_json) {
+                var sb = new StringBuilder();
+                sb.append_printf("{\n  \"file\": \"%s\",\n", json_escape(input_path));
+                sb.append_printf("  \"format\": \"%s\",\n", format_name(result.format));
+                sb.append_printf("  \"type\": \"%s\",\n", type_name(result.diagram_type));
+                sb.append_printf("  \"ok\": %s,\n", has_errors ? "false" : "true");
+                sb.append_printf("  \"width\": %d,\n  \"height\": %d,\n", width, height);
+                sb.append_printf("  \"exceeds_plantuml_crop\": %s,\n",
+                                 oversized ? "true" : "false");
+                sb.append("  \"diagnostics\": [");
+                for (int i = 0; i < notes.size; i++) {
+                    var note = notes.get(i);
+                    sb.append(i == 0 ? "\n" : ",\n");
+                    sb.append_printf(
+                        "    {\"severity\": \"%s\", \"code\": \"%s\", \"line\": %d, " +
+                        "\"message\": \"%s\"}",
+                        note.severity, note.code, note.line, json_escape(note.message));
+                }
+                sb.append(notes.size > 0 ? "\n  ]\n}\n" : "]\n}\n");
+                stdout.printf("%s", sb.str);
+            } else {
+                // "mermaid mermaid-flowchart" reads badly; the JSON keeps the full, stable
+                // name because a machine should not have to reassemble it.
+                string shown = type_name(result.diagram_type);
+                string prefix = format_name(result.format) + "-";
+                if (shown.has_prefix(prefix)) {
+                    shown = shown.substring(prefix.length);
+                }
+                foreach (var note in notes) {
+                    string where = note.line > 0 ? "line %d: ".printf(note.line) : "";
+                    stdout.printf("%s: %s%s\n",
+                                  note.severity == "error" ? "Error" : "Warning",
+                                  where, note.message);
+                }
+                if (has_errors) {
+                    stdout.printf("%s: FAILED (%s %s)\n", input_path,
+                                  format_name(result.format), shown);
+                } else {
+                    stdout.printf("%s: OK (%s %s, %dx%d px)\n", input_path,
+                                  format_name(result.format), shown, width, height);
+                }
+            }
+            return has_errors ? 1 : 0;
+        }
+
         public static bool is_include_failure(string message) {
             return message.has_prefix("Cannot resolve include") ||
                    message.has_prefix("Standard library include not available") ||

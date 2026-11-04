@@ -701,7 +701,9 @@ test('Review leftovers tests', review_leftovers_test,
 cli_args_test = executable('cli_args_test',
   # config.vala carries VERSION/BUILD_ID/BUILD_DATE, which the --version test asserts on
   ['cli_args_test.vala', config_file],
-  dependencies: [gio_dep],
+  # json-glib: the --check --json test PARSES the output rather than grepping it, so a
+  # malformed document fails the test instead of passing a substring match
+  dependencies: [gio_dep, json_dep],
   vala_args: ['--target-glib=2.74'],
   c_args: test_c_suppress + vala_c_suppress,
 )
