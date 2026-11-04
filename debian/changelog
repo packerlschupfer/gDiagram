@@ -1,3 +1,18 @@
+gdiagram (0.1.8-1) unstable; urgency=medium
+
+  * New `--check` mode: validates a diagram without writing a file, reporting
+    errors AND portability warnings with stable codes, and `--check --json` for
+    a script or an agent. Warnings do not fail it - a file that renders here is
+    not broken, it just may not travel.
+  * It warns when a drawing will exceed the 4096 px at which PlantUML silently
+    crops, estimating PlantUML's own size rather than reporting ours.
+  * A new MCP server in `mcp/` exposes checking and rendering to Claude Code and
+    other MCP clients. Standard library Python; no new runtime dependency.
+  * Diagram types are reported as `sequence` and `mermaid-flowchart` rather than
+    the internal `GDIAGRAM_DIAGRAM_TYPE_SEQUENCE`.
+
+ -- gDiagram Developers <packerlschupfer@github.com>  Wed, 04 Nov 2026 22:15:00 +0100
+
 gdiagram (0.1.7-1) unstable; urgency=medium
 
   * PlantUML's `scale` directive is honoured: a factor, a ratio, scale-to-width,

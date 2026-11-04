@@ -80,6 +80,17 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="0.1.8" date="2026-11-04">
+      <description>
+        <p>gDiagram can now tell a script or an AI agent what it knows:</p>
+        <ul>
+          <li>--check validates a file without writing one, reporting errors and
+              portability warnings, with --json for machines</li>
+          <li>An MCP server in mcp/ exposes checking and rendering to Claude Code
+              and other MCP clients</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.7" date="2026-11-04">
       <description>
         <p>Two cases where a file looked right here and did not survive leaving:</p>
