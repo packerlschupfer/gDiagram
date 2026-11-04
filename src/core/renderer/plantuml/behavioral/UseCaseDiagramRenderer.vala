@@ -290,7 +290,7 @@ namespace GDiagram {
                     var obj = node.get_object();
                     foreach (string member in obj.get_members()) {
                         rows.append("<TR><TD ALIGN=\"LEFT\">%s</TD><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(
-                            Markup.escape_text(member), json_cell(obj.get_member(member))));
+                            RenderUtils.html_text(member), json_cell(obj.get_member(member))));
                     }
                     return rows.str;
                 }
@@ -329,7 +329,7 @@ namespace GDiagram {
                     } else {
                         text = "";
                     }
-                    return Markup.escape_text(text);
+                    return RenderUtils.html_text(text);
             }
         }
 
@@ -346,7 +346,7 @@ namespace GDiagram {
                 var rows = new StringBuilder();
                 foreach (string line in block.text.split("\n")) {
                     if (line.strip().length > 0) {
-                        rows.append("<TR><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(Markup.escape_text(line.strip())));
+                        rows.append("<TR><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(RenderUtils.html_text(line.strip())));
                     }
                 }
                 body = rows.str;
@@ -354,7 +354,7 @@ namespace GDiagram {
             string fill = RenderUtils.fill_color(palette.node_fill);
             string border = RenderUtils.sanitize_color(palette.node_border);
             return "  _ucjson%d [shape=plain, style=solid, fontcolor=\"%s\", label=<<TABLE BORDER=\"1\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"3\" BGCOLOR=\"%s\" COLOR=\"%s\"><TR><TD COLSPAN=\"2\">%s</TD></TR><TR><TD COLSPAN=\"2\" BORDER=\"0\" CELLPADDING=\"0\"><TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"3\">%s</TABLE></TD></TR></TABLE>>];\n".printf(
-                index, RenderUtils.contrast_text(fill), fill, border, Markup.escape_text(block.name), body);
+                index, RenderUtils.contrast_text(fill), fill, border, RenderUtils.html_text(block.name), body);
         }
 
         // Colours shared by every container cluster
@@ -460,10 +460,10 @@ namespace GDiagram {
                 ? "<FONT COLOR=\"%s\">".printf(RenderUtils.sanitize_color(actor.text_color)) : "";
             string close_font = actor.text_color != null ? "</FONT>" : "";
             if (actor.stereotype != null && actor.stereotype.strip().length > 0) {
-                rows.append("<TR><TD>%s<I>«%s»</I>%s</TD></TR>".printf(open_font, Markup.escape_text(actor.stereotype.strip()), close_font));
+                rows.append("<TR><TD>%s<I>«%s»</I>%s</TD></TR>".printf(open_font, RenderUtils.html_text(actor.stereotype.strip()), close_font));
             }
             rows.append("<TR><TD FIXEDSIZE=\"TRUE\" WIDTH=\"30\" HEIGHT=\"46\" BGCOLOR=\"#010203\"> </TD></TR>");
-            rows.append("<TR><TD>%s%s%s</TD></TR>".printf(open_font, Markup.escape_text(actor.name).replace("\\n", "<BR/>"), close_font));
+            rows.append("<TR><TD>%s%s%s</TD></TR>".printf(open_font, RenderUtils.html_text(actor.name).replace("\\n", "<BR/>"), close_font));
             // "line:red" / "line.bold" in the inline style
             string stroke = actor.line_color != null ? RenderUtils.sanitize_color(actor.line_color) : border;
             string classes = "gdactor gdfill_%s gdstroke_%s%s%s%s".printf(

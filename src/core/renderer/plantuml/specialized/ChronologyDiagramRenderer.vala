@@ -42,7 +42,7 @@ public class ChronologyDiagramRenderer : Object {
             var ev = events.get(i);
             sb.append_printf("    spine_%d [shape=point width=0.12 style=filled fillcolor=\"%s\" color=\"%s\"]\n", i, spine, spine);
             sb.append_printf("    event_%d [label=<<b>%s</b><br/><font point-size=\"9\">%s</font>> shape=box style=\"rounded,filled\" fillcolor=\"%s\" color=\"%s\" fontcolor=\"%s\" fontsize=10]\n",
-                i, Markup.escape_text(ev.name), Markup.escape_text(ev.date_str), fill, border, text);
+                i, RenderUtils.html_text(ev.name), RenderUtils.html_text(ev.date_str), fill, border, text);
             sb.append_printf("    { rank=same; spine_%d; event_%d }\n", i, i);
             sb.append_printf("    spine_%d -> event_%d [color=\"%s\" style=dashed minlen=1]\n", i, i, RenderUtils.sanitize_color(palette.edge_color));
             if (i > 0) {

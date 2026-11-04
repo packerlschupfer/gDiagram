@@ -366,7 +366,7 @@ public class DitaaDiagramRenderer : Object {
                 int first = w.node_count;
                 w.node(cx, py(r), tw, CH * 1.2,
                     "shape=plaintext fontsize=%s fontcolor=\"%s\" label=<<B>%s</B>>".printf(
-                        PinnedDotWriter.num(12 * k * PinnedDotWriter.PX), fg, Markup.escape_text(text.str)));
+                        PinnedDotWriter.num(12 * k * PinnedDotWriter.PX), fg, RenderUtils.html_text(text.str)));
                 // Text inside a shape is part of it; other text is an element of its own
                 if (sid >= 0) {
                     claim_nodes(w, first, "_ditaa_shape_%d".printf(sid), diagram.first_line + shapes[sid].min_y);

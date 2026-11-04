@@ -378,7 +378,7 @@ namespace GDiagram {
                     if (text.len > 0) {
                         text.append("<BR/>");
                     }
-                    text.append(Markup.escape_text(line));
+                    text.append(RenderUtils.html_text(line));
                 }
                 rows.append("<TR><TD FIXEDSIZE=\"TRUE\" WIDTH=\"30\" HEIGHT=\"34\" BGCOLOR=\"#0103%02x\"></TD><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(
                     index % 256, text.str));
@@ -599,12 +599,12 @@ namespace GDiagram {
                 if (body.len > 0) {
                     body.append("<BR ALIGN=\"LEFT\"/>");
                 }
-                body.append(Markup.escape_text(line));
+                body.append(RenderUtils.html_text(line));
             }
             body.append("<BR ALIGN=\"LEFT\"/>");
             return "<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"2\">" +
                    "<TR><TD>%s</TD></TR><HR/><TR><TD ALIGN=\"LEFT\" BALIGN=\"LEFT\">%s</TD></TR></TABLE>>".printf(
-                       Markup.escape_text(state.get_display_label()), body.str);
+                       RenderUtils.html_text(state.get_display_label()), body.str);
         }
 
         // An entry / exit point, pin or expansion node: its name beside a sentinel cell that
@@ -625,7 +625,7 @@ namespace GDiagram {
             string cell = "<TD FIXEDSIZE=\"TRUE\" WIDTH=\"%d\" HEIGHT=\"12\" PORT=\"sq\" BGCOLOR=\"%s\"></TD>".printf(width, sentinel);
             // The name diagonally outside the shape, clear of the links at its middle
             string name_row = "<TR><TD ALIGN=\"RIGHT\">%s</TD><TD></TD></TR>".printf(
-                Markup.escape_text(state.get_display_label()));
+                RenderUtils.html_text(state.get_display_label()));
             string shape_row = "<TR><TD></TD>%s</TR>".printf(cell);
             return "  %s [shape=plaintext, style=solid, label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\">%s%s</TABLE>>];\n".printf(
                 id, name_above ? name_row : shape_row, name_above ? shape_row : name_row);

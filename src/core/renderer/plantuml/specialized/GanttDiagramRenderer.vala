@@ -396,7 +396,7 @@ public class GanttLayout : Object {
     }
 
     private static string esc(string s) {
-        return Markup.escape_text(s);
+        return RenderUtils.html_text(s);
     }
 
     private void text(double x, double y, string content, double size, string fill,

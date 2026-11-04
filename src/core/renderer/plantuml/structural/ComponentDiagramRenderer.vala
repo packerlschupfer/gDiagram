@@ -221,7 +221,7 @@ namespace GDiagram {
                     string colour = use.color ?? use.tint ?? default_tint;
                     string box = "x=\"%s\" y=\"%s\" width=\"%d\" height=\"%d\"".printf(num(x0), num(y0), use.width, use.height);
                     string drawn = "<mask id=\"gdsprite%d\" maskUnits=\"userSpaceOnUse\" %s><image %s preserveAspectRatio=\"none\" xlink:href=\"data:image/png;base64,%s\"/></mask><rect %s fill=\"%s\" mask=\"url(#gdsprite%d)\"/>".printf(
-                        i, box, box, png_base64(use.sprite), box, Markup.escape_text(colour), i);
+                        i, box, box, png_base64(use.sprite), box, RenderUtils.html_text(colour), i);
                     result = result.substring(0, ms) + drawn + result.substring(me);
                 } catch (RegexError e) {
                     warning("Sprite regex: %s", e.message);
@@ -1309,7 +1309,8 @@ namespace GDiagram {
          * ours), <U+XXXX>, "~" escapes. Sprites and icons are dropped. Markup left open at the end
          * of a line is closed there; a tag closed out of order closes and reopens the ones inside.
          */
-        public static string creole_html(string text, double size_scale) {
+        public static string creole_html(string text_in, double size_scale) {
+            string text = RenderUtils.decode_unicode_escapes(text_in);
             var sb = new StringBuilder();
             foreach (string line in text.replace("\\n", "\n").split("\n")) {
                 if (sb.len > 0) {
@@ -1331,14 +1332,14 @@ namespace GDiagram {
                 string? action = null;  // toggle kind or a tag
                 int used = 0;
                 if (c == '~' && i + 1 < line.length) {
-                    sb.append(Markup.escape_text(line.substring(text_start, i - text_start)));
+                    sb.append(RenderUtils.html_text(line.substring(text_start, i - text_start)));
                     unichar next = line.get_char(i + 1);
                     string ch = next.to_string();
                     // "~**" / "~//" / "~__": the whole marker is text
                     if (i + 2 < line.length && line[i + 2] == line[i + 1] && "*/_".index_of_char(line[i + 1]) >= 0) {
                         ch = line.substring(i + 1, 2);
                     }
-                    sb.append(Markup.escape_text(ch));
+                    sb.append(RenderUtils.html_text(ch));
                     i += 1 + ch.length;
                     text_start = i;
                     continue;
@@ -1375,7 +1376,7 @@ namespace GDiagram {
                         } else if (name == "color") {
                             action = "color";
                             if (!closing && value != null && value.length > 0) {
-                                open_markup = "<FONT COLOR=\"%s\">".printf(Markup.escape_text(RenderUtils.sanitize_color(value)));
+                                open_markup = "<FONT COLOR=\"%s\">".printf(RenderUtils.html_text(RenderUtils.sanitize_color(value)));
                             } else if (!closing) {
                                 action = "drop";
                             }
@@ -1389,7 +1390,7 @@ namespace GDiagram {
                             }
                         } else if (name.has_prefix("u+") && !closing && tag.length > 2) {
                             action = "char";
-                            open_markup = "&#x%s;".printf(Markup.escape_text(tag.substring(2)));
+                            open_markup = "&#x%s;".printf(RenderUtils.html_text(tag.substring(2)));
                         } else if (name.has_prefix("$") || name.has_prefix("&") || name == "back" || name == "font") {
                             action = "drop";
                         } else {
@@ -1401,7 +1402,7 @@ namespace GDiagram {
                     i++;
                     continue;
                 }
-                sb.append(Markup.escape_text(line.substring(text_start, i - text_start)));
+                sb.append(RenderUtils.html_text(line.substring(text_start, i - text_start)));
                 i += used;
                 text_start = i;
                 if (action == "drop") {
@@ -1438,7 +1439,7 @@ namespace GDiagram {
                     sb.append(tag_open);
                 }
             }
-            sb.append(Markup.escape_text(line.substring(text_start)));
+            sb.append(RenderUtils.html_text(line.substring(text_start)));
             for (int k = kinds.size - 1; k >= 0; k--) {
                 sb.append(closing_tag(kinds[k]));
             }
@@ -1634,12 +1635,12 @@ namespace GDiagram {
                     while (text.has_suffix("=")) {
                         text = text.substring(0, text.length - 1).strip();
                     }
-                    html = "<FONT POINT-SIZE=\"13\"><B>%s</B></FONT>".printf(Markup.escape_text(text));
+                    html = "<FONT POINT-SIZE=\"13\"><B>%s</B></FONT>".printf(RenderUtils.html_text(text));
                 } else if (line.has_prefix("//") && line.has_suffix("//") && line.length > 4) {
                     string text = RenderUtils.strip_plantuml_markup(line.substring(2, line.length - 4));
-                    html = text.strip().length > 0 ? "<I>%s</I>".printf(Markup.escape_text(text)) : "";
+                    html = text.strip().length > 0 ? "<I>%s</I>".printf(RenderUtils.html_text(text)) : "";
                 } else {
-                    html = Markup.escape_text(RenderUtils.strip_plantuml_markup(line));
+                    html = RenderUtils.html_text(RenderUtils.strip_plantuml_markup(line));
                 }
                 if (html.length == 0) {
                     if (!last_blank) {
@@ -1721,7 +1722,7 @@ namespace GDiagram {
                             string? value = mi.fetch(3);
                             int before = (int) sb.len;
                             if (kind == "color" && value != null && value.strip().length > 0) {
-                                sb.append("<FONT COLOR=\"%s\">".printf(Markup.escape_text(legend_text_colour(RenderUtils.sanitize_color(value.strip())))));
+                                sb.append("<FONT COLOR=\"%s\">".printf(RenderUtils.html_text(legend_text_colour(RenderUtils.sanitize_color(value.strip())))));
                             } else if (kind == "size" && value != null && int.parse(value.strip()) > 0) {
                                 sb.append("<FONT POINT-SIZE=\"%d\">".printf(int.parse(value.strip())));
                             } else if (kind != "color" && kind != "size") {
@@ -1865,7 +1866,7 @@ namespace GDiagram {
 
         // Text as HTML: escaped, "\n" line breaks
         private static string html_text(string text) {
-            return Markup.escape_text(text).replace("\\n", "<BR/>").replace("\n", "<BR/>");
+            return RenderUtils.html_text(text).replace("\\n", "<BR/>").replace("\n", "<BR/>");
         }
 
         // "<$person>" / "<$person,scale=.25>" sprite references: Graphviz can't draw them and
@@ -1902,10 +1903,10 @@ namespace GDiagram {
             var sb = new StringBuilder();
             var names = comp.stereotypes.size > 0 ? comp.stereotypes : null;
             if (names == null) {
-                sb.append("«%s»".printf(Markup.escape_text(comp.stereotype.strip())));
+                sb.append("«%s»".printf(RenderUtils.html_text(comp.stereotype.strip())));
             } else {
                 foreach (string st in names) {
-                    sb.append("«%s»".printf(Markup.escape_text(st.strip())));
+                    sb.append("«%s»".printf(RenderUtils.html_text(st.strip())));
                 }
             }
             return "<I>%s</I>".printf(sb.str);
@@ -2484,7 +2485,7 @@ namespace GDiagram {
                     string port_id = RenderUtils.sanitize_id(port.id);
                     bool top = port_on_top.get(port_id);
                     // The name diagonally outside the square, clear of the links at its middle
-                    string name_row = "<TR><TD ALIGN=\"RIGHT\">%s</TD><TD></TD></TR>".printf(Markup.escape_text(port.label ?? port.id));
+                    string name_row = "<TR><TD ALIGN=\"RIGHT\">%s</TD><TD></TD></TR>".printf(RenderUtils.html_text(port.label ?? port.id));
                     string square_row = "<TR><TD></TD><TD>%s</TD></TR>".printf(square);
                     sb.append("    %s [shape=plaintext, style=solid, label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\">%s%s</TABLE>>];\n".printf(
                         port_id, top ? name_row : square_row, top ? square_row : name_row));
@@ -2555,7 +2556,7 @@ namespace GDiagram {
                     var rows = new StringBuilder();
                     foreach (string key in obj.get_members()) {
                         rows.append("<TR><TD ALIGN=\"LEFT\"><FONT COLOR=\"%s\">%s</FONT></TD><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(
-                            font, Markup.escape_text(key), json_html(obj.get_member(key), border, font)));
+                            font, RenderUtils.html_text(key), json_html(obj.get_member(key), border, font)));
                     }
                     return "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"3\" COLOR=\"%s\">%s</TABLE>".printf(border, rows.str);
                 }
@@ -2583,7 +2584,7 @@ namespace GDiagram {
                     } else {
                         text = Json.to_string(node, false);
                     }
-                    return "<FONT COLOR=\"%s\">%s</FONT>".printf(font, Markup.escape_text(text));
+                    return "<FONT COLOR=\"%s\">%s</FONT>".printf(font, RenderUtils.html_text(text));
                 }
             }
         }
@@ -2663,7 +2664,7 @@ namespace GDiagram {
         // title goes below the top ports. Nodes and links stay where Graphviz put them.
 
         private static string svg_title(string id) {
-            return Markup.escape_text(id).replace("-", "&#45;");
+            return RenderUtils.html_text(id).replace("-", "&#45;");
         }
 
         // The <g class="kind"> element whose <title> is `title`, or null
@@ -2982,7 +2983,7 @@ namespace GDiagram {
                     sb.append(without);
                     lifted.append("<g class=\"gdtitle\">\n<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" fill=\"%s\" stroke=\"none\"/>\n%s</g>\n".printf(
                         svg_number(x0 - 2), svg_number(y0 - 1), svg_number(x1 - x0 + 4), svg_number(y1 - y0 + 2),
-                        Markup.escape_text(patch), texts.str));
+                        RenderUtils.html_text(patch), texts.str));
                     return false;
                 });
                 if (lifted.len == 0) {
@@ -3052,7 +3053,7 @@ namespace GDiagram {
             if (RenderUtils.parse_gradient(c, out first, out second, out angle)) {
                 c = first;
             }
-            return "%s=\"%s\"".printf(attr, Markup.escape_text(RenderUtils.sanitize_color(c)));
+            return "%s=\"%s\"".printf(attr, RenderUtils.html_text(RenderUtils.sanitize_color(c)));
         }
 
         private static string dash_attr(string dash) {

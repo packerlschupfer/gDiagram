@@ -146,9 +146,9 @@ public class MermaidC4Renderer : Object {
                 string ctop, cbottom;
                 sb.append_printf("%ssubgraph cluster_%s {\n", indent, sanitize_id(b.id));
                 string inner = indent + "    ";
-                var label = new StringBuilder("<B>%s</B>".printf(Markup.escape_text(b.label)));
+                var label = new StringBuilder("<B>%s</B>".printf(RenderUtils.html_text(b.label)));
                 if (b.boundary_type != null && b.boundary_type.length > 0) {
-                    label.append("<BR/><FONT POINT-SIZE=\"10\">[%s]</FONT>".printf(Markup.escape_text(b.boundary_type)));
+                    label.append("<BR/><FONT POINT-SIZE=\"10\">[%s]</FONT>".printf(RenderUtils.html_text(b.boundary_type)));
                 }
                 if (b.description != null && b.description.length > 0) {
                     label.append("<BR/><FONT POINT-SIZE=\"10\">%s</FONT>".printf(wrap_html(b.description)));
@@ -229,7 +229,7 @@ public class MermaidC4Renderer : Object {
                 out_sb.append(" ");
                 line_len++;
             }
-            out_sb.append(Markup.escape_text(word));
+            out_sb.append(RenderUtils.html_text(word));
             line_len += word.char_count();
         }
         return out_sb.str;
@@ -270,8 +270,8 @@ public class MermaidC4Renderer : Object {
 
         // Name, "[type: technology]", description
         var text = new StringBuilder("<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"2\">");
-        text.append("<TR><TD><FONT POINT-SIZE=\"12\"><B>%s</B></FONT></TD></TR>".printf(Markup.escape_text(el.label)));
-        text.append("<TR><TD><FONT POINT-SIZE=\"9\">%s</FONT></TD></TR>".printf(Markup.escape_text(stereotype_text(el))));
+        text.append("<TR><TD><FONT POINT-SIZE=\"12\"><B>%s</B></FONT></TD></TR>".printf(RenderUtils.html_text(el.label)));
+        text.append("<TR><TD><FONT POINT-SIZE=\"9\">%s</FONT></TD></TR>".printf(RenderUtils.html_text(stereotype_text(el))));
         if (el.description != null && el.description.length > 0) {
             text.append("<TR><TD><FONT POINT-SIZE=\"10\">%s</FONT></TD></TR>".printf(wrap_html(el.description)));
         }
@@ -311,7 +311,7 @@ public class MermaidC4Renderer : Object {
         string label = index > 0 ? "%d: %s".printf(index, rel.label) : rel.label;
         var html = new StringBuilder(wrap_html(label));
         if (rel.technology != null && rel.technology.length > 0) {
-            html.append("<BR/><I><FONT POINT-SIZE=\"9\">[%s]</FONT></I>".printf(Markup.escape_text(rel.technology)));
+            html.append("<BR/><I><FONT POINT-SIZE=\"9\">[%s]</FONT></I>".printf(RenderUtils.html_text(rel.technology)));
         }
         string edge_label = html.str;
         if (rel.text_color != null) {

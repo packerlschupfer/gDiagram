@@ -355,6 +355,69 @@ void test_scale_directive_parsing() {
     assert((cap.factor_for(100, 200) - 3.0).abs() < 1e-9);   // plain form: grows
 }
 
+
+// ---- PlantUML's <U+XXXX> escape, and the \" that is not one (2026-11-04) ----
+
+void test_unicode_escape_dot_labels() {
+    string svg = exported_svg("@startuml\n" +
+        "participant \"NVS <U+0022>boot<U+0022>\" as P\n" +
+        "participant \"caf<U+00E9> <U+2192> done\" as Q\n" +
+        "P -> Q : x\n@enduml\n");
+    assert(!svg.contains("U+"));
+    assert(svg.contains("café"));
+    assert(svg.contains("→"));
+}
+
+void test_unicode_escape_html_labels() {
+    // Class members are HTML-table labels, which never touch escape_label(); they went
+    // through Markup.escape_text() directly and drew the tag.
+    string cls = exported_svg("@startuml\nclass \"Caf<U+00E9>\" {\n  +field <U+2192> t\n}\n@enduml\n");
+    assert(!cls.contains("U+"));
+    assert(cls.contains("Café"));
+
+    // A sequence NOTE body is a third path again - that renderer escapes char by char
+    // through its own xml_escape(), not through either of the other two.
+    string note = exported_svg("@startuml\nA -> B : msg <U+2192> ok\n" +
+        "note right of B\nbody <U+00E9> and <U+0022>q<U+0022>\nend note\n@enduml\n");
+    assert(!note.contains("U+"));
+    assert(note.contains("→"));
+    assert(note.contains("é"));
+}
+
+void test_unicode_escape_keeps_message_fast_path() {
+    // is_plain_text() picks the fast path by comparing creole_html(t) with xml_escape(t).
+    // Teaching only ONE of them to decode made any message containing an escape look like
+    // markup, pushing it off the fast path - at which point the escape stopped working in
+    // messages while it started working in notes. Both must decode.
+    string svg = exported_svg("@startuml\nA -> B : msg <U+2192> ok\n@enduml\n");
+    assert(svg.contains("→"));
+    assert(!svg.contains("U+"));
+}
+
+void test_unicode_escape_invalid_left_alone() {
+    // Past U+10FFFF is not a code point, so it was never an escape: it is text.
+    assert(RenderUtils.decode_unicode_escapes("a <U+110000> b") == "a <U+110000> b");
+    assert(RenderUtils.decode_unicode_escapes("a <U+D800> b") == "a <U+D800> b");
+    assert(RenderUtils.decode_unicode_escapes("nothing here") == "nothing here");
+    assert(RenderUtils.decode_unicode_escapes("<u+0041>") == "A");
+}
+
+void test_escaped_quote_detection() {
+    // PlantUML rejects the WHOLE file for this one ...
+    var bad = DiagramLinter.escaped_quote_lines(
+        "@startuml\nparticipant \"NVS \\\"boot\\\"\" as P\n@enduml\n");
+    assert(bad.size == 1);
+    assert(bad.get(0) == 2);
+
+    // ... and accepts these, measured: nothing is quoted, so the backslash-quote is just
+    // text. A check that grepped for the two characters would flag both and cry wolf.
+    var msg = DiagramLinter.escaped_quote_lines("@startuml\nA -> B : he said \\\"hi\\\"\n@enduml\n");
+    assert(msg.size == 0);
+    var note = DiagramLinter.escaped_quote_lines(
+        "@startuml\nnote over A\nhe said \\\"hi\\\"\nend note\n@enduml\n");
+    assert(note.size == 0);
+}
+
 void main(string[] args) {
     Test.init(ref args);
     Test.add_func("/renderutils/markers/plus_both_ends", test_plus_both_ends);
@@ -370,5 +433,10 @@ void main(string[] args) {
     Test.add_func("/renderutils/scale/forms", test_scale_forms);
     Test.add_func("/renderutils/scale/max_only_shrinks", test_scale_max_only_shrinks);
     Test.add_func("/renderutils/scale/parsing", test_scale_directive_parsing);
+    Test.add_func("/renderutils/unicode/dot_labels", test_unicode_escape_dot_labels);
+    Test.add_func("/renderutils/unicode/html_labels", test_unicode_escape_html_labels);
+    Test.add_func("/renderutils/unicode/message_fast_path", test_unicode_escape_keeps_message_fast_path);
+    Test.add_func("/renderutils/unicode/invalid_left_alone", test_unicode_escape_invalid_left_alone);
+    Test.add_func("/renderutils/portability/escaped_quote", test_escaped_quote_detection);
     Test.run();
 }

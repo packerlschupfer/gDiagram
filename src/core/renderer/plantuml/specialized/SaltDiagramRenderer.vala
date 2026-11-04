@@ -77,7 +77,7 @@ public class SaltDiagramRenderer : Object {
 
     private void render_cell(SaltElement elem, StringBuilder sb, Palette palette, int depth, int span,
                              string panel_type) {
-        string text = Markup.escape_text(elem.text);
+        string text = RenderUtils.html_text(elem.text);
         string colspan = span > 1 ? " COLSPAN=\"%d\"".printf(span) : "";
         string grid = panel_type == "#" ? " BORDER=\"1\" COLOR=\"%s\"".printf(palette.node_text) : "";
 

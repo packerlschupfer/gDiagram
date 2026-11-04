@@ -83,9 +83,9 @@ public class NwdiagDiagramRenderer : Object {
         for (int n = 0; n < diagram.networks.size; n++) {
             var net = diagram.networks[n];
             string bar = net.color != null && net.color.length > 0 ? normalize_color(net.color) : "#E6E6FA";
-            string label = Markup.escape_text(net.name);
+            string label = RenderUtils.html_text(net.name);
             if (net.address != null && net.address.length > 0) {
-                label += "<br align=\"right\"/>" + Markup.escape_text(net.address) + "<br align=\"right\"/>";
+                label += "<br align=\"right\"/>" + RenderUtils.html_text(net.address) + "<br align=\"right\"/>";
             }
             sb.append_printf("    net_%d_label [shape=plaintext margin=0 label=<%s>]\n", n, label);
             int taps = int.max(1, net.nodes.size);

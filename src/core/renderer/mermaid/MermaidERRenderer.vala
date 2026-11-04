@@ -67,7 +67,7 @@ namespace GDiagram {
                 var label = new StringBuilder();
                 label.append_printf("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\" BGCOLOR=\"%s\" COLOR=\"%s\">",
                                     palette.component_fill, palette.node_border);
-                label.append_printf("<TR><TD COLSPAN=\"%d\"><B>%s</B></TD></TR>", columns, Markup.escape_text(title));
+                label.append_printf("<TR><TD COLSPAN=\"%d\"><B>%s</B></TD></TR>", columns, RenderUtils.html_text(title));
                 foreach (var attr in entity.attributes) {
                     label.append("<TR>");
                     label.append_printf("<TD ALIGN=\"LEFT\">%s</TD>", cell(attr.type_name));
@@ -87,7 +87,7 @@ namespace GDiagram {
         }
 
         private static string cell(string? text) {
-            return (text == null || text.length == 0) ? " " : Markup.escape_text(text);
+            return (text == null || text.length == 0) ? " " : RenderUtils.html_text(text);
         }
 
         private void render_relationship(StringBuilder dot, MermaidERRelationship relationship) {

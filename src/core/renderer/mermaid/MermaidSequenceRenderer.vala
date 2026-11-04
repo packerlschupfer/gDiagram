@@ -845,7 +845,7 @@ namespace GDiagram {
 
         private string participant_attrs(SeqLayParticipant p, string fill, string border) {
             string font = RenderUtils.contrast_text(fill);
-            string esc_html = Markup.escape_text(p.label).replace("\n", "<BR/>");
+            string esc_html = RenderUtils.html_text(p.label).replace("\n", "<BR/>");
             switch (p.kind) {
                 case "actor":
                     if (!zen) {
@@ -877,7 +877,7 @@ namespace GDiagram {
                 string stereo_row = "";
                 if (p.stereotype != null && p.stereotype.length > 0) {
                     stereo_row = "<TR><TD COLSPAN=\"2\"><FONT POINT-SIZE=\"11\">«%s»</FONT></TD></TR>".printf(
-                        Markup.escape_text(p.stereotype));
+                        RenderUtils.html_text(p.stereotype));
                 }
                 // ZenUML draws @Collections / @Queue as a plain box, like every other head
                 string zperiph = "";
@@ -1184,7 +1184,7 @@ namespace GDiagram {
         }
 
         private static string icon_svg(string kind, string stroke_color, double[] b) {
-            string stroke = Markup.escape_text(stroke_color);
+            string stroke = RenderUtils.html_text(stroke_color);
             double cx = (b[0] + b[2]) / 2;
             double cy = (b[1] + b[3]) / 2;
             double h = b[3] - b[1];

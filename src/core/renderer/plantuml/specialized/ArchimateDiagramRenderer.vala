@@ -92,9 +92,9 @@ public class ArchimateDiagramRenderer : Object {
         string node_id = sanitize_id(elem.id);
 
         // Build label: label text, optionally with stereotype
-        string display_label = GLib.Markup.escape_text(elem.label);
+        string display_label = RenderUtils.html_text(elem.label);
         if (elem.stereotype != null && elem.stereotype.length > 0) {
-            string stereo_text = GLib.Markup.escape_text("«" + elem.stereotype + "»");
+            string stereo_text = RenderUtils.html_text("«" + elem.stereotype + "»");
             // «Stereotype» in italics above the name, as PlantUML draws it
             display_label = "<<I>%s</I><BR/>%s>".printf(stereo_text, display_label);
         } else {

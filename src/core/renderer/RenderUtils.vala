@@ -1168,10 +1168,69 @@ namespace GDiagram {
             return sb.str;
         }
 
+        /**
+         * PlantUML's `<U+XXXX>` escape, which is how a character you cannot type into the
+         * source gets into a label - including the one that has no other spelling at all, a
+         * literal quote inside a quoted name:
+         *
+         *     participant "NVS <U+0022>boot<U+0022>" as NVS
+         *
+         * PlantUML draws that as NVS "boot"; gDiagram used to draw the tags themselves. The
+         * `\"` spelling an author reaches for instead is rejected by PlantUML outright - it
+         * fails the WHOLE file with a syntax error - so this is the only portable form, and
+         * not supporting it meant a label PlantUML can draw and we could not.
+         *
+         * Invalid code points (past U+10FFFF, or a surrogate) are left as written rather than
+         * turned into a replacement character: the text was not an escape, so it is text.
+         */
+        public static string decode_unicode_escapes(string text) {
+            if (!text.down().contains("<u+")) {
+                return text;
+            }
+            try {
+                var re = new Regex("<U\\+([0-9A-Fa-f]{1,6})>", RegexCompileFlags.CASELESS);
+                return re.replace_eval(text, -1, 0, 0, (mi, result) => {
+                    int64 cp = 0;
+                    bool parsed = int64.try_parse(mi.fetch(1), out cp, null, 16);
+                    bool usable = parsed && cp > 0 && cp <= 0x10FFFF
+                                  && !(cp >= 0xD800 && cp <= 0xDFFF);
+                    if (usable) {
+                        result.append_unichar((unichar) cp);
+                    } else {
+                        result.append(mi.fetch(0));
+                    }
+                    return false;
+                });
+            } catch (RegexError e) {
+                return text;
+            }
+        }
+
+        /**
+         * Text for an HTML-like Graphviz label: decode `<U+XXXX>`, then XML-escape.
+         *
+         * The renderers call this everywhere they used to call RenderUtils.html_text() directly,
+         * so the escape works in HTML labels (class members, component bodies, note bodies)
+         * and not only in plain DOT string labels. Decoding cannot be done at SOURCE level
+         * instead, tempting as the single hook is: `"NVS <U+0022>boot<U+0022>"` would become
+         * `"NVS "boot""` before the lexer sees it and the quoted name would end early. That is
+         * why PlantUML decodes at render time too.
+         */
+        public static string html_text(string? s) {
+            if (s == null) {
+                return "";
+            }
+            return Markup.escape_text(decode_unicode_escapes(s));
+        }
+
         public static string escape_label(string? s) {
             if (s == null || s.length == 0) {
                 return "";
             }
+            // Before escaping, not after: a decoded `"` has to go through the escaping below
+            // to come out as a valid DOT string literal.
+            string text_in = decode_unicode_escapes(s);
+            s = text_in;
 
             // Validate UTF-8 and copy to a clean string
             if (!s.validate()) {

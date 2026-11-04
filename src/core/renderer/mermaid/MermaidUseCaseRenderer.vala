@@ -178,8 +178,8 @@ public class MermaidUseCaseRenderer : Object {
         // An actor keeps its stereotype as a line of its own above the figure;
         // only use cases fold it into the label (mermaid's own split).
         string? above = actor.stereotype != null && actor.stereotype.length > 0
-            ? "<I>«%s»</I>".printf(Markup.escape_text(actor.stereotype)) : null;
-        string below = Markup.escape_text(plain_label(actor)).replace("\n", "<BR/>");
+            ? "<I>«%s»</I>".printf(RenderUtils.html_text(actor.stereotype)) : null;
+        string below = RenderUtils.html_text(plain_label(actor)).replace("\n", "<BR/>");
 
         return "%s%s [%s];\n".printf(indent, RenderUtils.sanitize_id(actor.id),
             RenderUtils.actor_figure_attrs(above, below, fill, stroke, extra, null));
@@ -215,11 +215,11 @@ public class MermaidUseCaseRenderer : Object {
 
         var rows = new StringBuilder();
         rows.append("<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\"><B>%s</B></FONT></TD></TR>".printf(
-            fill, text, Markup.escape_text(json.id)));
+            fill, text, RenderUtils.html_text(json.id)));
         for (int i = 0; i < json.keys.size; i++) {
             string value = i < json.values.size ? json.values.get(i) : "";
             rows.append("<TR><TD ALIGN=\"LEFT\"><FONT COLOR=\"%s\">%s</FONT></TD><TD ALIGN=\"LEFT\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>".printf(
-                text, Markup.escape_text(json.keys.get(i)), text, Markup.escape_text(value)));
+                text, RenderUtils.html_text(json.keys.get(i)), text, RenderUtils.html_text(value)));
         }
         if (json.keys.size == 0) {
             rows.append("<TR><TD COLSPAN=\"2\"><FONT COLOR=\"%s\">(empty)</FONT></TD></TR>".printf(text));

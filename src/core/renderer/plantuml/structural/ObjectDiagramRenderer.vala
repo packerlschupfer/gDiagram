@@ -269,10 +269,10 @@ namespace GDiagram {
                 c.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\" BGCOLOR=\"%s\" COLOR=\"%s\">".printf(
                     fill, obj_border));
                 c.append("<TR><TD><FONT COLOR=\"#3A8F4A\">Ⓒ</FONT> %s</TD></TR>".printf(
-                    Markup.escape_text(obj.get_display_label())));
+                    RenderUtils.html_text(obj.get_display_label())));
                 var fields = new StringBuilder();
                 foreach (var field in obj.fields) {
-                    fields.append(Markup.escape_text(field.get_display_text()));
+                    fields.append(RenderUtils.html_text(field.get_display_text()));
                     fields.append("<BR ALIGN=\"LEFT\"/>");
                 }
                 c.append("<TR><TD ALIGN=\"LEFT\" HEIGHT=\"8\">%s</TD></TR>".printf(fields.len > 0 ? fields.str : " "));
@@ -295,11 +295,11 @@ namespace GDiagram {
                     if (e.link_row) {
                         // A row holding a link spans the map, as in PlantUML
                         t.append("<TR><TD PORT=\"r%d\" COLSPAN=\"2\">%s</TD></TR>".printf(
-                            i, Markup.escape_text(e.key)));
+                            i, RenderUtils.html_text(e.key)));
                         continue;
                     }
                     t.append("<TR><TD PORT=\"r%d\" ALIGN=\"LEFT\">%s</TD><TD ALIGN=\"LEFT\">%s</TD></TR>".printf(
-                        i, Markup.escape_text(e.key), Markup.escape_text(e.value)));
+                        i, RenderUtils.html_text(e.key), RenderUtils.html_text(e.value)));
                 }
                 t.append("</TABLE>");
                 sb.append("%s%s [shape=plaintext, style=solid, fontcolor=\"%s\", label=<%s>];\n".printf(indent, id, font, t.str));

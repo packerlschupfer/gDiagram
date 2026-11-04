@@ -52,7 +52,7 @@ public class PinnedDotWriter : Object {
                          string extra = "") {
         double w = text.char_count() * font_px * 0.75 + 20;
         double h = font_px * 1.6;
-        string body = Markup.escape_text(text);
+        string body = RenderUtils.html_text(text);
         if (bold) body = "<B>" + body + "</B>";
         node(x + w / 2, y, w, h,
             "%s shape=plaintext fontsize=%s fontcolor=\"%s\" label=<<TABLE BORDER=\"0\" CELLPADDING=\"0\" CELLSPACING=\"0\"><TR><TD FIXEDSIZE=\"TRUE\" WIDTH=\"%d\" HEIGHT=\"%d\" ALIGN=\"LEFT\">%s</TD></TR></TABLE>>".printf(

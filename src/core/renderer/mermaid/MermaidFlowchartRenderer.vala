@@ -306,7 +306,7 @@ namespace GDiagram {
             for (int i = 0; i < lines.length; i++) {
                 if (i > 0) sb.append("<BR/>");
                 string line = markdown ? lines[i].strip() : lines[i];
-                string esc = Markup.escape_text(replace_icons(MermaidLexer.decode_entities(line)));
+                string esc = RenderUtils.html_text(replace_icons(MermaidLexer.decode_entities(line)));
                 if (markdown) {
                     try {
                         esc = bold_re.replace(esc, -1, 0, "<B>\\1</B>");

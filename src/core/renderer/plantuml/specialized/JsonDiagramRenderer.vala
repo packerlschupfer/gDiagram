@@ -116,10 +116,10 @@ public class DataTableBuilder : Object {
             case JsonNodeType.NUMBER:
                 // .replace: printf is locale-aware, and a German desktop rendered JSON
                 // numbers as "1,5"
-                return Markup.escape_text(node.string_value
+                return RenderUtils.html_text(node.string_value
                                           ?? "%.10g".printf(node.number_value).replace(",", "."));
             default:
-                string text = Markup.escape_text(node.string_value ?? "");
+                string text = RenderUtils.html_text(node.string_value ?? "");
                 return text.replace("\n", "<br align=\"left\"/>");
         }
     }
@@ -152,7 +152,7 @@ public class DataTableBuilder : Object {
                 string cpath = child_path(path, key);
                 string? bg = is_highlighted(cpath) ? style.highlight_fill : null;
                 t.append("<tr>");
-                t.append(cell(Markup.escape_text(key), bg, "left", null, true));
+                t.append(cell(RenderUtils.html_text(key), bg, "left", null, true));
                 if (child.is_leaf()) {
                     t.append(cell(scalar_html(child), bg));
                 } else {
@@ -199,7 +199,7 @@ public class DataTableBuilder : Object {
             "<table border=\"0\" cellborder=\"0\" cellspacing=\"0\" cellpadding=\"3\" columns=\"*\" rows=\"*\">");
         if (title != null) {
             t.append("<tr><td colspan=\"2\"><font color=\"%s\">%s</font></td></tr>".printf(
-                style.font, Markup.escape_text(title)));
+                style.font, RenderUtils.html_text(title)));
         }
         if (node.node_type == JsonNodeType.OBJECT) {
             foreach (var child in node.children) {
@@ -207,7 +207,7 @@ public class DataTableBuilder : Object {
                 string cpath = child_path(path, key);
                 string? bg = is_highlighted(cpath) ? style.highlight_fill : null;
                 t.append("<tr>");
-                t.append(cell(Markup.escape_text(key), bg));
+                t.append(cell(RenderUtils.html_text(key), bg));
                 if (child.is_leaf()) {
                     t.append(cell(scalar_html(child), bg));
                 } else {

@@ -628,7 +628,7 @@ public class EmLayout : Object {
             f(x), f(y), fill, f(size), mono ? "monospace" : "sans-serif",
             anchor != "start" ? " text-anchor=\"%s\"".printf(anchor) : "",
             bold ? " font-weight=\"bold\"" : "",
-            Markup.escape_text(content));
+            RenderUtils.html_text(content));
     }
 
     /**

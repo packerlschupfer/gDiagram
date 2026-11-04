@@ -222,7 +222,7 @@ public class MermaidPacketRenderer : Object {
         if (title_h > 0) {
             sb.append_printf("    pd_title [pos=\"%s,%s\" shape=plaintext width=%s height=0.3 label=<<B>%s</B>> fontcolor=\"%s\"]\n",
                 pd_num(PD_MARGIN + total_w / 2), pd_num(height - PD_MARGIN - title_h / 2),
-                pd_num((total_w + 2 * PD_MARGIN) / 72.0), Markup.escape_text(d.title), palette.node_text);
+                pd_num((total_w + 2 * PD_MARGIN) / 72.0), RenderUtils.html_text(d.title), palette.node_text);
         }
 
         int n = 0;

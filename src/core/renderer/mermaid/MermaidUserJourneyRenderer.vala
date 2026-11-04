@@ -96,7 +96,7 @@ namespace GDiagram {
             // Task description
             label.append_printf(
                 "<TR><TD ALIGN=\"CENTER\"><B>%s</B></TD></TR>",
-                Markup.escape_text(task.description)
+                RenderUtils.html_text(task.description)
             );
 
             // Score as filled circles
@@ -107,7 +107,7 @@ namespace GDiagram {
             // Actors (if any)
             if (task.actors.size > 0) {
                 label.append("<TR><TD ALIGN=\"CENTER\"><FONT POINT-SIZE=\"8\">");
-                label.append(Markup.escape_text(string.joinv(", ", task.actors.to_array())));
+                label.append(RenderUtils.html_text(string.joinv(", ", task.actors.to_array())));
                 label.append("</FONT></TD></TR>");
             }
 

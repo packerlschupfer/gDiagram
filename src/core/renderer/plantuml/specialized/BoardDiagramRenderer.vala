@@ -64,7 +64,7 @@ public class BoardDiagramRenderer : Object {
              "<TR><TD FIXEDSIZE=\"TRUE\" WIDTH=\"%d\" HEIGHT=\"%d\" ALIGN=\"LEFT\" VALIGN=\"TOP\">%s</TD></TR></TABLE>>").printf(
                 line, PinnedDotWriter.num(14 * PinnedDotWriter.PX),
                 (int) ((CARD_W - 4) * PinnedDotWriter.PX), (int) ((CARD_H - 4) * PinnedDotWriter.PX),
-                Markup.escape_text(text)));
+                RenderUtils.html_text(text)));
         int used = 0;
         foreach (var child in children) {
             used += place(w, child.text, child.source_line, child.children, slot + used, depth + 1, top, ref max_depth);

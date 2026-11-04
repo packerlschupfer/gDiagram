@@ -169,7 +169,7 @@ public class MermaidIshikawaLayout : Object {
         return s;
     }
 
-    private static string esc(string s) { return Markup.escape_text(s); }
+    private static string esc(string s) { return RenderUtils.html_text(s); }
 
     private static double text_w(string s, double size, bool bold = false) {
         return GanttText.width(s, size, bold, "Sans");

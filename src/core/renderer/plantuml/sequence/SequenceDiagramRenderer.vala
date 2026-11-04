@@ -198,11 +198,11 @@ namespace GDiagram {
                 string? secondary;
                 frame_texts(frame, out tab, out secondary);
                 want("_seq_ftab%d".printf(fi), "shape=box, style=filled, fillcolor=\"%s\", color=\"%s\", penwidth=1.5, fontsize=11, fontcolor=\"%s\", margin=\"0.08,0.02\", width=0, height=0, label=<<B>%s</B>>".printf(
-                    seq_bg, frame_color, seq_arrow_font, Markup.escape_text(tab)));
+                    seq_bg, frame_color, seq_arrow_font, RenderUtils.html_text(tab)));
                 if (secondary != null) {
                     string sec_attrs = frame.frame_type == SequenceFrameType.REF
                         ? text_attrs(secondary, 11, seq_arrow_font, false)
-                        : html_text_attrs("<B>%s</B>".printf(Markup.escape_text(secondary)), 10, seq_arrow_font);
+                        : html_text_attrs("<B>%s</B>".printf(RenderUtils.html_text(secondary)), 10, seq_arrow_font);
                     want("_seq_fsec%d".printf(fi), sec_attrs);
                 }
                 for (int si = 0; si < frame.sections.size; si++) {
@@ -213,7 +213,7 @@ namespace GDiagram {
                             c = "[%s]".printf(c);
                         }
                         want("_seq_felse%d_%d".printf(fi, si),
-                             html_text_attrs("<B>%s</B>".printf(Markup.escape_text(c)), 10, seq_arrow_font));
+                             html_text_attrs("<B>%s</B>".printf(RenderUtils.html_text(c)), 10, seq_arrow_font));
                     }
                 }
             }
@@ -1576,7 +1576,7 @@ namespace GDiagram {
             if (p.stereotype == null) {
                 return null;
             }
-            string text = Markup.escape_text(p.stereotype);
+            string text = RenderUtils.html_text(p.stereotype);
             string? guillemet = skin.get_global("guillemet");
             if (guillemet != null && guillemet.strip().down() == "false") {
                 return "&lt;&lt;<I>%s</I>&gt;&gt;".printf(text);
@@ -1762,10 +1762,14 @@ namespace GDiagram {
             }
         }
 
+        // This renderer escapes char by char rather than through RenderUtils.html_text(),
+        // so it needs the <U+XXXX> decode of its own - without it the escape worked in
+        // message labels (a DOT string) and not in note bodies (an HTML label).
         private static string xml_escape(string text) {
+            string decoded = RenderUtils.decode_unicode_escapes(text);
             var sb = new StringBuilder();
-            for (int i = 0; i < text.length; i++) {
-                append_escaped_char(sb, text[i]);
+            for (int i = 0; i < decoded.length; i++) {
+                append_escaped_char(sb, decoded[i]);
             }
             return sb.str;
         }
@@ -1806,10 +1810,17 @@ namespace GDiagram {
          * open stays literal text. With `allow_images` a local <img:file> becomes an image
          * marker for html_cells(); otherwise images are dropped.
          */
-        private string creole_html(string? text, bool allow_images = false) {
-            if (text == null || text.length == 0) {
+        private string creole_html(string? text_in, bool allow_images = false) {
+            if (text_in == null || text_in.length == 0) {
                 return "";
             }
+            // Must decode here as well as in xml_escape(), and for a reason worth keeping:
+            // is_plain_text() decides the fast path by comparing creole_html(t) against
+            // xml_escape(t). Teaching only one of them about <U+XXXX> made every message
+            // containing one look like markup, which pushed it off the fast path and OUT of
+            // the decoding DOT-label route - the escape started working in notes and stopped
+            // working in messages.
+            string text = RenderUtils.decode_unicode_escapes(text_in);
             try {
                 if (tag_regex == null) {
                     tag_regex = new Regex("^<(/?)([A-Za-z]+)(?:[:= ]\\s*([^<>]*?))?\\s*/?>");
@@ -2749,7 +2760,7 @@ namespace GDiagram {
                 });
 
                 foreach (var entry in box_kinds.entries) {
-                    string title = Markup.escape_text(entry.key).replace("-", "&#45;");
+                    string title = RenderUtils.html_text(entry.key).replace("-", "&#45;");
                     var node = new Regex("(<title>%s</title>\\s*)<polygon fill=\"([^\"]*)\" stroke=\"([^\"]*)\" points=\"([^\"]*)\"/>".printf(
                         Regex.escape_string(title)));
                     string kind = entry.value;

@@ -341,7 +341,7 @@ namespace GDiagram {
         }
 
         private static string esc(string s) {
-            return Markup.escape_text(s);
+            return RenderUtils.html_text(s);
         }
 
         private static double text_w(string s, double size) {

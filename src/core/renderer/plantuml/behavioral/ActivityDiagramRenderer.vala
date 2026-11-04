@@ -1309,7 +1309,7 @@ namespace GDiagram {
                                 cell_label = bullet + cell_label;
                             }
                             if (node.stereotype != null && node.stereotype.length > 0) {
-                                cell_label = "«" + Markup.escape_text(node.stereotype) + "»<br/>" + cell_label;
+                                cell_label = "«" + RenderUtils.html_text(node.stereotype) + "»<br/>" + cell_label;
                             }
                         }
                         if (this.is_multilevel_list && node.indent_level >= 1) {

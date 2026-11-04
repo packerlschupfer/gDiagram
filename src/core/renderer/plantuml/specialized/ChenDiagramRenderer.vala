@@ -38,7 +38,7 @@ public class ChenDiagramRenderer : Object {
 
         if (diagram.title != null && diagram.title.length > 0) {
             sb.append_printf("    label=<<B>%s</B>>\n    labelloc=t\n    fontsize=10.5\n    fontcolor=\"%s\"\n\n",
-                Markup.escape_text(diagram.title), palette.node_text);
+                RenderUtils.html_text(diagram.title), palette.node_text);
         }
 
         var declared = new Gee.HashSet<string>();
@@ -119,7 +119,7 @@ public class ChenDiagramRenderer : Object {
         int idx = 0;
         foreach (var attr in attrs) {
             string aid = "%s__a%d".printf(owner_id, idx++);
-            string text = Markup.escape_text(attr.label());
+            string text = RenderUtils.html_text(attr.label());
             if (attr.is_key) text = "<U>" + text + "</U>";
             var style = new StringBuilder("filled");
             if (attr.is_derived) style.append(",dashed");

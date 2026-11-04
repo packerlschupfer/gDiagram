@@ -92,7 +92,7 @@ namespace GDiagram {
             sb.append_printf("<TABLE BORDER=\"1\" COLOR=\"%s\" STYLE=\"ROUNDED\" BGCOLOR=\"%s\" CELLBORDER=\"0\" CELLSPACING=\"6\" CELLPADDING=\"3\">",
                 col_color, col_bg);
             sb.append_printf("<TR><TD WIDTH=\"%d\"><FONT POINT-SIZE=\"14\" COLOR=\"%s\">%s</FONT></TD></TR>",
-                CARD_WIDTH, palette.node_text, Markup.escape_text(col.label));
+                CARD_WIDTH, palette.node_text, RenderUtils.html_text(col.label));
             int card_idx = 0;
             foreach (var card in col.cards) {
                 sb.append_printf("<TR><TD ID=\"kanban_card_%d_%d\">%s</TD></TR>",
@@ -180,7 +180,7 @@ namespace GDiagram {
             var sb = new StringBuilder();
             for (int i = 0; i < lines.size; i++) {
                 if (i > 0) sb.append("<BR ALIGN=\"LEFT\"/>");
-                sb.append(Markup.escape_text(lines.get(i)));
+                sb.append(RenderUtils.html_text(lines.get(i)));
             }
             sb.append("<BR ALIGN=\"LEFT\"/>");
             return sb.str;
@@ -189,7 +189,7 @@ namespace GDiagram {
         // Graphviz rejects an empty <FONT>: a blank cell gets a space.
         private static string meta_text(string? text, Palette palette) {
             if (text == null || text.length == 0) return " ";
-            return "<FONT POINT-SIZE=\"10\" COLOR=\"%s\">%s</FONT>".printf(palette.node_text, Markup.escape_text(text));
+            return "<FONT POINT-SIZE=\"10\" COLOR=\"%s\">%s</FONT>".printf(palette.node_text, RenderUtils.html_text(text));
         }
 
         // A card: priority bar on the left, the wrapped label, then the ticket

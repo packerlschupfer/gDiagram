@@ -128,11 +128,11 @@ namespace GDiagram {
             label.append("<TR><TD>");
             string stereotype = get_stereotype_label(cls);
             if (stereotype.length > 0) {
-                label.append(Markup.escape_text(stereotype)).append("<BR/>");
+                label.append(RenderUtils.html_text(stereotype)).append("<BR/>");
             }
             string title = cls.label ?? cls.name;
             if (cls.generic_type != null) title += "<" + cls.generic_type + ">";
-            label.append("<B>").append(Markup.escape_text(title)).append("</B></TD></TR><HR/>");
+            label.append("<B>").append(RenderUtils.html_text(title)).append("</B></TD></TR><HR/>");
             label.append_printf("<TR><TD ALIGN=\"LEFT\" BALIGN=\"LEFT\">%s</TD></TR><HR/>",
                                 attrs.len > 0 ? attrs.str : " ");
             label.append_printf("<TR><TD ALIGN=\"LEFT\" BALIGN=\"LEFT\">%s</TD></TR>",
@@ -171,7 +171,7 @@ namespace GDiagram {
                 }
                 text = sb.str;
             }
-            string html = Markup.escape_text(text);
+            string html = RenderUtils.html_text(text);
             if (member.is_abstract) html = "<I>" + html + "</I>";
             if (member.is_static) html = "<U>" + html + "</U>";
             return html;

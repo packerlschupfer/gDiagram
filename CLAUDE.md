@@ -271,6 +271,42 @@ ever shrinks; the plain forms always scale.
 - `scale_spec` is process-wide, set and cleared around each render like `grayscale_output` —
   if it leaked, the next diagram would be drawn at this one's scale.
 
+### `<U+XXXX>`, and the escaped quote that is not an escape
+
+PlantUML renders `<U+XXXX>` as that character. It is the only way to put a literal quote
+inside a quoted name — `participant "NVS <U+0022>boot<U+0022>" as NVS` — because the `\"`
+spelling an author reaches for instead is rejected by PlantUML **outright**: not that line,
+the whole file, with a syntax error and no output (measured, 1.2026.9). gDiagram used to draw
+the tags themselves, so we were divergent in BOTH directions: accepting what PlantUML rejects
+and failing to draw what it draws.
+
+**Decode at render time, never at source level.** The single-hook temptation is to decode in
+the preprocessor, and it is wrong: `"NVS <U+0022>boot<U+0022>"` becomes `"NVS "boot""` before
+the lexer sees it and the quoted name ends early. PlantUML decodes late for the same reason.
+
+That means **three** paths, because label text does not funnel anywhere:
+
+- `RenderUtils.escape_label()` — plain DOT string labels (68 call sites feed it).
+- `RenderUtils.html_text()` — HTML-like labels. The renderers call it where they used to call
+  `Markup.escape_text()` directly; class members and component bodies are HTML tables that
+  never touch `escape_label()`.
+- `SequenceDiagramRenderer`'s own `xml_escape()` **and** its `creole_html()` — it escapes char
+  by char. Both, not one: `is_plain_text()` decides the fast path by comparing
+  `creole_html(t)` against `xml_escape(t)`, so teaching only one of them made every message
+  containing an escape look like markup, pushed it off the fast path and out of the decoding
+  route — the escape started working in notes and *stopped* working in messages.
+
+An invalid code point (past U+10FFFF, or a surrogate) is left as written: it was never an
+escape, so it is text.
+
+**The `\"` form is a portability warning, not an error** (`DiagramLinter.escaped_quote_lines()`,
+surfaced by the LSP). Rejecting it outright was considered and declined: it breaks files that
+render here today, and the Mermaid-strictness precedent does not transfer, because here there
+IS a portable spelling to migrate to and the warning can name it. The check tracks quoting
+rather than grepping for the two characters — PlantUML **accepts** `A -> B : he said \"hi\"`
+and the same in a note body, where nothing is quoted, so a grep would cry wolf on portable
+files.
+
 ### Backslash line continuation
 
 A source line ending in a single backslash continues onto the next one, as PlantUML 1.2026.9

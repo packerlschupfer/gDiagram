@@ -268,7 +268,7 @@ public class MermaidMindmapRenderer : Object {
         var sb = new StringBuilder();
         for (int i = 0; i < out_lines.size; i++) {
             if (i > 0) sb.append("<BR/>");
-            sb.append(node.markdown ? markdown_html(out_lines[i]) : Markup.escape_text(out_lines[i]));
+            sb.append(node.markdown ? markdown_html(out_lines[i]) : RenderUtils.html_text(out_lines[i]));
         }
         return sb.str;
     }
@@ -344,7 +344,7 @@ public class MermaidMindmapRenderer : Object {
         var sb = new StringBuilder();
         for (int j = 0; j < kinds.size; j++) {
             if (kinds[j] == MD_TEXT) {
-                sb.append(html ? Markup.escape_text(texts[j]) : texts[j]);
+                sb.append(html ? RenderUtils.html_text(texts[j]) : texts[j]);
                 continue;
             }
             if (opens[j] || closes[j]) {
@@ -353,7 +353,7 @@ public class MermaidMindmapRenderer : Object {
                                              : "</%s>".printf(kinds[j] == MD_BOLD ? "B" : "I"));
                 continue;
             }
-            sb.append(html ? Markup.escape_text(texts[j]) : texts[j]);
+            sb.append(html ? RenderUtils.html_text(texts[j]) : texts[j]);
         }
         return sb.str;
     }
@@ -372,7 +372,7 @@ public class MermaidMindmapRenderer : Object {
         string last = parts[parts.length - 1];
         int dash = last.index_of("-");
         if (dash > 0 && dash + 1 < last.length) last = last.substring(dash + 1);
-        return "<FONT POINT-SIZE=\"8\"><I>%s</I></FONT><BR/>".printf(Markup.escape_text(last));
+        return "<FONT POINT-SIZE=\"8\"><I>%s</I></FONT><BR/>".printf(RenderUtils.html_text(last));
     }
 
     // The node's DOT attribute list, without any position.

@@ -23,6 +23,45 @@ namespace GDiagram {
     public class DiagramLinter : Object {
         public Gee.ArrayList<LintMessage> messages { get; private set; }
 
+        /**
+         * Lines where a `\\"` sits inside a QUOTED name - a file that renders here and
+         * fails everywhere else.
+         *
+         * PlantUML 1.2026.9 rejects `participant "NVS \\"boot\\"" as NVS` outright: not that
+         * line, the WHOLE file, with a syntax error and no output. gDiagram renders it, so
+         * the editor says yes and the file does not travel. The portable spelling is the
+         * `<U+0022>` escape, which gDiagram now renders too.
+         *
+         * Only inside a quoted name. Measured: PlantUML ACCEPTS `A -> B : he said \\"hi\\"`
+         * and the same in a note body, because nothing is quoted there - so a check that
+         * just grepped for the two characters would cry wolf on perfectly portable files.
+         */
+        public static Gee.ArrayList<int> escaped_quote_lines(string source) {
+            var lines = new Gee.ArrayList<int>();
+            string[] rows = source.split("\n");
+            for (int n = 0; n < rows.length; n++) {
+                string row = rows[n];
+                bool in_quote = false;
+                int i = 0;
+                while (i < row.length) {
+                    char c = row[i];
+                    if (c == '\\' && i + 1 < row.length && row[i + 1] == '"') {
+                        if (in_quote) {
+                            lines.add(n + 1);
+                            break;
+                        }
+                        i += 2;
+                        continue;
+                    }
+                    if (c == '"') {
+                        in_quote = !in_quote;
+                    }
+                    i++;
+                }
+            }
+            return lines;
+        }
+
         public DiagramLinter() {
             messages = new Gee.ArrayList<LintMessage>();
         }

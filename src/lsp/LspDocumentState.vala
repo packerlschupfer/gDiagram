@@ -83,6 +83,18 @@ namespace GDiagram {
                 }
             }
 
+            // Portability, not correctness: this renders here and fails the WHOLE file in
+            // PlantUML, so the author would only find out after the file leaves. A warning
+            // rather than an error, because nothing about it is wrong for gDiagram itself.
+            if (format != DiagramFormat.MERMAID) {
+                foreach (int line in DiagramLinter.escaped_quote_lines(content)) {
+                    diagnostics.add(line_diagnostic(line, 2,
+                        "An escaped quote inside a quoted name renders here but is a syntax " +
+                        "error in PlantUML, which rejects the whole file. Write <U+0022> " +
+                        "instead - gDiagram and PlantUML both draw that as a quote."));
+                }
+            }
+
             if (diagram_type == DiagramType.UNKNOWN) {
                 diagnostics.add(new LspDiagnostic(
                     0, 0, 0, 0,

@@ -45,7 +45,7 @@ public class AncestryDiagramRenderer : Object {
             string date_str = person.get_date_string();
 
             // Convert newlines in display name to <BR/> for HTML labels
-            string name_html = Markup.escape_text(person.display_name).replace("\n", "<BR/>");
+            string name_html = RenderUtils.html_text(person.display_name).replace("\n", "<BR/>");
 
             sb.append_printf("    %s [\n", person.id);
             sb.append("        shape=plaintext\n");
@@ -57,7 +57,7 @@ public class AncestryDiagramRenderer : Object {
             // Always emit a date row for consistent node height.
             // Use non-breaking space placeholder when no date is known.
             string date_html = date_str.length > 0
-                ? Markup.escape_text(date_str)
+                ? RenderUtils.html_text(date_str)
                 : "&#160;";
             sb.append_printf("                <TR><TD><FONT COLOR=\"%s\" POINT-SIZE=\"9\">%s</FONT></TD></TR>\n",
                 text_color, date_html);

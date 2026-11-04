@@ -1436,7 +1436,7 @@ public class TimingDiagramRenderer : Object {
                     f(x), f(y + asc + lh * i), col, f(size),
                     bold ? " font-weight=\"700\"" : "",
                     serif ? " font-family=\"serif\"" : "",
-                    Markup.escape_text(ln)));
+                    RenderUtils.html_text(ln)));
             }
             i++;
         }

@@ -618,7 +618,7 @@ namespace GDiagram {
                                 closing = "</S>";
                             } else if (low.has_prefix("color:")) {
                                 string col = RenderUtils.sanitize_color(tag.substring(6).strip());
-                                opened = "<FONT COLOR=\"%s\">".printf(Markup.escape_text(col));
+                                opened = "<FONT COLOR=\"%s\">".printf(RenderUtils.html_text(col));
                                 closing = "</FONT>";
                             } else if (low.has_prefix("size:")) {
                                 int size = int.parse(tag.substring(5).strip());
@@ -697,14 +697,14 @@ namespace GDiagram {
                             out_sb.append("<%s>".printf(toggle));
                             open.add(closing);
                         } else {
-                            out_sb.append(Markup.escape_text(rest.substring(0, 2)));
+                            out_sb.append(RenderUtils.html_text(rest.substring(0, 2)));
                         }
                         i += 2;
                         continue;
                     }
                     int next = i;
                     line.get_next_char(ref next, out ch);
-                    out_sb.append(Markup.escape_text(line.substring(i, next - i)));
+                    out_sb.append(RenderUtils.html_text(line.substring(i, next - i)));
                     i = next;
                 }
                 // PlantUML ends every style with its line ("<b>" left open doesn't carry over)
@@ -857,29 +857,29 @@ namespace GDiagram {
             switch (look) {
                 case "frame":
                     sb.append("%slabel=<<TABLE BORDER=\"1\" SIDES=\"BR\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"2\" COLOR=\"%s\"><TR><TD><B>%s</B></TD></TR></TABLE>>;\n".printf(
-                        inner, border, Markup.escape_text(name)));
+                        inner, border, RenderUtils.html_text(name)));
                     sb.append("%slabeljust=l;\n".printf(inner));
                     break;
                 case "node":
-                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, Markup.escape_text(name)));
+                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, RenderUtils.html_text(name)));
                     sb.append("%slabeljust=l;\n".printf(inner));
                     sb.append("%speripheries=1;\n%spenwidth=2;\n".printf(inner, inner));
                     break;
                 case "cloud":
                 case "database":
-                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, Markup.escape_text(name)));
+                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, RenderUtils.html_text(name)));
                     sb.append("%slabeljust=c;\n".printf(inner));
                     style = "filled,rounded";
                     break;
                 case "rectangle":
                 case "rect":
-                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, Markup.escape_text(name)));
+                    sb.append("%slabel=<<B>%s</B>>;\n".printf(inner, RenderUtils.html_text(name)));
                     sb.append("%slabeljust=c;\n".printf(inner));
                     break;
                 case "folder":
                     // the name in a tab at the top left
                     sb.append("%slabel=<<TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"2\" COLOR=\"%s\"><TR><TD><B>%s</B></TD></TR></TABLE>>;\n".printf(
-                        inner, border, Markup.escape_text(name)));
+                        inner, border, RenderUtils.html_text(name)));
                     sb.append("%slabeljust=l;\n".printf(inner));
                     break;
                 default:
@@ -974,12 +974,12 @@ namespace GDiagram {
         }
 
         private string member_line(ClassMember m) {
-            string marker = Markup.escape_text(m.get_marker_text());
+            string marker = RenderUtils.html_text(m.get_marker_text());
             // A written visibility is PlantUML's icon: VISIBILITY_GLYPH in a sentinel colour
             // that draw_visibility_icons() replaces with the shape
             if (!m.mandatory && marker.length > 0 && !visibility_icons()) {
                 // As written, "-field1": PlantUML puts no space after the character
-                marker = Markup.escape_text(m.get_visibility_symbol());
+                marker = RenderUtils.html_text(m.get_visibility_symbol());
             } else if (!m.mandatory && marker.length > 0) {
                 int kind;
                 switch (m.visibility) {
@@ -995,7 +995,7 @@ namespace GDiagram {
                 marker = "<FONT POINT-SIZE=\"%d\" COLOR=\"%s%d\">%s</FONT>&#160;".printf(
                     base_font_size + 4, VISIBILITY_MARKER_COLOR, kind + (m.is_method ? 4 : 0), VISIBILITY_GLYPH);
             }
-            string text = Markup.escape_text(m.name);
+            string text = RenderUtils.html_text(m.name);
             if (text.length > 0) {
                 if (m.is_static) {
                     text = "<U>" + text + "</U>";
@@ -1053,15 +1053,15 @@ namespace GDiagram {
             string? stereo = c.get_stereotype_text();
             if (stereo != null && !c.stereotype_hidden) {
                 sb.append("<FONT POINT-SIZE=\"%d\"><I>«%s»</I></FONT><BR/>".printf(
-                    int.max(base_font_size - 2, 6), Markup.escape_text(stereo)));
+                    int.max(base_font_size - 2, 6), RenderUtils.html_text(stereo)));
             }
             string label_name = c.display_name ?? c.name;
             if (c.generic != null && c.generic.length > 0) {
                 label_name = "%s<%s>".printf(label_name, c.generic);
             }
-            string name_html = Markup.escape_text(label_name).replace("\\n", "<BR/>");
+            string name_html = RenderUtils.html_text(label_name).replace("\\n", "<BR/>");
             if (c.visibility_marker != null) {
-                name_html = Markup.escape_text(c.visibility_marker) + " " + name_html;
+                name_html = RenderUtils.html_text(c.visibility_marker) + " " + name_html;
             }
             // Abstract classes and interfaces have their name in italics
             if (c.class_type == ClassType.ABSTRACT || c.class_type == ClassType.INTERFACE) {
@@ -1075,7 +1075,7 @@ namespace GDiagram {
             if (class_spot(c, out letter, out spot_color)) {
                 sb.append("<FONT POINT-SIZE=\"%d\" COLOR=\"%s\">%s</FONT><FONT POINT-SIZE=\"2\" COLOR=\"%s\">%s</FONT>&#160; ".printf(
                     base_font_size + 6, RenderUtils.sanitize_color(spot_color), SPOT_GLYPH, SPOT_MARKER_COLOR,
-                    Markup.escape_text(letter)));
+                    RenderUtils.html_text(letter)));
             }
             sb.append(name_html);
             sb.append("</TD></TR>");
@@ -1152,7 +1152,7 @@ namespace GDiagram {
                 return compartment(lines);
             }
             var sb = new StringBuilder();
-            sb.append("<HR/><TR><TD>%s</TD></TR>".printf(Markup.escape_text(title)));
+            sb.append("<HR/><TR><TD>%s</TD></TR>".printf(RenderUtils.html_text(title)));
             if (lines.length > 0) {
                 sb.append("<TR><TD ALIGN=\"LEFT\" BALIGN=\"LEFT\" CELLPADDING=\"%d\">%s</TD></TR>".printf(
                     MEMBER_PAD, lines));

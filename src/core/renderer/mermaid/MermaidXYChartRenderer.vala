@@ -170,7 +170,7 @@ namespace GDiagram {
             if (bold || italic) {
                 // librsvg ignores a "Sans Bold" font family: use HTML markup,
                 // aligned inside a fixed-size cell.
-                string body = Markup.escape_text(text);
+                string body = RenderUtils.html_text(text);
                 if (italic) body = "<I>" + body + "</I>";
                 if (bold) body = "<B>" + body + "</B>";
                 string cell_align = align == 'l' ? "LEFT" : (align == 'r' ? "RIGHT" : "CENTER");
