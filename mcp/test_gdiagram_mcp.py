@@ -68,6 +68,25 @@ class Server:
         self.proc.wait(timeout=10)
 
 
+def check_no_tracked_bytecode():
+    """A committed .pyc is deleted by dh_clean during the deb build, which dirties the
+    tree before meson reads `git describe --dirty` - v0.1.8 shipped a build id saying
+    "-dirty" for exactly that reason. Cheap to let it happen again, so: don't."""
+    repo = os.path.dirname(HERE)
+    try:
+        out = subprocess.run(["git", "-C", repo, "ls-files"],
+                             capture_output=True, text=True, timeout=30)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        print("  skip no tracked bytecode (no git)")
+        return
+    if out.returncode != 0:
+        print("  skip no tracked bytecode (not a git checkout)")
+        return
+    offenders = [f for f in out.stdout.splitlines()
+                 if f.endswith(".pyc") or "__pycache__" in f]
+    check("no bytecode is tracked", not offenders, offenders)
+
+
 def main():
     if not os.environ.get("GDIAGRAM_BIN"):
         print("GDIAGRAM_BIN is unset; the server would use whatever `gdiagram` is on PATH,")
@@ -180,6 +199,9 @@ def main():
         check("output_format wins over the extension", head == b"<?xml", head)
 
     s.close()
+
+    print("repo hygiene")
+    check_no_tracked_bytecode()
     print()
     if failures:
         print(f"{len(failures)} FAILED: {', '.join(failures)}")

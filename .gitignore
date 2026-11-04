@@ -15,6 +15,12 @@ debian/*.substvars
 debian/*.debhelper.log
 debian/debhelper-build-stamp
 
+# Python bytecode. A committed .pyc is not merely untidy: dh_clean deletes it during
+# dpkg-buildpackage, which makes the tree dirty before meson reads `git describe --dirty`,
+# and the release then ships a build id marked "-dirty" (v0.1.8 did).
+__pycache__/
+*.pyc
+
 # Meson build artifacts
 *.stamp
 
