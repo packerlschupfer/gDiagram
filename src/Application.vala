@@ -344,6 +344,13 @@ namespace GDiagram {
             return sb.str;
         }
 
+        /**
+         * PlantUML's rendered width as a fraction of gDiagram's for the same source.
+         * Measured 2026-11-04 against 1.2026.9 on sequence diagrams of 10, 22 and 26
+         * participants: 0.761, 0.757, 0.756. Used only to predict PlantUML's 4096 px crop.
+         */
+        private const double PLANTUML_WIDTH_RATIO = 0.76;
+
         /** One finding: an error stops the file working, a warning stops it travelling. */
         private class CheckNote : Object {
             public string severity;
@@ -376,9 +383,16 @@ namespace GDiagram {
                 FileUtils.get_contents(input_path, out content);
             } catch (FileError e) {
                 if (as_json) {
-                    stdout.printf("{\"file\": \"%s\", \"ok\": false, \"diagnostics\": " +
-                                  "[{\"severity\": \"error\", \"code\": \"unreadable\", " +
-                                  "\"line\": 0, \"message\": \"%s\"}]}\n",
+                    // The same keys as every other result: a consumer that reads .type or
+                    // .width should not hit a missing field on the one path where the file
+                    // could not be opened.
+                    stdout.printf("{\n  \"file\": \"%s\",\n  \"format\": \"unknown\",\n" +
+                                  "  \"type\": \"unknown\",\n  \"ok\": false,\n" +
+                                  "  \"width\": 0,\n  \"height\": 0,\n" +
+                                  "  \"exceeds_plantuml_crop\": false,\n" +
+                                  "  \"diagnostics\": [\n    {\"severity\": \"error\", " +
+                                  "\"code\": \"unreadable\", \"line\": 0, " +
+                                  "\"message\": \"%s\"}\n  ]\n}\n",
                                   json_escape(input_path), json_escape(e.message));
                 } else {
                     stderr.printf("Error: %s\n", e.message);
@@ -459,12 +473,23 @@ namespace GDiagram {
             // PlantUML crops at 4096 px in both 1.2020.02 and 1.2026.9 - it exits 0 and
             // writes a truncated image - and gDiagram renders at any size, so this is the
             // one thing a gDiagram-only author cannot discover for themselves.
-            bool oversized = width > 4096 || height > 4096;
+            //
+            // Compare PLANTUML's pixels, not ours. gDiagram draws the same source wider:
+            // measured over a range of sequence diagrams, PlantUML comes out at 0.757,
+            // 0.756 and 0.761 of our width, consistently ~0.76. Testing our own width
+            // against 4096 therefore cried wolf over everything from 4096 to ~5400 px -
+            // a 26-participant diagram is 5125 px here and 3875 px in PlantUML, nowhere
+            // near the crop. The estimate is in the message because it IS an estimate:
+            // the ratio is font metrics, not arithmetic.
+            int est_width = (int) (width * PLANTUML_WIDTH_RATIO);
+            int est_height = (int) (height * PLANTUML_WIDTH_RATIO);
+            bool oversized = est_width > 4096 || est_height > 4096;
             if (oversized && result.format != DiagramFormat.MERMAID) {
                 notes.add(new CheckNote("warning", "exceeds-plantuml-crop", 0,
-                    ("Rendered %dx%d px. PlantUML silently crops at 4096 px, so this file " +
-                     "will be truncated there. Add `scale max 4000 width` to cap it.").printf(
-                        width, height)));
+                    ("Rendered %dx%d px here, about %dx%d px in PlantUML, which silently " +
+                     "crops at 4096 px - this file will be truncated there. Add " +
+                     "`scale max 4000 width` to cap it.").printf(
+                        width, height, est_width, est_height)));
             }
 
             if (as_json) {

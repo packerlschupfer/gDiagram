@@ -27,7 +27,7 @@ meson compile -C build
 dpkg-buildpackage -us -uc -b
 ```
 
-Tests live in `tests/` and are wired into the build via `subdir('tests')`. Run them with `meson test -C build`. There are 58 suites covering lexers, parsers, type detection, renderers (snapshot tests), the preprocessor, utilities, template/example health, the element palette catalog, the element inspector (properties panel edits), display-free UI logic (`SourceEdit`, `OutlineNode`), and the LSP server (protocol unit tests + a stdio integration test that spawns `gdiagram-lsp`). The `review_*_test.vala` suites hold regression tests from the September 2026 code review, one per area (activity, structural, front end, class/object, RenderUtils, UI, includes, sequence layout, specialized types, timing, gantt, data diagrams, engine/CLI performance, click regions, GUI logic (display-free plus an `xvfb-run` display suite), and the Mermaid flowchart, structural (two suites: the second covers ER crow's feet, class lollipops, concurrent state regions, the requirement box look and block cross ends), sequence, block/C4/architecture, chart and gantt/gitgraph/mindmap types), plus syntax highlighting (`data/lang` definitions) and the outline controller (runs under `xvfb-run`, skipped without it). The six October 2026 suites cover the diagram types added in round 9: Mermaid agentflow/eventmodeling, railroad (four grammars)/swimlane, info/cynefin/venn, treeView/ishikawa, wardley/usecase, and PlantUML `@startchart`/`@startgitlog`.
+Tests live in `tests/` and are wired into the build via `subdir('tests')`. Run them with `meson test -C build`. There are 60 suites (one, "MCP server tests", is the Python server in `mcp/` driven over real stdio) covering lexers, parsers, type detection, renderers (snapshot tests), the preprocessor, utilities, template/example health, the element palette catalog, the element inspector (properties panel edits), display-free UI logic (`SourceEdit`, `OutlineNode`), and the LSP server (protocol unit tests + a stdio integration test that spawns `gdiagram-lsp`). The `review_*_test.vala` suites hold regression tests from the September 2026 code review, one per area (activity, structural, front end, class/object, RenderUtils, UI, includes, sequence layout, specialized types, timing, gantt, data diagrams, engine/CLI performance, click regions, GUI logic (display-free plus an `xvfb-run` display suite), and the Mermaid flowchart, structural (two suites: the second covers ER crow's feet, class lollipops, concurrent state regions, the requirement box look and block cross ends), sequence, block/C4/architecture, chart and gantt/gitgraph/mindmap types), plus syntax highlighting (`data/lang` definitions) and the outline controller (runs under `xvfb-run`, skipped without it). The six October 2026 suites cover the diagram types added in round 9: Mermaid agentflow/eventmodeling, railroad (four grammars)/swimlane, info/cynefin/venn, treeView/ishikawa, wardley/usecase, and PlantUML `@startchart`/`@startgitlog`.
 
 ## Architecture
 
@@ -222,6 +222,36 @@ only in the LSP, unreachable from a script or an agent.
 - `tests/cli_args_test.vala` PARSES the JSON with json-glib rather than grepping it, so a
   malformed document fails instead of passing a substring match — the same reason that file
   asserts on PNG magic bytes rather than on the printed line.
+
+### The MCP server (`mcp/`)
+
+`mcp/gdiagram_mcp.py` exposes `check_diagram` and `render_diagram` to an MCP client. It is
+**standard library only** — gDiagram ships as a .deb, and a server needing `pip install`
+would be one more thing to break on a machine that already has the binary — and it is
+deliberately thin: it shells out to `--check --json` and `-e` and passes the result
+through, with no model of what a diagram is. That is what stops it drifting from the CLI.
+
+- **Pass `-f` explicitly when exporting.** The CLI takes its format from the output
+  extension unless told otherwise, so `output_format="png"` with a `.svg` path returned
+  XML to the model labelled `mimeType: image/png`.
+- **One malformed message must not end the session.** A JSON-RPC batch (legal in the
+  2025-03-26 revision) or a non-object `params` used to raise straight out of the read
+  loop and kill the server. Everything is type-checked before `.get()`, and the loop has a
+  last-resort handler.
+- **`ping` must return an empty result** in every revision we advertise; answering
+  `-32601` makes a health-checking client treat the server as broken.
+- `mcp/test_gdiagram_mcp.py` spawns the server and speaks real JSON-RPC over stdio,
+  including the malformed-input cases a well-behaved client cannot produce. It runs under
+  `meson test`, because a protocol server nobody speaks to drifts out of spec quietly.
+
+### gDiagram renders ~1.32x wider than PlantUML
+
+Measured 2026-11-04 against 1.2026.9 on sequence diagrams of 10, 22 and 26 participants:
+PlantUML's width is 0.761, 0.757 and 0.756 of ours. Anything predicting PlantUML's
+behaviour from our own pixel size must apply that ratio — `--check`'s crop warning
+compared our width with PlantUML's 4096 px limit and so warned about every diagram from
+4096 px up to ~5400 px that PlantUML draws perfectly well (26 participants: 5125 px here,
+3875 px there). `Application.PLANTUML_WIDTH_RATIO` holds the constant.
 
 ### Note line alignment
 

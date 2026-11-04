@@ -707,6 +707,18 @@ cli_args_test = executable('cli_args_test',
   vala_args: ['--target-glib=2.74'],
   c_args: test_c_suppress + vala_c_suppress,
 )
+# The MCP server is Python and talks JSON-RPC over stdio to the real binary. Running it
+# here keeps the protocol honest: a server nobody speaks to drifts out of spec quietly.
+python_prog = find_program('python3', required: false)
+if python_prog.found()
+  test('MCP server tests', python_prog,
+    args: [meson.project_source_root() / 'mcp' / 'test_gdiagram_mcp.py'],
+    env: ['GDIAGRAM_BIN=' + gdiagram_exe.full_path()],
+    depends: [gdiagram_exe],
+    timeout: 120,
+  )
+endif
+
 test('CLI argument tests', cli_args_test,
   env: [
     'GDIAGRAM_BIN=' + gdiagram_exe.full_path(),

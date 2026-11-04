@@ -269,6 +269,40 @@ namespace GDiagram.Tests {
             assert(!o2.get_boolean_member("exceeds_plantuml_crop"));
         }
 
+        /**
+         * The warning must predict PLANTUML's size, not ours.
+         *
+         * gDiagram draws the same source about a third wider (measured 2026-11-04 against
+         * 1.2026.9: PlantUML is 0.757/0.756/0.761 of our width across three sizes), so
+         * comparing our own pixels with 4096 cried wolf over everything from 4096 up to
+         * ~5400 px. 26 participants is 5125 px here and 3875 px in PlantUML - nowhere near
+         * the crop. The 40-participant case above cannot catch this, because it is far
+         * enough past the boundary to be cropped either way.
+         */
+        public static void test_check_crop_warning_uses_plantuml_size() {
+            var sb = new StringBuilder("@startuml\n");
+            for (int i = 0; i < 26; i++) {
+                sb.append_printf("participant \"Service Number %02d\" as S%d\n", i, i);
+            }
+            for (int i = 0; i < 25; i++) {
+                sb.append_printf("S%d -> S%d : call %d\n", i, i + 1, i);
+            }
+            sb.append("@enduml\n");
+            string mid = write_check_file("chk_mid.puml", sb.str);
+
+            string text;
+            assert(run_cli_stdout({ "--check", "--json", mid }, out text) == 0);
+            var parser = new Json.Parser();
+            try {
+                parser.load_from_data(text);
+            } catch (Error e) {
+                assert_not_reached();
+            }
+            var root_obj = parser.get_root().get_object();
+            assert(root_obj.get_int_member("width") > 4096);          // wide for us ...
+            assert(!root_obj.get_boolean_member("exceeds_plantuml_crop"));  // ... fine there
+        }
+
         /** --json without --check would let a script parse prose believing it was JSON. */
         public static void test_check_flag_misuse_rejected() {
             string good = write_check_file("chk_misuse.puml", "@startuml\nA -> B : x\n@enduml\n");
@@ -1137,6 +1171,8 @@ namespace GDiagram.Tests {
         Test.add_func("/cli-args/check_warnings_do_not_fail", CliArgsTests.test_check_warnings_do_not_fail);
         Test.add_func("/cli-args/check_flags_oversized", CliArgsTests.test_check_flags_oversized_diagram);
         Test.add_func("/cli-args/check_flag_misuse", CliArgsTests.test_check_flag_misuse_rejected);
+        Test.add_func("/cli-args/check_crop_uses_plantuml_size",
+                      CliArgsTests.test_check_crop_warning_uses_plantuml_size);
         Test.add_func("/cli-args/unreadable_extension_defaults_to_png",
                       CliArgsTests.test_unreadable_extension_defaults_to_png);
         return Test.run();
