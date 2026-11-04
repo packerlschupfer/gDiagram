@@ -344,13 +344,6 @@ namespace GDiagram {
             return sb.str;
         }
 
-        /**
-         * PlantUML's rendered width as a fraction of gDiagram's for the same source.
-         * Measured 2026-11-04 against 1.2026.9 on sequence diagrams of 10, 22 and 26
-         * participants: 0.761, 0.757, 0.756. Used only to predict PlantUML's 4096 px crop.
-         */
-        private const double PLANTUML_WIDTH_RATIO = 0.76;
-
         /** One finding: an error stops the file working, a warning stops it travelling. */
         private class CheckNote : Object {
             public string severity;
@@ -481,9 +474,9 @@ namespace GDiagram {
             // a 26-participant diagram is 5125 px here and 3875 px in PlantUML, nowhere
             // near the crop. The estimate is in the message because it IS an estimate:
             // the ratio is font metrics, not arithmetic.
-            int est_width = (int) (width * PLANTUML_WIDTH_RATIO);
-            int est_height = (int) (height * PLANTUML_WIDTH_RATIO);
-            bool oversized = est_width > 4096 || est_height > 4096;
+            int est_width = (int) (width * RenderUtils.PLANTUML_WIDTH_RATIO);
+            int est_height = (int) (height * RenderUtils.PLANTUML_WIDTH_RATIO);
+            bool oversized = RenderUtils.exceeds_plantuml_crop(width, height);
             if (oversized && result.format != DiagramFormat.MERMAID) {
                 notes.add(new CheckNote("warning", "exceeds-plantuml-crop", 0,
                     ("Rendered %dx%d px here, about %dx%d px in PlantUML, which silently " +

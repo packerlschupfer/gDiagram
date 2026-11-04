@@ -325,6 +325,27 @@ void test_scale_max_only_shrinks() {
     assert((uncapped - plain).abs() < 0.01);
 }
 
+void test_plantuml_crop_prediction() {
+    // Fixed numbers on purpose: the first version of this check rendered a 26-participant
+    // diagram and asserted on its pixel width. That passed on Debian and FAILED on CI's
+    // Ubuntu, because the width depends on which fonts are installed - the test was
+    // measuring the font stack, not the rule.
+    //
+    // Measured against PlantUML 1.2026.9: our 5125 px is 3875 px there (fine), our
+    // 7890 px is cropped at 4096 (not fine).
+    assert(!RenderUtils.exceeds_plantuml_crop(5125, 1200));
+    assert(RenderUtils.exceeds_plantuml_crop(7890, 1547));
+
+    // The boundary is PlantUML's 4096, reached at ~5389 of ours - NOT at 4096 of ours,
+    // which is what the warning used to use and why it cried wolf.
+    assert(!RenderUtils.exceeds_plantuml_crop(4097, 100));
+    assert(!RenderUtils.exceeds_plantuml_crop(5300, 100));
+    assert(RenderUtils.exceeds_plantuml_crop(5500, 100));
+
+    // Height counts too: a tall diagram is cropped just as silently.
+    assert(RenderUtils.exceeds_plantuml_crop(100, 5500));
+}
+
 void test_scale_inside_a_note_is_text() {
     // A note body is drawn, not executed. Measured: PlantUML leaves this diagram at its
     // original size; we doubled it. Found by review, not by me.
@@ -473,6 +494,7 @@ void main(string[] args) {
     Test.add_func("/renderutils/sanitize_id/keywords", test_sanitize_id_keywords_collision_free);
     Test.add_func("/renderutils/scale/forms", test_scale_forms);
     Test.add_func("/renderutils/scale/max_only_shrinks", test_scale_max_only_shrinks);
+    Test.add_func("/renderutils/crop/plantuml_prediction", test_plantuml_crop_prediction);
     Test.add_func("/renderutils/scale/note_body_is_text", test_scale_inside_a_note_is_text);
     Test.add_func("/renderutils/scale/parsing", test_scale_directive_parsing);
     Test.add_func("/renderutils/unicode/dot_labels", test_unicode_escape_dot_labels);

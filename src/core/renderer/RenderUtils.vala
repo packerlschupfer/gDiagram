@@ -1225,6 +1225,34 @@ namespace GDiagram {
          */
         public static bool unicode_escapes_enabled = false;
 
+        /**
+         * PlantUML's rendered width as a fraction of gDiagram's for the same source.
+         * Measured 2026-11-04 against 1.2026.9 on sequence diagrams of 10, 22 and 26
+         * participants: 0.761, 0.757, 0.756.
+         */
+        public const double PLANTUML_WIDTH_RATIO = 0.76;
+
+        /** The size at which PlantUML silently truncates, in both 1.2020.02 and 1.2026.9. */
+        public const int PLANTUML_CROP_PX = 4096;
+
+        /**
+         * Will PlantUML crop a drawing that WE rendered at this size?
+         *
+         * Compare PlantUML's pixels, not ours: gDiagram draws the same source about a third
+         * wider, so testing our own width against 4096 warns about every diagram from
+         * 4096 px up to ~5400 px that PlantUML handles perfectly well (26 participants is
+         * 5125 px here and 3875 px there).
+         *
+         * Lives here, not in the CLI, so it can be tested on fixed numbers. The first
+         * version of its test rendered a diagram and asserted on the pixel count, which
+         * passed on Debian and failed on CI's Ubuntu - the width depends on the fonts
+         * installed, so an absolute assertion about it tests the font stack.
+         */
+        public static bool exceeds_plantuml_crop(int width, int height) {
+            return width * PLANTUML_WIDTH_RATIO > PLANTUML_CROP_PX
+                || height * PLANTUML_WIDTH_RATIO > PLANTUML_CROP_PX;
+        }
+
         public static string decode_unicode_escapes(string text) {
             if (!unicode_escapes_enabled) {
                 return text;

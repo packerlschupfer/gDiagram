@@ -251,7 +251,15 @@ PlantUML's width is 0.761, 0.757 and 0.756 of ours. Anything predicting PlantUML
 behaviour from our own pixel size must apply that ratio — `--check`'s crop warning
 compared our width with PlantUML's 4096 px limit and so warned about every diagram from
 4096 px up to ~5400 px that PlantUML draws perfectly well (26 participants: 5125 px here,
-3875 px there). `Application.PLANTUML_WIDTH_RATIO` holds the constant.
+3875 px there). `RenderUtils.PLANTUML_WIDTH_RATIO` and `RenderUtils.exceeds_plantuml_crop()` hold it — in
+the core, not the CLI, so the rule can be tested on fixed numbers.
+
+**Never assert an absolute pixel width in a test.** How wide a diagram renders depends on
+the fonts installed: a `--check` test asserting `width > 4096 && !exceeds_plantuml_crop`
+on a 26-participant diagram passed here (5125 px) and failed on CI's Ubuntu, where the
+same source renders wider and crosses the threshold. It was measuring the font stack, not
+the rule. Test the rule on fixed numbers; if an end-to-end test is also wanted, assert a
+*relationship* between the reported fields rather than their values.
 
 ### Note line alignment
 

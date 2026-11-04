@@ -299,8 +299,18 @@ namespace GDiagram.Tests {
                 assert_not_reached();
             }
             var root_obj = parser.get_root().get_object();
-            assert(root_obj.get_int_member("width") > 4096);          // wide for us ...
-            assert(!root_obj.get_boolean_member("exceeds_plantuml_crop"));  // ... fine there
+
+            // Assert the RELATIONSHIP, not a pixel count: how wide this renders depends on
+            // the fonts installed, and an earlier version of this test asserted
+            // "width > 4096 && !exceeds", which held on Debian and failed on CI's Ubuntu
+            // where the same source renders wider. The rule itself is pinned on fixed
+            // numbers in the RenderUtils suite; what belongs here is that --check reports
+            // the two consistently.
+            int64 w = root_obj.get_int_member("width");
+            int64 h = root_obj.get_int_member("height");
+            bool flagged = root_obj.get_boolean_member("exceeds_plantuml_crop");
+            bool expected = (w * 0.76 > 4096) || (h * 0.76 > 4096);
+            assert(flagged == expected);
         }
 
         /** --json without --check would let a script parse prose believing it was JSON. */
